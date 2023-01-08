@@ -1,6 +1,6 @@
 module github.com/yandex/pandora
 
-go 1.17
+go 1.19
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20171111151018-521b25f4b05f
