@@ -4,14 +4,14 @@ variables:
 variable_sources:
   - type: "file/csv"
     name: "users"
-    skip_header: true
-    header_as_fields: false
+    ignore_first_line: true
+    delimiter: ";"
     file: "files/users.csv"
     fields: [ "user_id", "name", "pass" ]
   - type: "file/csv"
     name: "users2"
-    skip_header: false
-    header_as_fields: true
+    ignore_first_line: false
+    delimiter: ";"
     file: "files/users2.csv"
     fields: [ "user_id2", "name2", "pass2" ]
   - type: "file/json"
@@ -45,7 +45,11 @@ requests:
       - type: 'assert/response'
         headers:
           Content-Type: "json"
-        body: ["token", "auth"]
+        body: [ "token", "auth" ]
+        status_code: 200
+        size:
+          val: 10000
+          op: ">"
 
   - name: list_req
     uri: '/list'
