@@ -9,17 +9,20 @@ import (
 	"net"
 
 	"github.com/spf13/afero"
+	"go.uber.org/zap"
+
 	phttp "github.com/yandex/pandora/components/guns/http"
 	httpProvider "github.com/yandex/pandora/components/providers/http"
+	scenarioProvider "github.com/yandex/pandora/components/providers/scenario"
 	"github.com/yandex/pandora/core"
 	"github.com/yandex/pandora/core/register"
 	"github.com/yandex/pandora/lib/answlog"
 	"github.com/yandex/pandora/lib/netutil"
-	"go.uber.org/zap"
 )
 
 func Import(fs afero.Fs) {
 	httpProvider.Import(fs)
+	scenarioProvider.Import(fs)
 
 	register.Gun("http", func(conf phttp.HTTPGunConfig) func() core.Gun {
 		targetResolved, _ := PreResolveTargetAddr(&conf.Client, conf.Gun.Target)
