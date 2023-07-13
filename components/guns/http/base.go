@@ -17,9 +17,10 @@ import (
 	"net/url"
 
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
+
 	"github.com/yandex/pandora/core"
 	"github.com/yandex/pandora/core/aggregator/netsample"
-	"go.uber.org/zap"
 )
 
 const (

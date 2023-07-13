@@ -9,6 +9,10 @@ import (
 	"net"
 
 	"github.com/spf13/afero"
+	"go.uber.org/zap"
+
+	"go.uber.org/zap"
+
 	phttp "github.com/yandex/pandora/components/guns/http"
 	httpProvider "github.com/yandex/pandora/components/providers/http"
 	scenarioProvider "github.com/yandex/pandora/components/providers/http_scenario"
@@ -16,7 +20,6 @@ import (
 	"github.com/yandex/pandora/core/register"
 	"github.com/yandex/pandora/lib/answlog"
 	"github.com/yandex/pandora/lib/netutil"
-	"go.uber.org/zap"
 )
 
 func Import(fs afero.Fs) {
