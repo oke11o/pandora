@@ -34,10 +34,13 @@ func NewProvider(fs afero.Fs, conf Config) (core.Provider, error) {
 		}
 	}()
 
-	d := &decoder{}
-	ammos, err := d.parseAmmo(file, conf)
+	ammoCfg, err := parseAmmoConfig(file)
 	if err != nil {
-		return nil, fmt.Errorf("%s %w", op, err)
+		return nil, fmt.Errorf("%s parseAmmoConfig %w", op, err)
+	}
+	ammos, err := decodeAmmo(ammoCfg)
+	if err != nil {
+		return nil, fmt.Errorf("%s decodeAmmo %w", op, err)
 	}
 
 	return &Provider{
