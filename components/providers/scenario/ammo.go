@@ -11,12 +11,15 @@ import (
 	"github.com/yandex/pandora/core/config"
 )
 
+type Step struct {
+}
+
 type InputParam string
 
 type OutputParams string
 
 type Ammo struct {
-	Steps        []any
+	Steps        []Step
 	InputParams  []InputParam
 	OutputParams []OutputParams
 }

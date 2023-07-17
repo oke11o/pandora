@@ -1,16 +1,26 @@
 package scenario
 
-import (
-	"net/http"
+type VariableStorage map[string]string
 
-	"github.com/yandex/pandora/core/aggregator/netsample"
-)
+type Step interface {
+	GetURL() string
+	GetMethod() string
+	GetBody() []byte
+	GetHeaders() map[string]string
+}
+
+type RequestParts struct {
+	URL     string
+	Method  string
+	Body    []byte
+	Headers map[string]string
+}
 
 // TODO: Not used yet
 type Ammo interface {
-	// TODO(skipor): instead of sample use it wrapper with httptrace and more usable interface.
-	Request() (*http.Request, *netsample.Sample)
-	// Id unique ammo id. Usually equals to ammo num got from provider.
+	Steps() []Step
 	ID() uint64
-	IsInvalid() bool
+	VariableStorage() VariableStorage
+	OutputParams() []string
+	Name() string
 }

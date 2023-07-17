@@ -11,7 +11,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
 	phttp "github.com/yandex/pandora/components/guns/http"
@@ -40,6 +39,7 @@ type BaseGun struct {
 	hostname       string
 	targetResolved string
 	client         Client
+	templater      *Templater
 }
 
 var _ Gun = (*BaseGun)(nil)
@@ -66,7 +66,6 @@ func (b *BaseGun) Bind(aggregator netsample.Aggregator, deps core.GunDeps) error
 
 // Shoot is thread safe iff Do and Connect hooks are thread safe.
 func (b *BaseGun) Shoot(ammo Ammo) {
-	var bodyBytes []byte
 	if b.Aggregator == nil {
 		zap.L().Panic("must bind before shoot")
 	}
@@ -78,72 +77,67 @@ func (b *BaseGun) Shoot(ammo Ammo) {
 		}
 	}
 
-	req, sample := ammo.Request()
-	if ammo.IsInvalid() {
+	sample, err := b.shoot(ammo)
+	if err != nil {
+		b.Log.Warn("Invalid ammo", zap.Uint64("request", ammo.ID()), zap.Error(err))
+
 		sample.AddTag(EmptyTag)
 		sample.SetProtoCode(0)
+		sample.SetErr(err)
 		b.Aggregator.Report(sample)
-		b.Log.Warn("Invalid ammo", zap.Uint64("request", ammo.ID()))
-		return
-	}
-	if b.DebugLog {
-		b.Log.Debug("Prepared ammo to shoot", zap.Stringer("url", req.URL))
-	}
-	if b.Config.AutoTag.Enabled && (!b.Config.AutoTag.NoTagOnly || sample.Tags() == "") {
-		sample.AddTag(autotag(b.Config.AutoTag.URIElements, req.URL))
-	}
-	if sample.Tags() == "" {
-		sample.AddTag(EmptyTag)
-	}
-	if b.Config.AnswLog.Enabled {
-		bodyBytes = GetBody(req)
-	}
-
-	var err error
-	defer func() {
-		if err != nil {
-			sample.SetErr(err)
-		}
-		b.Aggregator.Report(sample)
-		err = errors.WithStack(err)
-	}()
-
-	var res *http.Response
-	res, err = b.Do(req)
-
-	if err != nil {
-		b.Log.Warn("Request fail", zap.Error(err))
 		return
 	}
 
-	if b.DebugLog {
-		b.verboseLogging(res)
-	}
-	if b.Config.AnswLog.Enabled {
-		switch b.Config.AnswLog.Filter {
-		case "all":
-			b.answLogging(req, bodyBytes, res)
+	b.Aggregator.Report(sample)
 
-		case "warning":
-			if res.StatusCode >= 400 {
-				b.answLogging(req, bodyBytes, res)
-			}
+	// TODO: Logging should be in shoot() method.
 
-		case "error":
-			if res.StatusCode >= 500 {
-				b.answLogging(req, bodyBytes, res)
-			}
-		}
-	}
-
-	sample.SetProtoCode(res.StatusCode)
-	defer res.Body.Close()
-	// TODO: measure body read time
-	_, err = io.Copy(io.Discard, res.Body) // Buffers are pooled for ioutil.Discard
-	if err != nil {
-		b.Log.Warn("Body read fail", zap.Error(err))
-		return
-	}
+	//if b.DebugLog {
+	//	b.Log.Debug("Prepared ammo to shoot", zap.Stringer("url", req.URL))
+	//}
+	//if b.Config.AutoTag.Enabled && (!b.Config.AutoTag.NoTagOnly || sample.Tags() == "") {
+	//	sample.AddTag(autotag(b.Config.AutoTag.URIElements, req.URL))
+	//}
+	//if sample.Tags() == "" {
+	//	sample.AddTag(EmptyTag)
+	//}
+	//if b.Config.AnswLog.Enabled {
+	//	bodyBytes = GetBody(req)
+	//}
+	//
+	//if err != nil {
+	//	b.Log.Warn("Request fail", zap.Error(err))
+	//	return
+	//}
+	//
+	//if b.DebugLog {
+	//	b.verboseLogging(res)
+	//}
+	//if b.Config.AnswLog.Enabled {
+	//	switch b.Config.AnswLog.Filter {
+	//	case "all":
+	//		b.answLogging(req, bodyBytes, res)
+	//
+	//	case "warning":
+	//		if res.StatusCode >= 400 {
+	//			b.answLogging(req, bodyBytes, res)
+	//		}
+	//
+	//	case "error":
+	//		if res.StatusCode >= 500 {
+	//			b.answLogging(req, bodyBytes, res)
+	//		}
+	//	}
+	//}
+	//
+	//sample.SetProtoCode(res.StatusCode)
+	//defer res.Body.Close()
+	//// TODO: measure body read time
+	//_, err = io.Copy(io.Discard, res.Body) // Buffers are pooled for ioutil.Discard
+	//if err != nil {
+	//	b.Log.Warn("Body read fail", zap.Error(err))
+	//	return
+	//}
 }
 
 func (g *BaseGun) Do(req *http.Request) (*http.Response, error) {
@@ -214,6 +208,49 @@ func (b *BaseGun) answLogging(req *http.Request, bodyBytes []byte, res *http.Res
 	}
 	msg = fmt.Sprintf("RESPONSE:\n%s", string(dump))
 	b.AnswLog.Debug(msg)
+}
+
+func (b *BaseGun) shoot(ammo Ammo) (*netsample.Sample, error) {
+	const op = "base_gun.shoot"
+
+	// TODO: create Sample
+	vs := ammo.VariableStorage()
+	outputParams := ammo.OutputParams()
+	for _, step := range ammo.Steps() {
+		reqParts := RequestParts{
+			URL:     step.GetURL(),
+			Method:  step.GetMethod(),
+			Body:    step.GetBody(),
+			Headers: step.GetHeaders(),
+		}
+		if err := b.templater.Apply(&reqParts, vs); err != nil {
+			return nil, fmt.Errorf("%s templater.Apply %w", op, err)
+		}
+		var reader io.Reader
+		if reqParts.Body != nil {
+			reader = bytes.NewReader(reqParts.Body)
+		}
+
+		req, err := http.NewRequest(reqParts.Method, reqParts.URL, reader)
+		if err != nil {
+			return nil, fmt.Errorf("%s http.NewRequest %w", op, err)
+		}
+
+		resp, err := b.Do(req)
+
+		err = b.templater.SaveResponseToVS(resp, "request."+ammo.Name(), outputParams, vs)
+		if err != nil {
+			return nil, fmt.Errorf("%s templater.SaveResponseToVS %w", op, err)
+		}
+
+		_, err = io.Copy(io.Discard, resp.Body) // Buffers are pooled for ioutil.Discard
+		resp.Body.Close()
+		if err != nil {
+			return nil, fmt.Errorf("%s io.Copy %w", op, err)
+		}
+		// TODO: checke Samples
+	}
+	return nil, nil
 }
 
 func autotag(depth int, URL *url.URL) string {
