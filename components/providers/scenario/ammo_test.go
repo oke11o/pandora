@@ -83,7 +83,7 @@ requests:
 
 scenarios:
   - name: scenario1
-    weight: 50,
+    weight: 50
     minwaitingtime: 1000
     shoot: [
       auth(1),
@@ -93,7 +93,7 @@ scenarios:
       order(3)
     ]
   - name: scenario2
-    weight: 10,
+    weight: 10
     minwaitingtime: 1000
     shoot: [
       auth(1),

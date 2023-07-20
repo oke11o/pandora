@@ -5,29 +5,48 @@ import (
 	"io"
 	"log"
 
+	"github.com/yandex/pandora/components/guns/scenario"
+
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 
 	"github.com/yandex/pandora/core/config"
 )
 
-type Step struct {
-}
-
-type InputParam string
-
-type OutputParams string
-
 type Ammo struct {
-	Steps        []Step
-	InputParams  []InputParam
-	OutputParams []OutputParams
+	InputParams []string
+	OutParams   []string
+
+	Requests []Request `yaml:"requests"`
+	Id       uint64    `yaml:"id"`
+	name     string    `yaml:"name"`
 }
 
-func (a *Ammo) Reset() {
-	a.InputParams = []InputParam{}
-	a.OutputParams = []OutputParams{}
+func (a *Ammo) Steps() []scenario.Step {
+	result := make([]scenario.Step, 0)
+	for _, req := range a.Requests {
+		result = append(result, &req)
+	}
+	return result
 }
+
+func (a *Ammo) ID() uint64 {
+	return a.Id
+}
+
+func (a *Ammo) VariableStorage() scenario.VariableStorage {
+	return map[string]string{}
+}
+
+func (a *Ammo) OutputParams() []string {
+	return a.OutParams
+}
+
+func (a *Ammo) Name() string {
+	return a.name
+}
+
+var _ scenario.Ammo = (*Ammo)(nil)
 
 type AmmoConfig struct {
 	Variables       map[string]string `yaml:"variables"`
@@ -38,7 +57,7 @@ type AmmoConfig struct {
 
 type Scenario struct {
 	Name           string   `yaml:"name"`
-	Weight         string   `yaml:"weight"`
+	Weight         int64    `yaml:"weight"`
 	MinWaitingTime int      `yaml:"minwaitingtime"`
 	Shoot          []string `yaml:"shoot"`
 }
@@ -55,11 +74,36 @@ type Request struct {
 	Method         string            `yaml:"method"`
 	Headers        map[string]string `yaml:"headers"`
 	Tag            string            `yaml:"tag"`
-	Body           string            `yaml:"body"`
+	Body           *string           `yaml:"body"`
 	Name           string            `yaml:"name"`
 	Uri            string            `yaml:"uri"`
 	Preprocessors  []Preprocessor    `yaml:"preprocessors"`
 	Postprocessors []Postprocessor   `yaml:"postprocessors"`
+}
+
+var _ scenario.Step = (*Request)(nil)
+
+func (r *Request) GetMethod() string {
+	return r.Method
+}
+
+func (r *Request) GetBody() []byte {
+	if r.Body == nil {
+		return nil
+	}
+	return []byte(*r.Body)
+}
+
+func (r *Request) GetHeaders() map[string]string {
+	return r.Headers
+}
+
+func (r *Request) GetTag() string {
+	return r.Tag
+}
+
+func (r *Request) GetURL() string {
+	return r.Uri
 }
 
 func parseAmmoConfig(file io.Reader) (AmmoConfig, error) {

@@ -7,6 +7,7 @@ type Step interface {
 	GetMethod() string
 	GetBody() []byte
 	GetHeaders() map[string]string
+	GetTag() string
 }
 
 type RequestParts struct {

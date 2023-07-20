@@ -237,6 +237,9 @@ func (b *BaseGun) shoot(ammo Ammo) (*netsample.Sample, error) {
 		}
 
 		resp, err := b.Do(req)
+		if err != nil {
+			return nil, fmt.Errorf("%s b.Do %w", op, err)
+		}
 
 		err = b.templater.SaveResponseToVS(resp, "request."+ammo.Name(), outputParams, vs)
 		if err != nil {
