@@ -3,15 +3,20 @@ package scenario
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/yandex/pandora/lib/math"
 )
 
 func decodeAmmo(cfg AmmoConfig) ([]*Ammo, error) {
-	reqRegistry := map[string]Request{}
+	reqRegistry := make(map[string]Request, len(cfg.Requests))
+	paramRegistry := make(map[string][]string, len(cfg.Requests))
 
 	for _, req := range cfg.Requests {
 		reqRegistry[req.Name] = req
+		paramRegistry[req.Name] = extractParams(req)
 	}
 
 	scenarioRegistry := map[string]Scenario{}
@@ -32,6 +37,42 @@ func decodeAmmo(cfg AmmoConfig) ([]*Ammo, error) {
 	}
 
 	return result, nil
+}
+
+var extractParamsRegex = regexp.MustCompile("{{.+?}}")
+
+/*
+*
+Preprocessors  []Preprocessor    `yaml:"preprocessors"`
+Postprocessors []Postprocessor   `yaml:"postprocessors"`
+outputParams   []string
+*/
+func extractParams(req Request) []string {
+	resUri := extractParamsRegex.FindAllString(req.Uri, -1)
+	var resBody []string
+	if req.Body != nil {
+		resBody = extractParamsRegex.FindAllString(*req.Body, -1)
+	}
+	var headerRes []string
+	for key, val := range req.Headers {
+		ks := extractParamsRegex.FindAllString(key, -1)
+		vs := extractParamsRegex.FindAllString(val, -1)
+		headerRes = append(headerRes, ks...)
+		headerRes = append(headerRes, vs...)
+	}
+	result := make([]string, 0, len(resUri)+len(resBody))
+	result = append(result, resUri...)
+	if len(resBody) > 0 {
+		result = append(result, resBody...)
+	}
+	if len(headerRes) > 0 {
+		result = append(result, headerRes...)
+	}
+	for i := range result {
+		result[i] = strings.TrimSpace(result[i][2 : len(result[i])-2])
+	}
+	// TODO: remove duplicates
+	return result
 }
 
 func convertScenarioToAmmo(sc Scenario, reqs map[string]Request) (*Ammo, error) {
@@ -98,7 +139,7 @@ func spreadNames(input []Scenario) (map[string]int, int) {
 		weights[i] = sc.Weight
 	}
 
-	div := gcdm(weights...)
+	div := math.GCDM(weights...)
 	names := make(map[string]int)
 	total := 0
 	for _, sc := range input {
@@ -107,47 +148,4 @@ func spreadNames(input []Scenario) (map[string]int, int) {
 		names[sc.Name] = cnt
 	}
 	return names, total
-}
-
-func gcd(a, b int64) int64 {
-	for a > 0 && b > 0 {
-		if a >= b {
-			a = a % b
-		} else {
-			b = b % a
-		}
-	}
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func gcdm(weights ...int64) int64 {
-	l := len(weights)
-	if l < 2 {
-		return 0
-	}
-	res := gcd(weights[l-2], weights[l-1])
-	if l == 2 {
-		return res
-	}
-	return gcd(gcdm(weights[:l-1]...), res)
-}
-
-func lcm(a, b int64) int64 {
-	return (a * b) / gcd(a, b)
-}
-
-func lcmm(a ...int64) int64 {
-	l := len(a)
-	if l < 2 {
-		return 0
-	}
-	res := lcm(a[l-2], a[l-1])
-	if l == 2 {
-		return res
-	}
-	return lcm(lcmm(a[:l-1]...), res)
-
 }
