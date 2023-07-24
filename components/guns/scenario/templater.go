@@ -43,3 +43,7 @@ func (t Templater) SaveResponseToVS(resp *http.Response, varPrefix string, param
 	}
 	return nil
 }
+
+func (t Templater) needsParseResponse(params []string) bool {
+	return len(params) > 0
+}

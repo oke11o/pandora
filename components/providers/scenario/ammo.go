@@ -79,6 +79,7 @@ type Request struct {
 	Uri            string            `yaml:"uri"`
 	Preprocessors  []Preprocessor    `yaml:"preprocessors"`
 	Postprocessors []Postprocessor   `yaml:"postprocessors"`
+	outputParams   []string
 }
 
 var _ scenario.Step = (*Request)(nil)
@@ -104,6 +105,10 @@ func (r *Request) GetTag() string {
 
 func (r *Request) GetURL() string {
 	return r.Uri
+}
+
+func (r *Request) OutputParams() []string {
+	return r.outputParams
 }
 
 func parseAmmoConfig(file io.Reader) (AmmoConfig, error) {

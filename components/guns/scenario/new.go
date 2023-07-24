@@ -2,6 +2,7 @@ package scenario
 
 import (
 	"errors"
+	"net"
 
 	"go.uber.org/zap"
 
@@ -47,4 +48,12 @@ func NewClientGun(client Client, conf phttp.ClientGunConfig, answLog *zap.Logger
 	}
 
 	return &g
+}
+
+func getHostWithoutPort(target string) string {
+	host, _, err := net.SplitHostPort(target)
+	if err != nil {
+		host = target
+	}
+	return host
 }

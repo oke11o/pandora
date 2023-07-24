@@ -5,8 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -77,76 +75,15 @@ func (b *BaseGun) Shoot(ammo Ammo) {
 		}
 	}
 
-	sample, err := b.shoot(ammo)
+	err := b.shoot(ammo)
 	if err != nil {
 		b.Log.Warn("Invalid ammo", zap.Uint64("request", ammo.ID()), zap.Error(err))
-
-		sample.AddTag(EmptyTag)
-		sample.SetProtoCode(0)
-		sample.SetErr(err)
-		b.Aggregator.Report(sample)
 		return
 	}
-
-	b.Aggregator.Report(sample)
-
-	// TODO: Logging should be in shoot() method.
-
-	//if b.DebugLog {
-	//	b.Log.Debug("Prepared ammo to shoot", zap.Stringer("url", req.URL))
-	//}
-	//if b.Config.AutoTag.Enabled && (!b.Config.AutoTag.NoTagOnly || sample.Tags() == "") {
-	//	sample.AddTag(autotag(b.Config.AutoTag.URIElements, req.URL))
-	//}
-	//if sample.Tags() == "" {
-	//	sample.AddTag(EmptyTag)
-	//}
-	//if b.Config.AnswLog.Enabled {
-	//	bodyBytes = GetBody(req)
-	//}
-	//
-	//if err != nil {
-	//	b.Log.Warn("Request fail", zap.Error(err))
-	//	return
-	//}
-	//
-	//if b.DebugLog {
-	//	b.verboseLogging(res)
-	//}
-	//if b.Config.AnswLog.Enabled {
-	//	switch b.Config.AnswLog.Filter {
-	//	case "all":
-	//		b.answLogging(req, bodyBytes, res)
-	//
-	//	case "warning":
-	//		if res.StatusCode >= 400 {
-	//			b.answLogging(req, bodyBytes, res)
-	//		}
-	//
-	//	case "error":
-	//		if res.StatusCode >= 500 {
-	//			b.answLogging(req, bodyBytes, res)
-	//		}
-	//	}
-	//}
-	//
-	//sample.SetProtoCode(res.StatusCode)
-	//defer res.Body.Close()
-	//// TODO: measure body read time
-	//_, err = io.Copy(io.Discard, res.Body) // Buffers are pooled for ioutil.Discard
-	//if err != nil {
-	//	b.Log.Warn("Body read fail", zap.Error(err))
-	//	return
-	//}
 }
 
 func (g *BaseGun) Do(req *http.Request) (*http.Response, error) {
-	if req.Host == "" {
-		req.Host = g.hostname
-	}
 
-	req.URL.Host = g.targetResolved
-	req.URL.Scheme = g.scheme
 	return g.client.Do(req)
 }
 
@@ -157,65 +94,50 @@ func (b *BaseGun) Close() error {
 	return nil
 }
 
-func (b *BaseGun) verboseLogging(res *http.Response) {
-	if res.Request.Body != nil {
-		reqBody, err := ioutil.ReadAll(res.Request.Body)
-		if err != nil {
-			b.Log.Debug("Body read failed for verbose logging of Request")
-		} else {
-			b.Log.Debug("Request body", zap.ByteString("Body", reqBody))
-		}
+func (b *BaseGun) verboseLogging(resp *http.Response, reqBody, respBody []byte) {
+	if resp == nil {
+		b.Log.Error("Response is nil")
+		return
 	}
-	b.Log.Debug(
-		"Request debug info",
-		zap.String("URL", res.Request.URL.String()),
-		zap.String("Host", res.Request.Host),
-		zap.Any("Headers", res.Request.Header),
-	)
+	fields := make([]zap.Field, 0, 4)
+	fields = append(fields, zap.String("URL", resp.Request.URL.String()))
+	fields = append(fields, zap.String("Host", resp.Request.Host))
+	fields = append(fields, zap.Any("Headers", resp.Request.Header))
+	if reqBody != nil {
+		fields = append(fields, zap.ByteString("Body", reqBody))
+	}
+	b.Log.Debug("Request debug info", fields...)
 
-	if res.Body != nil {
-		respBody, err := io.ReadAll(res.Body)
-		if err != nil {
-			b.Log.Debug("Body read failed for verbose logging of Response")
-		} else {
-			b.Log.Debug("Response body", zap.ByteString("Body", respBody))
-		}
+	fields = fields[:0]
+	fields = append(fields, zap.Int("Status Code", resp.StatusCode))
+	fields = append(fields, zap.String("Status", resp.Status))
+	fields = append(fields, zap.Any("Headers", resp.Header))
+	if reqBody != nil {
+		fields = append(fields, zap.ByteString("Body", respBody))
 	}
-	b.Log.Debug(
-		"Response debug info",
-		zap.Int("Status Code", res.StatusCode),
-		zap.String("Status", res.Status),
-		zap.Any("Headers", res.Header),
-	)
+	b.Log.Debug("Response debug info", fields...)
 }
 
-func (b *BaseGun) answLogging(req *http.Request, bodyBytes []byte, res *http.Response) {
-	isBody := false
-	if bodyBytes != nil {
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
-		isBody = true
-	}
-	dump, err := httputil.DumpRequestOut(req, isBody)
-	if err != nil {
-		zap.L().Error("Error dumping request: %s", zap.Error(err))
-	}
-	msg := fmt.Sprintf("REQUEST:\n%s\n\n", string(dump))
+func (b *BaseGun) answLogging(bodyBytes []byte, resp *http.Response, respBytes []byte) {
+	msg := fmt.Sprintf("REQUEST:\n%s\n", string(bodyBytes))
 	b.AnswLog.Debug(msg)
 
-	dump, err = httputil.DumpResponse(res, true)
+	var writer bytes.Buffer
+	err := resp.Header.Write(&writer)
 	if err != nil {
-		zap.L().Error("Error dumping response: %s", zap.Error(err))
+		b.AnswLog.Error("error writing header", zap.Error(err))
+		return
 	}
-	msg = fmt.Sprintf("RESPONSE:\n%s", string(dump))
+
+	msg = fmt.Sprintf("RESPONSE:\n%s %s\n%s\n%s\n", resp.Proto, resp.Status, writer.String(), string(respBytes))
 	b.AnswLog.Debug(msg)
 }
 
-func (b *BaseGun) shoot(ammo Ammo) (*netsample.Sample, error) {
+func (b *BaseGun) shoot(ammo Ammo) error {
 	const op = "base_gun.shoot"
 
-	// TODO: create Sample
 	vs := ammo.VariableStorage()
-	outputParams := ammo.OutputParams()
+	//outputParams := ammo.OutputParams()
 	for _, step := range ammo.Steps() {
 		reqParts := RequestParts{
 			URL:     step.GetURL(),
@@ -224,8 +146,9 @@ func (b *BaseGun) shoot(ammo Ammo) (*netsample.Sample, error) {
 			Headers: step.GetHeaders(),
 		}
 		if err := b.templater.Apply(&reqParts, vs); err != nil {
-			return nil, fmt.Errorf("%s templater.Apply %w", op, err)
+			return fmt.Errorf("%s templater.Apply %w", op, err)
 		}
+		sample := netsample.Acquire(ammo.Name() + "." + step.GetTag())
 		var reader io.Reader
 		if reqParts.Body != nil {
 			reader = bytes.NewReader(reqParts.Body)
@@ -233,27 +156,89 @@ func (b *BaseGun) shoot(ammo Ammo) (*netsample.Sample, error) {
 
 		req, err := http.NewRequest(reqParts.Method, reqParts.URL, reader)
 		if err != nil {
-			return nil, fmt.Errorf("%s http.NewRequest %w", op, err)
+			b.reportErr(sample, err)
+			return fmt.Errorf("%s http.NewRequest %w", op, err)
+		}
+		if req.Host == "" {
+			req.Host = b.hostname
+		}
+		req.URL.Host = b.targetResolved
+		req.URL.Scheme = b.scheme
+
+		var reqBytes []byte
+		if b.Config.AnswLog.Enabled {
+			reqBytes, err = httputil.DumpRequestOut(req, true)
+			if err != nil {
+				b.Log.Error("Error dumping request: %s", zap.Error(err))
+			}
 		}
 
 		resp, err := b.Do(req)
 		if err != nil {
-			return nil, fmt.Errorf("%s b.Do %w", op, err)
+			b.reportErr(sample, err)
+			return fmt.Errorf("%s b.Do %w", op, err)
+		}
+		b.Aggregator.Report(sample)
+
+		var respBody []byte
+		if b.Config.AnswLog.Enabled || b.DebugLog || b.templater.needsParseResponse(step.OutputParams()) {
+			respBody, err = io.ReadAll(resp.Body)
+			if err != nil {
+				return fmt.Errorf("%s io.ReadAll %w", op, err)
+			}
 		}
 
-		err = b.templater.SaveResponseToVS(resp, "request."+ammo.Name(), outputParams, vs)
+		// TODO: is it needed to read body here in every case?
+		// For read body we should use io.Copy(io.Discard, resp.Body)
+
+		if b.DebugLog {
+			b.verboseLogging(resp, reqBytes, respBody)
+		}
+		if b.Config.AnswLog.Enabled {
+			b.answReqRespLogging(reqBytes, resp, respBody)
+		}
+
+		err = b.templater.SaveResponseToVS(resp, "request."+ammo.Name(), step.OutputParams(), vs)
 		if err != nil {
-			return nil, fmt.Errorf("%s templater.SaveResponseToVS %w", op, err)
+			return fmt.Errorf("%s templater.SaveResponseToVS %w", op, err)
 		}
 
-		_, err = io.Copy(io.Discard, resp.Body) // Buffers are pooled for ioutil.Discard
+		if respBody == nil {
+			_, err = io.Copy(io.Discard, resp.Body) // Buffers are pooled for ioutil.Discard
+			if err != nil {
+				return fmt.Errorf("%s io.Copy %w", op, err)
+			}
+		}
 		resp.Body.Close()
-		if err != nil {
-			return nil, fmt.Errorf("%s io.Copy %w", op, err)
-		}
-		// TODO: checke Samples
 	}
-	return nil, nil
+	return nil
+}
+
+func (b *BaseGun) answReqRespLogging(reqBytes []byte, resp *http.Response, respBytes []byte) {
+	switch b.Config.AnswLog.Filter {
+	case "all":
+		b.answLogging(reqBytes, resp, respBytes)
+
+	case "warning":
+		if resp.StatusCode >= 400 {
+			b.answLogging(reqBytes, resp, respBytes)
+		}
+
+	case "error":
+		if resp.StatusCode >= 500 {
+			b.answLogging(reqBytes, resp, respBytes)
+		}
+	}
+}
+
+func (b *BaseGun) reportErr(sample *netsample.Sample, err error) {
+	if err == nil {
+		return
+	}
+	sample.AddTag(EmptyTag)
+	sample.SetProtoCode(0)
+	sample.SetErr(err)
+	b.Aggregator.Report(sample)
 }
 
 func autotag(depth int, URL *url.URL) string {
@@ -268,23 +253,4 @@ func autotag(depth int, URL *url.URL) string {
 		}
 	}
 	return path[:ind]
-}
-
-func GetBody(req *http.Request) []byte {
-	if req.Body != nil && req.Body != http.NoBody {
-		bodyBytes, _ := ioutil.ReadAll(req.Body)
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
-		return bodyBytes
-	}
-
-	return nil
-
-}
-
-func getHostWithoutPort(target string) string {
-	host, _, err := net.SplitHostPort(target)
-	if err != nil {
-		host = target
-	}
-	return host
 }
