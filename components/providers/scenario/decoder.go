@@ -12,12 +12,23 @@ import (
 
 func decodeAmmo(cfg AmmoConfig) ([]*Ammo, error) {
 	reqRegistry := make(map[string]Request, len(cfg.Requests))
-	paramRegistry := make(map[string][]string, len(cfg.Requests))
 
+	// TODO: Я застрял с тем, что мне не хочется обрабатывать на постпроцессинге ненужные параметры.
+	// ХМ: Может тупое желание? Хотя постпросессинг выполняется на каждом запросе.
+	// И мы можем существенно улучшить производительность, если не будет делать лишнюю работу.
+	allExpectedParams := make([]string, 0)
+	allReturnedParams := make([]string, 0)
 	for _, req := range cfg.Requests {
 		reqRegistry[req.Name] = req
-		paramRegistry[req.Name] = extractParams(req)
+		_, req.expectedParams = extractExpectedParams(req)
+		req.returnedParams = extractReturnedParams(req)
+		allExpectedParams = append(allExpectedParams, req.expectedParams...)
+		allReturnedParams = append(allReturnedParams, req.returnedParams...)
 	}
+	paramsForDeleteFromReturned := intersectExpectedAndReturnedParams(allExpectedParams, allReturnedParams)
+	_ = paramsForDeleteFromReturned
+	// TODO: end. До сюда можно выделить в отдельную функцию reqRegistry := prepareRequests(cfg.Requests)
+	// Важно, что функция prepareRequests() не просто вернет reqRegistry, но и изменить элементы слайса cfg.Requests.
 
 	scenarioRegistry := map[string]Scenario{}
 	for _, sc := range cfg.Scenarios {
@@ -39,15 +50,27 @@ func decodeAmmo(cfg AmmoConfig) ([]*Ammo, error) {
 	return result, nil
 }
 
+func intersectExpectedAndReturnedParams(expected []string, returned []string) map[string]struct{} {
+	// TODO: implement me
+	return nil
+}
+
+func extractReturnedParams(req Request) []string {
+	var result []string
+	for _, pr := range req.Postprocessors {
+		params := pr.ReturnedParams()
+		for i := range params {
+			params[i] = "request." + req.Name + "." + strings.TrimSpace(params[i])
+		}
+		result = append(result, params...)
+	}
+
+	return result
+}
+
 var extractParamsRegex = regexp.MustCompile("{{.+?}}")
 
-/*
-*
-Preprocessors  []Preprocessor    `yaml:"preprocessors"`
-Postprocessors []Postprocessor   `yaml:"postprocessors"`
-outputParams   []string
-*/
-func extractParams(req Request) []string {
+func extractExpectedParams(req Request) ([]string, []string) {
 	resUri := extractParamsRegex.FindAllString(req.Uri, -1)
 	var resBody []string
 	if req.Body != nil {
@@ -68,11 +91,17 @@ func extractParams(req Request) []string {
 	if len(headerRes) > 0 {
 		result = append(result, headerRes...)
 	}
+	topNames := make([]string, len(result))
 	for i := range result {
 		result[i] = strings.TrimSpace(result[i][2 : len(result[i])-2])
+		names := strings.Split(result[i], ".")
+		if len(names) > 3 {
+			names = names[:3]
+		}
+		topNames[i] = strings.Join(names, ".")
 	}
 	// TODO: remove duplicates
-	return result
+	return result, topNames
 }
 
 func convertScenarioToAmmo(sc Scenario, reqs map[string]Request) (*Ammo, error) {

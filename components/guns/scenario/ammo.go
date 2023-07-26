@@ -8,7 +8,7 @@ type Step interface {
 	GetBody() []byte
 	GetHeaders() map[string]string
 	GetTag() string
-	OutputParams() []string
+	ReturnedParams() []string
 }
 
 type RequestParts struct {
@@ -23,6 +23,5 @@ type Ammo interface {
 	Steps() []Step
 	ID() uint64
 	VariableStorage() VariableStorage
-	OutputParams() []string
 	Name() string
 }

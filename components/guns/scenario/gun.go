@@ -137,7 +137,7 @@ func (b *BaseGun) shoot(ammo Ammo) error {
 	const op = "base_gun.shoot"
 
 	vs := ammo.VariableStorage()
-	//outputParams := ammo.OutputParams()
+	//outputParams := ammo.ReturnedParams()
 	for _, step := range ammo.Steps() {
 		reqParts := RequestParts{
 			URL:     step.GetURL(),
@@ -181,7 +181,7 @@ func (b *BaseGun) shoot(ammo Ammo) error {
 		b.Aggregator.Report(sample)
 
 		var respBody []byte
-		if b.Config.AnswLog.Enabled || b.DebugLog || b.templater.needsParseResponse(step.OutputParams()) {
+		if b.Config.AnswLog.Enabled || b.DebugLog || b.templater.needsParseResponse(step.ReturnedParams()) {
 			respBody, err = io.ReadAll(resp.Body)
 			if err != nil {
 				return fmt.Errorf("%s io.ReadAll %w", op, err)
@@ -198,7 +198,7 @@ func (b *BaseGun) shoot(ammo Ammo) error {
 			b.answReqRespLogging(reqBytes, resp, respBody)
 		}
 
-		err = b.templater.SaveResponseToVS(resp, "request."+ammo.Name(), step.OutputParams(), vs)
+		err = b.templater.SaveResponseToVS(resp, "request."+ammo.Name(), step.ReturnedParams(), vs)
 		if err != nil {
 			return fmt.Errorf("%s templater.SaveResponseToVS %w", op, err)
 		}

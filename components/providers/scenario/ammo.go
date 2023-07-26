@@ -14,8 +14,8 @@ import (
 )
 
 type Ammo struct {
-	InputParams []string
-	OutParams   []string
+	InputParams    []string
+	returnedParams []string
 
 	Requests []Request `yaml:"requests"`
 	Id       uint64    `yaml:"id"`
@@ -36,10 +36,6 @@ func (a *Ammo) ID() uint64 {
 
 func (a *Ammo) VariableStorage() scenario.VariableStorage {
 	return map[string]string{}
-}
-
-func (a *Ammo) OutputParams() []string {
-	return a.OutParams
 }
 
 func (a *Ammo) Name() string {
@@ -67,6 +63,7 @@ type Preprocessor interface {
 }
 
 type Postprocessor interface {
+	ReturnedParams() []string
 	// TODO
 }
 
@@ -79,7 +76,8 @@ type Request struct {
 	Uri            string            `yaml:"uri"`
 	Preprocessors  []Preprocessor    `yaml:"preprocessors"`
 	Postprocessors []Postprocessor   `yaml:"postprocessors"`
-	outputParams   []string
+	returnedParams []string
+	expectedParams []string
 }
 
 var _ scenario.Step = (*Request)(nil)
@@ -107,8 +105,8 @@ func (r *Request) GetURL() string {
 	return r.Uri
 }
 
-func (r *Request) OutputParams() []string {
-	return r.outputParams
+func (r *Request) ReturnedParams() []string {
+	return r.returnedParams
 }
 
 func parseAmmoConfig(file io.Reader) (AmmoConfig, error) {

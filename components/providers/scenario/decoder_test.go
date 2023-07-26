@@ -79,25 +79,36 @@ func TestParseShootName(t *testing.T) {
 func Test_extractParams(t *testing.T) {
 	body := "Lorem ipsum {{dolor}} sit amet, {{con.sectetur}} adipiscing elit. "
 	tests := []struct {
-		name string
-		req  Request
-		want []string
+		name  string
+		req   Request
+		want  []string
+		want2 []string
 	}{
 		{
 			name: "",
 			req: Request{
-				Uri:     "{{dolor}}asdf ljvaosdv {{ alskdfjasfl.asdjfo.['asdfl;]}} laskdfjla\n\n\n{{s v a }}",
+				Uri:     "{{request.auth.dollor.field}}asdf ljvaosdv {{ request.auth.dollor.field['asdfl;]}} laskdfjla\n\n\n{{s v a }}",
 				Body:    &body,
 				Tag:     "{{tag1}}",
-				Headers: map[string]string{"{{dolor1}}": "con.sectetur", "{{con.sectetur1}}": "{{tag2}}"},
+				Headers: map[string]string{"{{request.auth.dollor1.field}}": "con.sectetur", "{{con.sectetur1}}": "{{tag2}}"},
 			},
 			want: []string{
-				"dolor",
-				"alskdfjasfl.asdjfo.['asdfl;]",
+				"request.auth.dollor.field",
+				"request.auth.dollor.field['asdfl;]",
 				"s v a",
 				"dolor",
 				"con.sectetur",
-				"dolor1",
+				"request.auth.dollor1.field",
+				"con.sectetur1",
+				"tag2",
+			},
+			want2: []string{
+				"request.auth.dollor",
+				"request.auth.dollor",
+				"s v a",
+				"dolor",
+				"con.sectetur",
+				"request.auth.dollor1",
 				"con.sectetur1",
 				"tag2",
 			},
@@ -105,8 +116,9 @@ func Test_extractParams(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := extractParams(tt.req)
-			assert.Equalf(t, tt.want, got, "extractParams(%v)", tt.req)
+			got, got2 := extractExpectedParams(tt.req)
+			assert.Equalf(t, tt.want, got, "extractExpectedParams(%v)", tt.req)
+			assert.Equalf(t, tt.want2, got2, "extractExpectedParams(%v)", tt.req)
 		})
 	}
 }
