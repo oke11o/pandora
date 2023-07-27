@@ -36,6 +36,8 @@ requests:
       Hostname: "{{hostname}}"
     tag: auth
     body: '{"user_name": {{source.users_src.users[next].name}}, "user_pass": {{source.users_src.users[next].pass}} }'
+    templater:
+      type: text
     postprocessors:
       - type: vars/header
         mapping:

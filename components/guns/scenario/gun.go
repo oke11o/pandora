@@ -37,7 +37,7 @@ type BaseGun struct {
 	hostname       string
 	targetResolved string
 	client         Client
-	templater      *Templater
+	templater      *TextTemplater
 }
 
 var _ Gun = (*BaseGun)(nil)
@@ -145,10 +145,25 @@ func (b *BaseGun) shoot(ammo Ammo) error {
 			Body:    step.GetBody(),
 			Headers: step.GetHeaders(),
 		}
-		if err := b.templater.Apply(&reqParts, vs); err != nil {
+		sample := netsample.Acquire(ammo.Name() + "." + step.GetTag())
+		templaterType := step.GetTemplater()
+		var (
+			templater Templater
+			err       error
+		)
+		if templaterType == "" {
+			templater = b.templater
+		} else {
+			templater, err = b.resolveTemplater(templaterType)
+			if err != nil {
+				b.reportErr(sample, err)
+				return fmt.Errorf("%s resolveTemplater %w", op, err)
+			}
+		}
+		if err := templater.Apply(&reqParts, vs, ammo.Name(), step.GetName()); err != nil {
+			b.reportErr(sample, err)
 			return fmt.Errorf("%s templater.Apply %w", op, err)
 		}
-		sample := netsample.Acquire(ammo.Name() + "." + step.GetTag())
 		var reader io.Reader
 		if reqParts.Body != nil {
 			reader = bytes.NewReader(reqParts.Body)
@@ -239,6 +254,18 @@ func (b *BaseGun) reportErr(sample *netsample.Sample, err error) {
 	sample.SetProtoCode(0)
 	sample.SetErr(err)
 	b.Aggregator.Report(sample)
+}
+
+func (b *BaseGun) resolveTemplater(templaterType string) (Templater, error) {
+	switch templaterType {
+	case "text":
+		return NewTextTempalter(), nil
+	case "json":
+		return NewJsonTempalter(), nil
+	case "html":
+		return NewHTMLTemplater(), nil
+	}
+	return nil, nil
 }
 
 func autotag(depth int, URL *url.URL) string {

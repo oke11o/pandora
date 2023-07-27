@@ -35,7 +35,7 @@ func (a *Ammo) ID() uint64 {
 }
 
 func (a *Ammo) VariableStorage() scenario.VariableStorage {
-	return map[string]string{}
+	return map[string]any{}
 }
 
 func (a *Ammo) Name() string {
@@ -76,12 +76,20 @@ type Request struct {
 	Uri            string            `yaml:"uri"`
 	Preprocessors  []Preprocessor    `yaml:"preprocessors"`
 	Postprocessors []Postprocessor   `yaml:"postprocessors"`
+	Templater      string            `yaml:"templater"`
 	returnedParams []string
 	expectedParams []string
 }
 
+func (r *Request) GetTemplater() string {
+	return r.Templater
+}
+
 var _ scenario.Step = (*Request)(nil)
 
+func (r *Request) GetName() string {
+	return r.Name
+}
 func (r *Request) GetMethod() string {
 	return r.Method
 }

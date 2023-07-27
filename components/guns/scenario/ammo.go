@@ -1,14 +1,16 @@
 package scenario
 
-type VariableStorage map[string]string
+type VariableStorage map[string]any
 
 type Step interface {
+	GetName() string
 	GetURL() string
 	GetMethod() string
 	GetBody() []byte
 	GetHeaders() map[string]string
 	GetTag() string
 	ReturnedParams() []string
+	GetTemplater() string
 }
 
 type RequestParts struct {
