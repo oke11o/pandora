@@ -1,5 +1,12 @@
 package scenario
 
+import "net/http"
+
+type Postprocessor interface {
+	ReturnedParams() []string
+	Process(reqMap map[string]any, resp *http.Response, body []byte) error
+}
+
 type VariableStorage map[string]any
 
 type Step interface {
@@ -11,6 +18,7 @@ type Step interface {
 	GetTag() string
 	ReturnedParams() []string
 	GetTemplater() string
+	GetPostProcessors() []Postprocessor
 }
 
 type RequestParts struct {

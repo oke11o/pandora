@@ -137,6 +137,7 @@ func (b *BaseGun) shoot(ammo Ammo) error {
 	const op = "base_gun.shoot"
 
 	vs := ammo.VariableStorage()
+	vs["request"] = map[string]any{}
 	//outputParams := ammo.ReturnedParams()
 	for _, step := range ammo.Steps() {
 		reqParts := RequestParts{
@@ -213,6 +214,14 @@ func (b *BaseGun) shoot(ammo Ammo) error {
 			b.answReqRespLogging(reqBytes, resp, respBody)
 		}
 
+		// TODO: postprocessing
+		reqMap := map[string]any{}
+		for _, postprocessor := range step.GetPostProcessors() {
+			err := postprocessor.Process(reqMap, resp, respBody)
+			if err != nil {
+				return fmt.Errorf("%s postprocessor.Postprocess %w", op, err)
+			}
+		}
 		err = b.templater.SaveResponseToVS(resp, "request."+ammo.Name(), step.ReturnedParams(), vs)
 		if err != nil {
 			return fmt.Errorf("%s templater.SaveResponseToVS %w", op, err)
@@ -225,6 +234,8 @@ func (b *BaseGun) shoot(ammo Ammo) error {
 			}
 		}
 		resp.Body.Close()
+
+		vs["request"] = reqMap
 	}
 	return nil
 }
