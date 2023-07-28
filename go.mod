@@ -3,6 +3,7 @@ module github.com/yandex/pandora
 go 1.19
 
 require (
+	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/c2h5oh/datasize v0.0.0-20220606134207-859f65c6625b
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052
@@ -29,6 +30,7 @@ require (
 )
 
 require (
+	github.com/PaesslerAG/gval v1.0.0 // indirect
 	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/bufbuild/protocompile v0.5.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -64,4 +66,3 @@ require (
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-

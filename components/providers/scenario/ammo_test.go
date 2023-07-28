@@ -41,6 +41,7 @@ requests:
     #   - type: vars/header
     #     mapping:
     #       httpAuthorization: "Http-Authorization"
+    #       contentType: "Content-Type|lower"
     #   - type: 'vars/jsonpath'
     #     mapping:
     #       token: "$.data.authToken"
