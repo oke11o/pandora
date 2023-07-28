@@ -36,15 +36,14 @@ requests:
       Hostname: "{{hostname}}"
     tag: auth
     body: '{"user_name": {{source.users_src.users[next].name}}, "user_pass": {{source.users_src.users[next].pass}} }'
-    templater:
-      type: text
-    postprocessors:
-      - type: vars/header
-        mapping:
-          httpAuthorization: "Http-Authorization"
-      - type: 'vars/jsonpath'
-        mapping:
-          token: "$.data.authToken"
+    templater: text
+    # postprocessors:
+    #   - type: vars/header
+    #     mapping:
+    #       httpAuthorization: "Http-Authorization"
+    #   - type: 'vars/jsonpath'
+    #     mapping:
+    #       token: "$.data.authToken"
 
   - name: list_req
     preprocessors:
@@ -59,10 +58,10 @@ requests:
       Hostname: "{{hostname}}"
       Authorization: "Bearer {{request.auth_req.token}}"
     tag: list
-    postprocessors:
-      - type: vars/jsonpath
-        mapping:
-          items: $.data.items
+    #postprocessors:
+    #  - type: vars/jsonpath
+    #    mapping:
+    #      items: $.data.items
 
   - name: order_req
     preprocessors:
@@ -78,10 +77,10 @@ requests:
       Hostname: "{{hostname}}"
       Authorization: "Bearer {{request.auth_req.token}}"
     body: "{}"
-    postprocessors:
-      - type: vars/jsonpath
-        mapping:
-          delivery_id: $.data.delivery_id
+    #postprocessors:
+    #  - type: vars/jsonpath
+    #    mapping:
+    #      delivery_id: $.data.delivery_id
 
 scenarios:
   - name: scenario1

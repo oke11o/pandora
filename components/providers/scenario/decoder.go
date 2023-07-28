@@ -1,11 +1,12 @@
 package scenario
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/yandex/pandora/lib/str"
 
 	"github.com/yandex/pandora/lib/math"
 )
@@ -122,7 +123,7 @@ func convertScenarioToAmmo(sc Scenario, reqs map[string]Request) (*Ammo, error) 
 }
 
 func parseShootName(shoot string) (string, int, error) {
-	name, args, err := parseStringFunc(shoot)
+	name, args, err := str.ParseStringFunc(shoot)
 	if err != nil {
 		return "", 0, err
 	}
@@ -134,23 +135,6 @@ func parseShootName(shoot string) (string, int, error) {
 		}
 	}
 	return name, cnt, nil
-}
-
-func parseStringFunc(shoot string) (string, []string, error) {
-	openIdx := strings.IndexRune(shoot, '(')
-	if openIdx == -1 {
-		return shoot, nil, nil
-	}
-	name := strings.TrimSpace(shoot[:openIdx])
-
-	arg := strings.TrimSpace(shoot[openIdx+1:])
-	closeIdx := strings.IndexRune(arg, ')')
-	if closeIdx != len(arg)-1 {
-		return name, nil, errors.New("invalid close bracket position")
-	}
-	arg = strings.TrimSpace(arg[:closeIdx])
-	args := strings.Split(arg, ",")
-	return name, args, nil
 }
 
 func spreadNames(input []Scenario) (map[string]int, int) {

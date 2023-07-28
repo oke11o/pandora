@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"io"
 	"log"
-
-	"github.com/yandex/pandora/components/guns/scenario"
+	"net/http"
 
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 
+	"github.com/yandex/pandora/components/guns/scenario"
 	"github.com/yandex/pandora/core/config"
 )
 
@@ -64,7 +64,7 @@ type Preprocessor interface {
 
 type Postprocessor interface {
 	ReturnedParams() []string
-	// TODO
+	Process(reqMap map[string]any, resp *http.Response, body []byte) error
 }
 
 type Request struct {
@@ -79,6 +79,14 @@ type Request struct {
 	Templater      string            `yaml:"templater"`
 	returnedParams []string
 	expectedParams []string
+}
+
+func (r *Request) GetPostProcessors() []scenario.Postprocessor {
+	result := make([]scenario.Postprocessor, len(r.Postprocessors))
+	for i := range r.Postprocessors {
+		result[i] = r.Preprocessors[i].(scenario.Postprocessor) // TODO: need to check
+	}
+	return result
 }
 
 func (r *Request) GetTemplater() string {
