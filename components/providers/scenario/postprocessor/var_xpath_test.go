@@ -72,7 +72,7 @@ func TestVarXpathPostprocessor_Process(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			postprocessor := &VarXpathPostprocessor{
-				Mappings: tc.mappings,
+				Mapping: tc.mappings,
 			}
 
 			reqMap := make(map[string]interface{})

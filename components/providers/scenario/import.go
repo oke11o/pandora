@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/afero"
 
+	"github.com/yandex/pandora/components/providers/scenario/postprocessor"
 	"github.com/yandex/pandora/core"
 	"github.com/yandex/pandora/core/register"
 )
@@ -24,6 +25,10 @@ func Import(fs afero.Fs) {
 		RegisterVariableSource("file/json", func(cfg VariableSourceJson) (VariableSource, error) {
 			return NewVSJson(cfg, fs)
 		})
+
+		RegisterPostprocessor("var/jsonpath", postprocessor.NewVarJsonpathPostprocessor)
+		RegisterPostprocessor("var/xpath", postprocessor.NewVarXpathPostprocessor)
+		RegisterPostprocessor("var/header", postprocessor.NewVarHeaderPostprocessor)
 	})
 
 	//register.Provider("http/scenario", func(cfg Config) (core.Provider, error) {
@@ -37,4 +42,9 @@ func Import(fs afero.Fs) {
 	//RegisterVariableSource("file/json", func(cfg VariableSourceJson) (VariableSource, error) {
 	//	return NewVSJson(cfg, fs)
 	//})
+}
+
+func RegisterPostprocessor(name string, mwConstructor interface{}, defaultConfigOptional ...interface{}) {
+	var ptr *postprocessor.Postprocessor
+	register.RegisterPtr(ptr, name, mwConstructor, defaultConfigOptional...)
 }

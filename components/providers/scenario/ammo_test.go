@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/yandex/pandora/core/plugin/pluginconfig"
-
 	"github.com/stretchr/testify/require"
+
+	"github.com/yandex/pandora/components/providers/scenario/postprocessor"
+	"github.com/yandex/pandora/core/plugin/pluginconfig"
 )
 
 const exampleAmmoFile = `
@@ -37,14 +37,14 @@ requests:
     tag: auth
     body: '{"user_name": {{source.users_src.users[next].name}}, "user_pass": {{source.users_src.users[next].pass}} }'
     templater: text
-    # postprocessors:
-    #   - type: vars/header
-    #     mapping:
-    #       httpAuthorization: "Http-Authorization"
-    #       contentType: "Content-Type|lower"
-    #   - type: 'vars/jsonpath'
-    #     mapping:
-    #       token: "$.data.authToken"
+    postprocessors:
+      - type: var/header
+        mapping:
+          httpAuthorization: "Http-Authorization"
+          contentType: "Content-Type|lower"
+      - type: 'var/jsonpath'
+        mapping:
+          token: "$.data.authToken"
 
   - name: list_req
     preprocessors:
@@ -59,10 +59,10 @@ requests:
       Hostname: "{{hostname}}"
       Authorization: "Bearer {{request.auth_req.token}}"
     tag: list
-    #postprocessors:
-    #  - type: vars/jsonpath
-    #    mapping:
-    #      items: $.data.items
+    postprocessors:
+      - type: var/jsonpath
+        mapping:
+          items: $.data.items
 
   - name: order_req
     preprocessors:
@@ -78,10 +78,10 @@ requests:
       Hostname: "{{hostname}}"
       Authorization: "Bearer {{request.auth_req.token}}"
     body: "{}"
-    #postprocessors:
-    #  - type: vars/jsonpath
-    #    mapping:
-    #      delivery_id: $.data.delivery_id
+    postprocessors:
+      - type: var/jsonpath
+        mapping:
+          delivery_id: $.data.delivery_id
 
 scenarios:
   - name: scenario1
@@ -126,6 +126,11 @@ func Test_parseAmmoConfig(t *testing.T) {
 	assert.Equal(t, "filter_src", cfg.VariableSources[1].GetName())
 	assert.Equal(t, 3, len(cfg.Requests))
 	assert.Equal(t, "auth_req", cfg.Requests[0].Name)
+	require.Equal(t, 2, len(cfg.Requests[0].Postprocessors))
+	require.Equal(t, 2, len(cfg.Requests[0].GetPostProcessors()))
+	require.Equal(t, map[string]string{"httpAuthorization": "Http-Authorization", "contentType": "Content-Type|lower"}, cfg.Requests[0].Postprocessors[0].(*postprocessor.VarHeaderPostprocessor).Mapping)
+	require.Equal(t, map[string]string{"token": "$.data.authToken"}, cfg.Requests[0].Postprocessors[1].(*postprocessor.VarJsonpathPostprocessor).Mapping)
+
 	assert.Equal(t, "list_req", cfg.Requests[1].Name)
 	assert.Equal(t, "order_req", cfg.Requests[2].Name)
 	assert.Equal(t, 2, len(cfg.Scenarios))

@@ -96,7 +96,7 @@ func TestVarJsonpathPostprocessor_Process(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			// Create a VarJsonpathPostprocessor instance with the mappings
-			p := &VarJsonpathPostprocessor{Mappings: tc.mappings}
+			p := &VarJsonpathPostprocessor{Mapping: tc.mappings}
 
 			// Initialize reqMap with some sample data for testing
 			reqMap := make(map[string]interface{})

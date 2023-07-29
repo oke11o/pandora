@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net/http"
 
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
+
+	"github.com/yandex/pandora/components/providers/scenario/postprocessor"
 
 	"github.com/yandex/pandora/components/guns/scenario"
 	"github.com/yandex/pandora/core/config"
@@ -62,21 +63,16 @@ type Preprocessor interface {
 	// TODO
 }
 
-type Postprocessor interface {
-	ReturnedParams() []string
-	Process(reqMap map[string]any, resp *http.Response, body []byte) error
-}
-
 type Request struct {
-	Method         string            `yaml:"method"`
-	Headers        map[string]string `yaml:"headers"`
-	Tag            string            `yaml:"tag"`
-	Body           *string           `yaml:"body"`
-	Name           string            `yaml:"name"`
-	Uri            string            `yaml:"uri"`
-	Preprocessors  []Preprocessor    `yaml:"preprocessors"`
-	Postprocessors []Postprocessor   `yaml:"postprocessors"`
-	Templater      string            `yaml:"templater"`
+	Method         string                        `yaml:"method"`
+	Headers        map[string]string             `yaml:"headers"`
+	Tag            string                        `yaml:"tag"`
+	Body           *string                       `yaml:"body"`
+	Name           string                        `yaml:"name"`
+	Uri            string                        `yaml:"uri"`
+	Preprocessors  []Preprocessor                `yaml:"preprocessors"`
+	Postprocessors []postprocessor.Postprocessor `yaml:"postprocessors"`
+	Templater      string                        `yaml:"templater"`
 	returnedParams []string
 	expectedParams []string
 }
@@ -84,7 +80,7 @@ type Request struct {
 func (r *Request) GetPostProcessors() []scenario.Postprocessor {
 	result := make([]scenario.Postprocessor, len(r.Postprocessors))
 	for i := range r.Postprocessors {
-		result[i] = r.Preprocessors[i].(scenario.Postprocessor) // TODO: need to check
+		result[i] = r.Postprocessors[i].(scenario.Postprocessor) // TODO: need to check
 	}
 	return result
 }

@@ -10,7 +10,21 @@ import (
 )
 
 type VarXpathPostprocessor struct {
-	Mappings map[string]string
+	Mapping map[string]string
+}
+
+func NewVarXpathPostprocessor(cfg Config) Postprocessor {
+	return &VarXpathPostprocessor{
+		Mapping: cfg.Mapping,
+	}
+}
+
+func (p *VarXpathPostprocessor) ReturnedParams() []string {
+	result := make([]string, len(p.Mapping))
+	for k := range p.Mapping {
+		result = append(result, k)
+	}
+	return result
 }
 
 func (p *VarXpathPostprocessor) Process(reqMap map[string]any, _ *http.Response, body []byte) error {
@@ -19,7 +33,7 @@ func (p *VarXpathPostprocessor) Process(reqMap map[string]any, _ *http.Response,
 		return err
 	}
 
-	for k, path := range p.Mappings {
+	for k, path := range p.Mapping {
 		values, err := p.getValuesFromDOM(doc, path)
 		if err != nil {
 			return err

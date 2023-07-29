@@ -10,19 +10,25 @@ import (
 )
 
 type VarHeaderPostprocessor struct {
-	Mappings map[string]string
+	Mapping map[string]string
+}
+
+func NewVarHeaderPostprocessor(cfg Config) Postprocessor {
+	return &VarHeaderPostprocessor{
+		Mapping: cfg.Mapping,
+	}
 }
 
 func (p *VarHeaderPostprocessor) ReturnedParams() []string {
-	result := make([]string, len(p.Mappings))
-	for k := range p.Mappings {
+	result := make([]string, len(p.Mapping))
+	for k := range p.Mapping {
 		result = append(result, k)
 	}
 	return result
 }
 
 func (p *VarHeaderPostprocessor) Process(reqMap map[string]any, resp *http.Response, _ []byte) error {
-	for k, v := range p.Mappings {
+	for k, v := range p.Mapping {
 		headerVal, modifier, err := p.parseValue(v)
 		if err != nil {
 			return fmt.Errorf("failed to parse value %s: %w", v, err)

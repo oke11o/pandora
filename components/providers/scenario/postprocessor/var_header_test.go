@@ -67,7 +67,7 @@ func TestVarHeaderPostprocessor_Process(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := &VarHeaderPostprocessor{Mappings: tt.mappings}
+			p := &VarHeaderPostprocessor{Mapping: tt.mappings}
 			resp := &http.Response{
 				Header: make(http.Header),
 			}
