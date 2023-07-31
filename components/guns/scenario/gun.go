@@ -137,7 +137,8 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 	const op = "base_gun.shoot"
 
 	vs := ammo.VariableStorage()
-	vs["request"] = map[string]any{}
+	vsRequests := map[string]any{}
+	vs["request"] = vsRequests
 	//outputParams := ammo.ReturnedParams()
 	for _, step := range ammo.Steps() {
 		reqParts := RequestParts{
@@ -174,6 +175,9 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 		if err != nil {
 			g.reportErr(sample, err)
 			return fmt.Errorf("%s http.NewRequest %w", op, err)
+		}
+		for k, v := range reqParts.Headers {
+			req.Header.Set(k, v)
 		}
 		if req.Host == "" {
 			req.Host = g.hostname
@@ -222,7 +226,7 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 				return fmt.Errorf("%s postprocessor.Postprocess %w", op, err)
 			}
 		}
-		err = g.templater.SaveResponseToVS(resp, "request."+ammo.Name(), step.ReturnedParams(), vs)
+		err = g.templater.SaveResponseToVS(resp, "request."+ammo.Name(), step.ReturnedParams(), vs) // TODO
 		if err != nil {
 			return fmt.Errorf("%s templater.SaveResponseToVS %w", op, err)
 		}
@@ -235,7 +239,8 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 		}
 		resp.Body.Close()
 
-		vs["request"] = reqMap
+		vsRequests[step.GetName()] = reqMap
+		vs["request"] = vsRequests
 	}
 	return nil
 }

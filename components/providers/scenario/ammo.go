@@ -24,8 +24,8 @@ type Ammo struct {
 
 func (a *Ammo) Steps() []scenario.Step {
 	result := make([]scenario.Step, 0)
-	for _, req := range a.Requests {
-		result = append(result, &req)
+	for i := range a.Requests {
+		result = append(result, &a.Requests[i])
 	}
 	return result
 }

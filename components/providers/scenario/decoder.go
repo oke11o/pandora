@@ -112,10 +112,12 @@ func convertScenarioToAmmo(sc Scenario, reqs map[string]Request) (*Ammo, error) 
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse shoot %s: %w", sh, err)
 		}
-		if req, ok := reqs[name]; ok {
-			for i := 0; i < cnt; i++ {
-				result.Requests = append(result.Requests, req)
-			}
+		req, ok := reqs[name]
+		if !ok {
+			return nil, fmt.Errorf("request %s not found", name)
+		}
+		for i := 0; i < cnt; i++ {
+			result.Requests = append(result.Requests, req)
 		}
 	}
 
