@@ -43,41 +43,41 @@ type BaseGun struct {
 var _ Gun = (*BaseGun)(nil)
 var _ io.Closer = (*BaseGun)(nil)
 
-func (b *BaseGun) Bind(aggregator netsample.Aggregator, deps core.GunDeps) error {
+func (g *BaseGun) Bind(aggregator netsample.Aggregator, deps core.GunDeps) error {
 	log := deps.Log
 	if ent := log.Check(zap.DebugLevel, "Gun bind"); ent != nil {
 		// Enable debug level logging during shooting. Creating log entries isn't free.
-		b.DebugLog = true
+		g.DebugLog = true
 	}
 
-	if b.Aggregator != nil {
+	if g.Aggregator != nil {
 		log.Panic("already binded")
 	}
 	if aggregator == nil {
 		log.Panic("nil aggregator")
 	}
-	b.Aggregator = aggregator
-	b.GunDeps = deps
+	g.Aggregator = aggregator
+	g.GunDeps = deps
 
 	return nil
 }
 
 // Shoot is thread safe iff Do and Connect hooks are thread safe.
-func (b *BaseGun) Shoot(ammo Ammo) {
-	if b.Aggregator == nil {
+func (g *BaseGun) Shoot(ammo Ammo) {
+	if g.Aggregator == nil {
 		zap.L().Panic("must bind before shoot")
 	}
-	if b.Connect != nil {
-		err := b.Connect(b.Ctx)
+	if g.Connect != nil {
+		err := g.Connect(g.Ctx)
 		if err != nil {
-			b.Log.Warn("Connect fail", zap.Error(err))
+			g.Log.Warn("Connect fail", zap.Error(err))
 			return
 		}
 	}
 
-	err := b.shoot(ammo)
+	err := g.shoot(ammo)
 	if err != nil {
-		b.Log.Warn("Invalid ammo", zap.Uint64("request", ammo.ID()), zap.Error(err))
+		g.Log.Warn("Invalid ammo", zap.Uint64("request", ammo.ID()), zap.Error(err))
 		return
 	}
 }
@@ -87,16 +87,16 @@ func (g *BaseGun) Do(req *http.Request) (*http.Response, error) {
 	return g.client.Do(req)
 }
 
-func (b *BaseGun) Close() error {
-	if b.OnClose != nil {
-		return b.OnClose()
+func (g *BaseGun) Close() error {
+	if g.OnClose != nil {
+		return g.OnClose()
 	}
 	return nil
 }
 
-func (b *BaseGun) verboseLogging(resp *http.Response, reqBody, respBody []byte) {
+func (g *BaseGun) verboseLogging(resp *http.Response, reqBody, respBody []byte) {
 	if resp == nil {
-		b.Log.Error("Response is nil")
+		g.Log.Error("Response is nil")
 		return
 	}
 	fields := make([]zap.Field, 0, 4)
@@ -106,7 +106,7 @@ func (b *BaseGun) verboseLogging(resp *http.Response, reqBody, respBody []byte) 
 	if reqBody != nil {
 		fields = append(fields, zap.ByteString("Body", reqBody))
 	}
-	b.Log.Debug("Request debug info", fields...)
+	g.Log.Debug("Request debug info", fields...)
 
 	fields = fields[:0]
 	fields = append(fields, zap.Int("Status Code", resp.StatusCode))
@@ -115,25 +115,25 @@ func (b *BaseGun) verboseLogging(resp *http.Response, reqBody, respBody []byte) 
 	if reqBody != nil {
 		fields = append(fields, zap.ByteString("Body", respBody))
 	}
-	b.Log.Debug("Response debug info", fields...)
+	g.Log.Debug("Response debug info", fields...)
 }
 
-func (b *BaseGun) answLogging(bodyBytes []byte, resp *http.Response, respBytes []byte) {
+func (g *BaseGun) answLogging(bodyBytes []byte, resp *http.Response, respBytes []byte) {
 	msg := fmt.Sprintf("REQUEST:\n%s\n", string(bodyBytes))
-	b.AnswLog.Debug(msg)
+	g.AnswLog.Debug(msg)
 
 	var writer bytes.Buffer
 	err := resp.Header.Write(&writer)
 	if err != nil {
-		b.AnswLog.Error("error writing header", zap.Error(err))
+		g.AnswLog.Error("error writing header", zap.Error(err))
 		return
 	}
 
 	msg = fmt.Sprintf("RESPONSE:\n%s %s\n%s\n%s\n", resp.Proto, resp.Status, writer.String(), string(respBytes))
-	b.AnswLog.Debug(msg)
+	g.AnswLog.Debug(msg)
 }
 
-func (b *BaseGun) shoot(ammo Ammo) error {
+func (g *BaseGun) shoot(ammo Ammo) error {
 	const op = "base_gun.shoot"
 
 	vs := ammo.VariableStorage()
@@ -153,16 +153,16 @@ func (b *BaseGun) shoot(ammo Ammo) error {
 			err       error
 		)
 		if templaterType == "" {
-			templater = b.templater
+			templater = g.templater
 		} else {
-			templater, err = b.resolveTemplater(templaterType)
+			templater, err = g.resolveTemplater(templaterType)
 			if err != nil {
-				b.reportErr(sample, err)
+				g.reportErr(sample, err)
 				return fmt.Errorf("%s resolveTemplater %w", op, err)
 			}
 		}
 		if err := templater.Apply(&reqParts, vs, ammo.Name(), step.GetName()); err != nil {
-			b.reportErr(sample, err)
+			g.reportErr(sample, err)
 			return fmt.Errorf("%s templater.Apply %w", op, err)
 		}
 		var reader io.Reader
@@ -172,32 +172,32 @@ func (b *BaseGun) shoot(ammo Ammo) error {
 
 		req, err := http.NewRequest(reqParts.Method, reqParts.URL, reader)
 		if err != nil {
-			b.reportErr(sample, err)
+			g.reportErr(sample, err)
 			return fmt.Errorf("%s http.NewRequest %w", op, err)
 		}
 		if req.Host == "" {
-			req.Host = b.hostname
+			req.Host = g.hostname
 		}
-		req.URL.Host = b.targetResolved
-		req.URL.Scheme = b.scheme
+		req.URL.Host = g.targetResolved
+		req.URL.Scheme = g.scheme
 
 		var reqBytes []byte
-		if b.Config.AnswLog.Enabled {
+		if g.Config.AnswLog.Enabled {
 			reqBytes, err = httputil.DumpRequestOut(req, true)
 			if err != nil {
-				b.Log.Error("Error dumping request: %s", zap.Error(err))
+				g.Log.Error("Error dumping request: %s", zap.Error(err))
 			}
 		}
 
-		resp, err := b.Do(req)
+		resp, err := g.Do(req)
 		if err != nil {
-			b.reportErr(sample, err)
-			return fmt.Errorf("%s b.Do %w", op, err)
+			g.reportErr(sample, err)
+			return fmt.Errorf("%s g.Do %w", op, err)
 		}
-		b.Aggregator.Report(sample)
+		g.Aggregator.Report(sample)
 
 		var respBody []byte
-		if b.Config.AnswLog.Enabled || b.DebugLog || b.templater.needsParseResponse(step.ReturnedParams()) {
+		if g.Config.AnswLog.Enabled || g.DebugLog || g.templater.needsParseResponse(step.ReturnedParams()) {
 			respBody, err = io.ReadAll(resp.Body)
 			if err != nil {
 				return fmt.Errorf("%s io.ReadAll %w", op, err)
@@ -207,11 +207,11 @@ func (b *BaseGun) shoot(ammo Ammo) error {
 		// TODO: is it needed to read body here in every case?
 		// For read body we should use io.Copy(io.Discard, resp.Body)
 
-		if b.DebugLog {
-			b.verboseLogging(resp, reqBytes, respBody)
+		if g.DebugLog {
+			g.verboseLogging(resp, reqBytes, respBody)
 		}
-		if b.Config.AnswLog.Enabled {
-			b.answReqRespLogging(reqBytes, resp, respBody)
+		if g.Config.AnswLog.Enabled {
+			g.answReqRespLogging(reqBytes, resp, respBody)
 		}
 
 		// TODO: postprocessing
@@ -222,7 +222,7 @@ func (b *BaseGun) shoot(ammo Ammo) error {
 				return fmt.Errorf("%s postprocessor.Postprocess %w", op, err)
 			}
 		}
-		err = b.templater.SaveResponseToVS(resp, "request."+ammo.Name(), step.ReturnedParams(), vs)
+		err = g.templater.SaveResponseToVS(resp, "request."+ammo.Name(), step.ReturnedParams(), vs)
 		if err != nil {
 			return fmt.Errorf("%s templater.SaveResponseToVS %w", op, err)
 		}
@@ -240,34 +240,34 @@ func (b *BaseGun) shoot(ammo Ammo) error {
 	return nil
 }
 
-func (b *BaseGun) answReqRespLogging(reqBytes []byte, resp *http.Response, respBytes []byte) {
-	switch b.Config.AnswLog.Filter {
+func (g *BaseGun) answReqRespLogging(reqBytes []byte, resp *http.Response, respBytes []byte) {
+	switch g.Config.AnswLog.Filter {
 	case "all":
-		b.answLogging(reqBytes, resp, respBytes)
+		g.answLogging(reqBytes, resp, respBytes)
 
 	case "warning":
 		if resp.StatusCode >= 400 {
-			b.answLogging(reqBytes, resp, respBytes)
+			g.answLogging(reqBytes, resp, respBytes)
 		}
 
 	case "error":
 		if resp.StatusCode >= 500 {
-			b.answLogging(reqBytes, resp, respBytes)
+			g.answLogging(reqBytes, resp, respBytes)
 		}
 	}
 }
 
-func (b *BaseGun) reportErr(sample *netsample.Sample, err error) {
+func (g *BaseGun) reportErr(sample *netsample.Sample, err error) {
 	if err == nil {
 		return
 	}
 	sample.AddTag(EmptyTag)
 	sample.SetProtoCode(0)
 	sample.SetErr(err)
-	b.Aggregator.Report(sample)
+	g.Aggregator.Report(sample)
 }
 
-func (b *BaseGun) resolveTemplater(templaterType string) (Templater, error) {
+func (g *BaseGun) resolveTemplater(templaterType string) (Templater, error) {
 	switch templaterType {
 	case "text":
 		return NewTextTempalter(), nil

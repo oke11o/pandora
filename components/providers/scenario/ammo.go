@@ -8,9 +8,8 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 
-	"github.com/yandex/pandora/components/providers/scenario/postprocessor"
-
 	"github.com/yandex/pandora/components/guns/scenario"
+	"github.com/yandex/pandora/components/providers/scenario/postprocessor"
 	"github.com/yandex/pandora/core/config"
 )
 
