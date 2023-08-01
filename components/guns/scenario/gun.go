@@ -137,9 +137,12 @@ func (g *BaseGun) answLogging(bodyBytes []byte, resp *http.Response, respBytes [
 func (g *BaseGun) shoot(ammo Ammo) error {
 	const op = "base_gun.shoot"
 
-	vs := ammo.VariableStorage()
+	variableStorage := ammo.VariableStorage().GlobalVariables()
+	if variableStorage == nil {
+		variableStorage = map[string]any{}
+	}
 	vsRequests := map[string]any{}
-	vs["request"] = vsRequests
+	variableStorage["request"] = vsRequests
 	startAt := time.Now()
 	for _, step := range ammo.Steps() {
 		reqParts := RequestParts{
@@ -163,7 +166,7 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 				return fmt.Errorf("%s resolveTemplater %w", op, err)
 			}
 		}
-		if err := templater.Apply(&reqParts, vs, ammo.Name(), step.GetName()); err != nil {
+		if err := templater.Apply(&reqParts, variableStorage, ammo.Name(), step.GetName()); err != nil {
 			g.reportErr(sample, err)
 			return fmt.Errorf("%s templater.Apply %w", op, err)
 		}
@@ -235,7 +238,7 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 		resp.Body.Close()
 
 		vsRequests[step.GetName()] = reqMap
-		vs["request"] = vsRequests
+		variableStorage["request"] = vsRequests
 
 		if step.GetSleep() > 0 {
 			time.Sleep(step.GetSleep())

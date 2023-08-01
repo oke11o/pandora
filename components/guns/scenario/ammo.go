@@ -9,7 +9,9 @@ type Postprocessor interface {
 	Process(reqMap map[string]any, resp *http.Response, body []byte) error
 }
 
-type VariableStorage map[string]any
+type VariableStorage interface {
+	GlobalVariables() map[string]any
+}
 
 type Step interface {
 	GetName() string
@@ -30,7 +32,6 @@ type RequestParts struct {
 	Headers map[string]string
 }
 
-// TODO: Not used yet
 type Ammo interface {
 	Steps() []Step
 	ID() uint64

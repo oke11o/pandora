@@ -35,7 +35,7 @@ func parseAmmoConfig(file io.Reader) (AmmoConfig, error) {
 	return ammoCfg, nil
 }
 
-func decodeAmmo(cfg AmmoConfig) ([]*Ammo, error) {
+func decodeAmmo(cfg AmmoConfig, storage Storage) ([]*Ammo, error) {
 	reqRegistry := make(map[string]RequestConfig, len(cfg.Requests))
 
 	// TODO: Я застрял с тем, что мне не хочется обрабатывать на постпроцессинге ненужные параметры.
@@ -64,6 +64,7 @@ func decodeAmmo(cfg AmmoConfig) ([]*Ammo, error) {
 	result := make([]*Ammo, 0, size)
 	for _, sc := range cfg.Scenarios {
 		a, err := convertScenarioToAmmo(sc, reqRegistry)
+		a.variableStorage = &storage
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert scenario %s: %w", sc.Name, err)
 		}

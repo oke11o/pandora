@@ -10,23 +10,21 @@ import (
 	"github.com/yandex/pandora/core/plugin/pluginconfig"
 )
 
-const exampleVariableSourceYAML = `
+func Test_decode_parseVariableSourceJson(t *testing.T) {
+	const exampleVariableSourceJson = `
 src:
-  type: "file/csv"
-  name: "users_src"
-  file: "_files/users.csv"
-  mapping:
-    users: [ "user_id", "name" ]
+  type: "file/json"
+  name: "json_src"
+  file: "_files/users.json"
 `
 
-func Test_decoder_parseVariableSource(t *testing.T) {
 	Import(nil)
 	testOnce.Do(func() {
 		pluginconfig.AddHooks()
 	})
 
 	data := make(map[string]any)
-	err := yaml.Unmarshal([]byte(exampleVariableSourceYAML), &data)
+	err := yaml.Unmarshal([]byte(exampleVariableSourceJson), &data)
 	require.NoError(t, err)
 
 	out := struct {
@@ -36,7 +34,7 @@ func Test_decoder_parseVariableSource(t *testing.T) {
 	err = config.DecodeAndValidate(data, &out)
 	require.NoError(t, err)
 
-	require.Equal(t, "users_src", out.Src.GetName())
-	require.Equal(t, map[string]any{"users": []any{"user_id", "name"}}, out.Src.GetMapping())
-
+	vs, ok := out.Src.(*VariableSourceJson)
+	require.True(t, ok)
+	require.Equal(t, "json_src", vs.GetName())
 }

@@ -38,7 +38,11 @@ func NewProvider(fs afero.Fs, conf Config) (core.Provider, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s parseAmmoConfig %w", op, err)
 	}
-	ammos, err := decodeAmmo(ammoCfg)
+	vs, err := buildVariableStorage(ammoCfg)
+	if err != nil {
+		return nil, fmt.Errorf("%s buildVariableStorage %w", op, err)
+	}
+	ammos, err := decodeAmmo(ammoCfg, vs)
 	if err != nil {
 		return nil, fmt.Errorf("%s decodeAmmo %w", op, err)
 	}
@@ -48,6 +52,19 @@ func NewProvider(fs afero.Fs, conf Config) (core.Provider, error) {
 		sink:  make(chan *Ammo, defaultSinkSize),
 		ammos: ammos,
 	}, nil
+}
+
+func buildVariableStorage(cfg AmmoConfig) (Storage, error) {
+	storage := Storage{Map: make(map[string]any)}
+	for _, vs := range cfg.VariableSources {
+		err := vs.Init()
+		if err != nil {
+
+			return storage, err
+		}
+		storage.AddStorage(vs.GetName(), vs.GetVariables())
+	}
+	return storage, nil
 }
 
 type Provider struct {

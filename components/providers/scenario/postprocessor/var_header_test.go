@@ -26,7 +26,7 @@ func TestVarHeaderPostprocessor_Process(t *testing.T) {
 			expectedMap: map[string]any{},
 		},
 		{
-			name:     "No Mapping",
+			name:     "No Fields",
 			mappings: map[string]string{},
 			respHeaders: map[string]string{
 				"key1": "header1",
@@ -34,7 +34,7 @@ func TestVarHeaderPostprocessor_Process(t *testing.T) {
 			expectedMap: map[string]any{},
 		},
 		{
-			name: "Error in Mapping",
+			name: "Error in Fields",
 			mappings: map[string]string{
 				"key1": "header1||",
 			},

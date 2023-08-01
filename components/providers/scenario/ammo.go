@@ -9,10 +9,11 @@ import (
 var _ scenario.Ammo = (*Ammo)(nil)
 
 type Ammo struct {
-	Requests       []Request
-	Id             uint64
-	name           string
-	minWaitingTime time.Duration
+	Requests        []Request
+	Id              uint64
+	name            string
+	minWaitingTime  time.Duration
+	variableStorage *Storage
 }
 
 func (a *Ammo) GetMinWaitingTime() time.Duration {
@@ -32,7 +33,7 @@ func (a *Ammo) ID() uint64 {
 }
 
 func (a *Ammo) VariableStorage() scenario.VariableStorage {
-	return map[string]any{}
+	return a.variableStorage
 }
 
 func (a *Ammo) Name() string {

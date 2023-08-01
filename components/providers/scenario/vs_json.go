@@ -11,15 +11,22 @@ type VariableSourceJson struct {
 	fs      afero.Fs
 }
 
-func (v VariableSourceJson) GetName() string {
+func (v *VariableSourceJson) GetName() string {
 	return v.Name
 }
 
-func (v VariableSourceJson) GetMapping() map[string]any {
+func (v *VariableSourceJson) GetVariables() any {
 	return v.Mapping
+}
+
+func (v *VariableSourceJson) Init() error {
+	panic("implement me")
+	return nil
 }
 
 func NewVSJson(cfg VariableSourceJson, fs afero.Fs) (VariableSource, error) {
 	cfg.fs = fs
 	return &cfg, nil
 }
+
+var _ VariableSource = (*VariableSourceJson)(nil)
