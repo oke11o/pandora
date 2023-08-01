@@ -4,6 +4,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -112,4 +113,91 @@ func TestParseShootName(t *testing.T) {
 			assert.Equal(t, tc.wantCnt, cnt, "Count does not match for input: %s", tc.input)
 		})
 	}
+}
+
+func Test_convertScenarioToAmmo(t *testing.T) {
+	req1 := RequestConfig{
+		Method: "GET",
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+		Name: "req1",
+		Uri:  "https://example.com/api/endpoint",
+	}
+	req2 := RequestConfig{
+		Method: "POST",
+		Headers: map[string]string{
+			"Authorization": "Bearer abcdef",
+		},
+		Name: "req2",
+		Uri:  "https://example.com/api/another-endpoint",
+	}
+
+	reqRegistry := map[string]RequestConfig{
+		"req1": req1,
+		"req2": req2,
+	}
+
+	tests := []struct {
+		name    string
+		sc      ScenarioConfig
+		want    *Ammo
+		wantErr bool
+	}{
+		{
+			name: "",
+			sc: ScenarioConfig{
+				Name:           "testScenario",
+				Weight:         1,
+				MinWaitingTime: 1000,
+				Shoot: []string{
+					"req1",
+					"req2",
+					"req2(2)",
+					"sleep(500)",
+				},
+			},
+			want: &Ammo{
+				name:           "testScenario",
+				minWaitingTime: time.Millisecond * 1000,
+				Requests: []Request{
+					convertConfigToRequestWithSleep(req1, 0),
+					convertConfigToRequestWithSleep(req2, 0),
+					convertConfigToRequestWithSleep(req2, 0),
+					convertConfigToRequestWithSleep(req2, time.Millisecond*500),
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Scenario with unknown request",
+			sc: ScenarioConfig{
+				Name:           "unknownScenario",
+				Weight:         1,
+				MinWaitingTime: 1000,
+				Shoot: []string{
+					"unknownReq",
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := convertScenarioToAmmo(tt.sc, reqRegistry)
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equalf(t, tt.want, got, "convertScenarioToAmmo(%v, %v)", tt.sc, reqRegistry)
+		})
+	}
+}
+
+func convertConfigToRequestWithSleep(req RequestConfig, sleep time.Duration) Request {
+	res := convertConfigToRequest(req)
+	res.sleep = sleep
+	return res
 }

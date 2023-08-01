@@ -9,9 +9,6 @@ import (
 var _ scenario.Ammo = (*Ammo)(nil)
 
 type Ammo struct {
-	InputParams    []string
-	returnedParams []string
-
 	Requests       []Request
 	Id             uint64
 	name           string
