@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 
+	"github.com/yandex/pandora/components/guns/scenario"
 	"github.com/yandex/pandora/core/config"
 	"github.com/yandex/pandora/lib/math"
 	"github.com/yandex/pandora/lib/str"
@@ -79,7 +80,7 @@ func decodeAmmo(cfg AmmoConfig) ([]*Ammo, error) {
 }
 
 func convertScenarioToAmmo(sc ScenarioConfig, reqs map[string]RequestConfig) (*Ammo, error) {
-	result := &Ammo{name: sc.Name}
+	result := &Ammo{name: sc.Name, minWaitingTime: time.Millisecond * time.Duration(sc.MinWaitingTime)}
 	for _, sh := range sc.Shoot {
 		name, cnt, err := parseShootName(sh)
 		if err != nil {
@@ -103,6 +104,10 @@ func convertScenarioToAmmo(sc ScenarioConfig, reqs map[string]RequestConfig) (*A
 }
 
 func convertConfigToRequest(req RequestConfig) Request {
+	postprocessors := make([]scenario.Postprocessor, len(req.Postprocessors))
+	for i := range req.Postprocessors {
+		postprocessors[i] = req.Postprocessors[i].(scenario.Postprocessor)
+	}
 	return Request{
 		method:         req.Method,
 		headers:        req.Headers,
@@ -111,7 +116,7 @@ func convertConfigToRequest(req RequestConfig) Request {
 		name:           req.Name,
 		uri:            req.Uri,
 		preprocessors:  req.Preprocessors,
-		postprocessors: req.Postprocessors,
+		postprocessors: postprocessors,
 		templater:      req.Templater,
 	}
 }

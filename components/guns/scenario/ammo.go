@@ -36,4 +36,5 @@ type Ammo interface {
 	ID() uint64
 	VariableStorage() VariableStorage
 	Name() string
+	GetMinWaitingTime() time.Duration
 }

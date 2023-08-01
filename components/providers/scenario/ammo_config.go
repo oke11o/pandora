@@ -14,7 +14,7 @@ type AmmoConfig struct {
 type ScenarioConfig struct {
 	Name           string   `yaml:"name"`
 	Weight         int64    `yaml:"weight"`
-	MinWaitingTime int      `yaml:"minwaitingtime"`
+	MinWaitingTime int64    `yaml:"minwaitingtime"`
 	Shoot          []string `yaml:"shoot"`
 }
 

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -139,7 +140,7 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 	vs := ammo.VariableStorage()
 	vsRequests := map[string]any{}
 	vs["request"] = vsRequests
-	//outputParams := ammo.ReturnedParams()
+	startAt := time.Now()
 	for _, step := range ammo.Steps() {
 		reqParts := RequestParts{
 			URL:     step.GetURL(),
@@ -235,6 +236,14 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 
 		vsRequests[step.GetName()] = reqMap
 		vs["request"] = vsRequests
+
+		if step.GetSleep() > 0 {
+			time.Sleep(step.GetSleep())
+		}
+	}
+	spent := time.Since(startAt)
+	if ammo.GetMinWaitingTime() > spent {
+		time.Sleep(ammo.GetMinWaitingTime() - spent)
 	}
 	return nil
 }

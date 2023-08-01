@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/yandex/pandora/components/guns/scenario"
-	"github.com/yandex/pandora/components/providers/scenario/postprocessor"
 )
 
 var _ scenario.Ammo = (*Ammo)(nil)
@@ -13,9 +12,14 @@ type Ammo struct {
 	InputParams    []string
 	returnedParams []string
 
-	Requests []Request
-	Id       uint64
-	name     string
+	Requests       []Request
+	Id             uint64
+	name           string
+	minWaitingTime time.Duration
+}
+
+func (a *Ammo) GetMinWaitingTime() time.Duration {
+	return a.minWaitingTime
 }
 
 func (a *Ammo) Steps() []scenario.Step {
@@ -46,17 +50,13 @@ type Request struct {
 	name           string
 	uri            string
 	preprocessors  []Preprocessor
-	postprocessors []postprocessor.Postprocessor
+	postprocessors []scenario.Postprocessor
 	templater      string
 	sleep          time.Duration
 }
 
 func (r *Request) GetPostProcessors() []scenario.Postprocessor {
-	result := make([]scenario.Postprocessor, len(r.postprocessors))
-	for i := range r.postprocessors {
-		result[i] = r.postprocessors[i].(scenario.Postprocessor) // TODO: need to check
-	}
-	return result
+	return r.postprocessors
 }
 
 func (r *Request) GetTemplater() string {
