@@ -3,13 +3,11 @@ package scenario
 import (
 	"testing"
 
-	"github.com/yandex/pandora/core/plugin/pluginconfig"
-
 	"github.com/stretchr/testify/require"
-
 	"gopkg.in/yaml.v2"
 
 	"github.com/yandex/pandora/core/config"
+	"github.com/yandex/pandora/core/plugin/pluginconfig"
 )
 
 const exampleVariableSourceYAML = `

@@ -198,18 +198,16 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 			g.reportErr(sample, err)
 			return fmt.Errorf("%s g.Do %w", op, err)
 		}
+		sample.SetProtoCode(resp.StatusCode)
 		g.Aggregator.Report(sample)
 
 		var respBody []byte
-		if g.Config.AnswLog.Enabled || g.DebugLog || g.templater.needsParseResponse(step.ReturnedParams()) {
+		if g.Config.AnswLog.Enabled || g.DebugLog {
 			respBody, err = io.ReadAll(resp.Body)
 			if err != nil {
 				return fmt.Errorf("%s io.ReadAll %w", op, err)
 			}
 		}
-
-		// TODO: is it needed to read body here in every case?
-		// For read body we should use io.Copy(io.Discard, resp.Body)
 
 		if g.DebugLog {
 			g.verboseLogging(resp, reqBytes, respBody)
@@ -225,10 +223,6 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 			if err != nil {
 				return fmt.Errorf("%s postprocessor.Postprocess %w", op, err)
 			}
-		}
-		err = g.templater.SaveResponseToVS(resp, "request."+ammo.Name(), step.ReturnedParams(), vs) // TODO
-		if err != nil {
-			return fmt.Errorf("%s templater.SaveResponseToVS %w", op, err)
 		}
 
 		if respBody == nil {

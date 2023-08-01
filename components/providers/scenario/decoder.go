@@ -2,36 +2,59 @@ package scenario
 
 import (
 	"fmt"
-	"regexp"
+	"io"
+	"log"
 	"strconv"
-	"strings"
+	"time"
 
-	"github.com/yandex/pandora/lib/str"
+	"go.uber.org/zap"
+	"gopkg.in/yaml.v2"
 
+	"github.com/yandex/pandora/core/config"
 	"github.com/yandex/pandora/lib/math"
+	"github.com/yandex/pandora/lib/str"
 )
 
+func parseAmmoConfig(file io.Reader) (AmmoConfig, error) {
+	var ammoCfg AmmoConfig
+	const op = "scenario/decoder.parseAmmoConfig"
+	data := make(map[string]any)
+	bytes, err := io.ReadAll(file)
+	if err != nil {
+		return ammoCfg, fmt.Errorf("%s, io.ReadAll, %w", op, err)
+	}
+	err = yaml.Unmarshal(bytes, &data)
+	if err != nil {
+		return ammoCfg, fmt.Errorf("%s, yaml.Unmarshal, %w", op, err)
+	}
+	err = config.DecodeAndValidate(data, &ammoCfg)
+	if err != nil {
+		log.Fatal("Config decode failed", zap.Error(err))
+	}
+	return ammoCfg, nil
+}
+
 func decodeAmmo(cfg AmmoConfig) ([]*Ammo, error) {
-	reqRegistry := make(map[string]Request, len(cfg.Requests))
+	reqRegistry := make(map[string]RequestConfig, len(cfg.Requests))
 
 	// TODO: Я застрял с тем, что мне не хочется обрабатывать на постпроцессинге ненужные параметры.
 	// ХМ: Может тупое желание? Хотя постпросессинг выполняется на каждом запросе.
 	// И мы можем существенно улучшить производительность, если не будет делать лишнюю работу.
-	allExpectedParams := make([]string, 0)
-	allReturnedParams := make([]string, 0)
+	//allExpectedParams := make([]string, 0)
+	//allReturnedParams := make([]string, 0)
 	for _, req := range cfg.Requests {
 		reqRegistry[req.Name] = req
-		_, req.expectedParams = extractExpectedParams(req)
-		req.returnedParams = extractReturnedParams(req)
-		allExpectedParams = append(allExpectedParams, req.expectedParams...)
-		allReturnedParams = append(allReturnedParams, req.returnedParams...)
+		//_, req.expectedParams = extractExpectedParams(req)
+		//req.returnedParams = extractReturnedParams(req)
+		//allExpectedParams = append(allExpectedParams, req.expectedParams...)
+		//allReturnedParams = append(allReturnedParams, req.returnedParams...)
 	}
-	paramsForDeleteFromReturned := intersectExpectedAndReturnedParams(allExpectedParams, allReturnedParams)
-	_ = paramsForDeleteFromReturned
+	//paramsForDeleteFromReturned := intersectExpectedAndReturnedParams(allExpectedParams, allReturnedParams)
+	//_ = paramsForDeleteFromReturned
 	// TODO: end. До сюда можно выделить в отдельную функцию reqRegistry := prepareRequests(cfg.Requests)
 	// Важно, что функция prepareRequests() не просто вернет reqRegistry, но и изменить элементы слайса cfg.Requests.
 
-	scenarioRegistry := map[string]Scenario{}
+	scenarioRegistry := map[string]ScenarioConfig{}
 	for _, sc := range cfg.Scenarios {
 		scenarioRegistry[sc.Name] = sc
 	}
@@ -43,7 +66,11 @@ func decodeAmmo(cfg AmmoConfig) ([]*Ammo, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert scenario %s: %w", sc.Name, err)
 		}
-		for i := 0; i < names[sc.Name]; i++ {
+		ns, ok := names[sc.Name]
+		if !ok {
+			return nil, fmt.Errorf("scenario %s is not found", sc.Name)
+		}
+		for i := 0; i < ns; i++ {
 			result = append(result, a)
 		}
 	}
@@ -51,77 +78,42 @@ func decodeAmmo(cfg AmmoConfig) ([]*Ammo, error) {
 	return result, nil
 }
 
-func intersectExpectedAndReturnedParams(expected []string, returned []string) map[string]struct{} {
-	// TODO: implement me
-	return nil
-}
-
-func extractReturnedParams(req Request) []string {
-	var result []string
-	for _, pr := range req.Postprocessors {
-		params := pr.ReturnedParams()
-		for i := range params {
-			params[i] = "request." + req.Name + "." + strings.TrimSpace(params[i])
-		}
-		result = append(result, params...)
-	}
-
-	return result
-}
-
-var extractParamsRegex = regexp.MustCompile("{{.+?}}")
-
-func extractExpectedParams(req Request) ([]string, []string) {
-	resUri := extractParamsRegex.FindAllString(req.Uri, -1)
-	var resBody []string
-	if req.Body != nil {
-		resBody = extractParamsRegex.FindAllString(*req.Body, -1)
-	}
-	var headerRes []string
-	for key, val := range req.Headers {
-		ks := extractParamsRegex.FindAllString(key, -1)
-		vs := extractParamsRegex.FindAllString(val, -1)
-		headerRes = append(headerRes, ks...)
-		headerRes = append(headerRes, vs...)
-	}
-	result := make([]string, 0, len(resUri)+len(resBody))
-	result = append(result, resUri...)
-	if len(resBody) > 0 {
-		result = append(result, resBody...)
-	}
-	if len(headerRes) > 0 {
-		result = append(result, headerRes...)
-	}
-	topNames := make([]string, len(result))
-	for i := range result {
-		result[i] = strings.TrimSpace(result[i][2 : len(result[i])-2])
-		names := strings.Split(result[i], ".")
-		if len(names) > 3 {
-			names = names[:3]
-		}
-		topNames[i] = strings.Join(names, ".")
-	}
-	// TODO: remove duplicates
-	return result, topNames
-}
-
-func convertScenarioToAmmo(sc Scenario, reqs map[string]Request) (*Ammo, error) {
+func convertScenarioToAmmo(sc ScenarioConfig, reqs map[string]RequestConfig) (*Ammo, error) {
 	result := &Ammo{name: sc.Name}
 	for _, sh := range sc.Shoot {
 		name, cnt, err := parseShootName(sh)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse shoot %s: %w", sh, err)
 		}
+		if name == "sleep" {
+			result.Requests[len(result.Requests)-1].sleep += time.Millisecond * time.Duration(cnt)
+			continue
+		}
 		req, ok := reqs[name]
 		if !ok {
 			return nil, fmt.Errorf("request %s not found", name)
 		}
+		r := convertConfigToRequest(req)
 		for i := 0; i < cnt; i++ {
-			result.Requests = append(result.Requests, req)
+			result.Requests = append(result.Requests, r)
 		}
 	}
 
 	return result, nil
+}
+
+func convertConfigToRequest(req RequestConfig) Request {
+	return Request{
+		method:         req.Method,
+		headers:        req.Headers,
+		tag:            req.Tag,
+		body:           req.Body,
+		name:           req.Name,
+		uri:            req.Uri,
+		preprocessors:  req.Preprocessors,
+		postprocessors: req.Postprocessors,
+		templater:      req.Templater,
+	}
 }
 
 func parseShootName(shoot string) (string, int, error) {
@@ -139,7 +131,7 @@ func parseShootName(shoot string) (string, int, error) {
 	return name, cnt, nil
 }
 
-func spreadNames(input []Scenario) (map[string]int, int) {
+func spreadNames(input []ScenarioConfig) (map[string]int, int) {
 	if len(input) == 0 {
 		return nil, 0
 	}
@@ -147,7 +139,7 @@ func spreadNames(input []Scenario) (map[string]int, int) {
 		return map[string]int{input[0].Name: 1}, 1
 	}
 
-	scenarioRegistry := map[string]Scenario{}
+	scenarioRegistry := map[string]ScenarioConfig{}
 	weights := make([]int64, len(input))
 	for i, sc := range input {
 		scenarioRegistry[sc.Name] = sc

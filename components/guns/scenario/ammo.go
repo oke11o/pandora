@@ -1,9 +1,11 @@
 package scenario
 
-import "net/http"
+import (
+	"net/http"
+	"time"
+)
 
 type Postprocessor interface {
-	ReturnedParams() []string
 	Process(reqMap map[string]any, resp *http.Response, body []byte) error
 }
 
@@ -16,9 +18,9 @@ type Step interface {
 	GetBody() []byte
 	GetHeaders() map[string]string
 	GetTag() string
-	ReturnedParams() []string
 	GetTemplater() string
 	GetPostProcessors() []Postprocessor
+	GetSleep() time.Duration
 }
 
 type RequestParts struct {

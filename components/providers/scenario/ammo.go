@@ -1,25 +1,21 @@
 package scenario
 
 import (
-	"fmt"
-	"io"
-	"log"
-
-	"go.uber.org/zap"
-	"gopkg.in/yaml.v2"
+	"time"
 
 	"github.com/yandex/pandora/components/guns/scenario"
 	"github.com/yandex/pandora/components/providers/scenario/postprocessor"
-	"github.com/yandex/pandora/core/config"
 )
+
+var _ scenario.Ammo = (*Ammo)(nil)
 
 type Ammo struct {
 	InputParams    []string
 	returnedParams []string
 
-	Requests []Request `yaml:"requests"`
-	Id       uint64    `yaml:"id"`
-	name     string    `yaml:"name"`
+	Requests []Request
+	Id       uint64
+	name     string
 }
 
 func (a *Ammo) Steps() []scenario.Step {
@@ -42,99 +38,59 @@ func (a *Ammo) Name() string {
 	return a.name
 }
 
-var _ scenario.Ammo = (*Ammo)(nil)
-
-type AmmoConfig struct {
-	Variables       map[string]string `yaml:"variables"`
-	VariableSources []VariableSource  `yaml:"variablesources"`
-	Requests        []Request         `yaml:"requests"`
-	Scenarios       []Scenario        `yaml:"scenarios"`
-}
-
-type Scenario struct {
-	Name           string   `yaml:"name"`
-	Weight         int64    `yaml:"weight"`
-	MinWaitingTime int      `yaml:"minwaitingtime"`
-	Shoot          []string `yaml:"shoot"`
-}
-
-type Preprocessor interface {
-	// TODO
-}
-
 type Request struct {
-	Method         string                        `yaml:"method"`
-	Headers        map[string]string             `yaml:"headers"`
-	Tag            string                        `yaml:"tag"`
-	Body           *string                       `yaml:"body"`
-	Name           string                        `yaml:"name"`
-	Uri            string                        `yaml:"uri"`
-	Preprocessors  []Preprocessor                `yaml:"preprocessors"`
-	Postprocessors []postprocessor.Postprocessor `yaml:"postprocessors"`
-	Templater      string                        `yaml:"templater"`
-	returnedParams []string
-	expectedParams []string
+	method         string
+	headers        map[string]string
+	tag            string
+	body           *string
+	name           string
+	uri            string
+	preprocessors  []Preprocessor
+	postprocessors []postprocessor.Postprocessor
+	templater      string
+	sleep          time.Duration
 }
 
 func (r *Request) GetPostProcessors() []scenario.Postprocessor {
-	result := make([]scenario.Postprocessor, len(r.Postprocessors))
-	for i := range r.Postprocessors {
-		result[i] = r.Postprocessors[i].(scenario.Postprocessor) // TODO: need to check
+	result := make([]scenario.Postprocessor, len(r.postprocessors))
+	for i := range r.postprocessors {
+		result[i] = r.postprocessors[i].(scenario.Postprocessor) // TODO: need to check
 	}
 	return result
 }
 
 func (r *Request) GetTemplater() string {
-	return r.Templater
+	return r.templater
 }
 
 var _ scenario.Step = (*Request)(nil)
 
 func (r *Request) GetName() string {
-	return r.Name
+	return r.name
 }
 func (r *Request) GetMethod() string {
-	return r.Method
+	return r.method
 }
 
 func (r *Request) GetBody() []byte {
-	if r.Body == nil {
+	if r.body == nil {
 		return nil
 	}
-	return []byte(*r.Body)
+	return []byte(*r.body)
 }
 
 func (r *Request) GetHeaders() map[string]string {
-	return r.Headers
+	return r.headers
 }
 
 func (r *Request) GetTag() string {
-	return r.Tag
+	return r.tag
 }
 
 func (r *Request) GetURL() string {
-	return r.Uri
+	return r.uri
 }
 
-func (r *Request) ReturnedParams() []string {
-	return r.returnedParams
-}
-
-func parseAmmoConfig(file io.Reader) (AmmoConfig, error) {
-	var ammoCfg AmmoConfig
-	const op = "scenario/decoder.parseAmmoConfig"
-	data := make(map[string]any)
-	bytes, err := io.ReadAll(file)
-	if err != nil {
-		return ammoCfg, fmt.Errorf("%s, io.ReadAll, %w", op, err)
-	}
-	err = yaml.Unmarshal(bytes, &data)
-	if err != nil {
-		return ammoCfg, fmt.Errorf("%s, yaml.Unmarshal, %w", op, err)
-	}
-	err = config.DecodeAndValidate(data, &ammoCfg)
-	if err != nil {
-		log.Fatal("Config decode failed", zap.Error(err))
-	}
-	return ammoCfg, nil
+func (r *Request) GetSleep() time.Duration {
+	return r.sleep
 }

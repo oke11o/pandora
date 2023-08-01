@@ -1,17 +1,5 @@
 package scenario
 
-import (
-	"strings"
-	"sync"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	"github.com/yandex/pandora/components/providers/scenario/postprocessor"
-	"github.com/yandex/pandora/core/plugin/pluginconfig"
-)
-
 const exampleAmmoFile = `
 variables:
   hostname: localhost
@@ -105,36 +93,3 @@ scenarios:
       order(3)
     ]
 `
-
-var testOnce = &sync.Once{}
-
-func Test_parseAmmoConfig(t *testing.T) {
-	Import(nil)
-	testOnce.Do(func() {
-		pluginconfig.AddHooks()
-	})
-
-	reader := strings.NewReader(exampleAmmoFile)
-	cfg, err := parseAmmoConfig(reader)
-	require.NoError(t, err)
-
-	assert.Equal(t, map[string]string{"hostname": "localhost"}, cfg.Variables)
-	assert.Equal(t, 2, len(cfg.VariableSources))
-	assert.Equal(t, "users_src", cfg.VariableSources[0].GetName())
-	assert.Equal(t, map[string]any{"users": []any{"user_id", "name", "pass", "created_at"}}, cfg.VariableSources[0].GetMapping())
-
-	assert.Equal(t, "filter_src", cfg.VariableSources[1].GetName())
-	assert.Equal(t, 3, len(cfg.Requests))
-	assert.Equal(t, "auth_req", cfg.Requests[0].Name)
-	require.Equal(t, 2, len(cfg.Requests[0].Postprocessors))
-	require.Equal(t, 2, len(cfg.Requests[0].GetPostProcessors()))
-	require.Equal(t, map[string]string{"httpAuthorization": "Http-Authorization", "contentType": "Content-Type|lower"}, cfg.Requests[0].Postprocessors[0].(*postprocessor.VarHeaderPostprocessor).Mapping)
-	require.Equal(t, map[string]string{"token": "$.data.authToken"}, cfg.Requests[0].Postprocessors[1].(*postprocessor.VarJsonpathPostprocessor).Mapping)
-
-	assert.Equal(t, "list_req", cfg.Requests[1].Name)
-	assert.Equal(t, "order_req", cfg.Requests[2].Name)
-	assert.Equal(t, 2, len(cfg.Scenarios))
-	assert.Equal(t, "scenario1", cfg.Scenarios[0].Name)
-	assert.Equal(t, "scenario2", cfg.Scenarios[1].Name)
-
-}

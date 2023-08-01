@@ -1,33 +1,71 @@
 package scenario
 
 import (
+	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/yandex/pandora/components/providers/scenario/postprocessor"
+	"github.com/yandex/pandora/core/plugin/pluginconfig"
 )
+
+var testOnce = &sync.Once{}
+
+func Test_parseAmmoConfig(t *testing.T) {
+	Import(nil)
+	testOnce.Do(func() {
+		pluginconfig.AddHooks()
+	})
+
+	reader := strings.NewReader(exampleAmmoFile)
+	cfg, err := parseAmmoConfig(reader)
+	require.NoError(t, err)
+
+	assert.Equal(t, map[string]string{"hostname": "localhost"}, cfg.Variables)
+	assert.Equal(t, 2, len(cfg.VariableSources))
+	assert.Equal(t, "users_src", cfg.VariableSources[0].GetName())
+	assert.Equal(t, map[string]any{"users": []any{"user_id", "name", "pass", "created_at"}}, cfg.VariableSources[0].GetMapping())
+
+	assert.Equal(t, "filter_src", cfg.VariableSources[1].GetName())
+	assert.Equal(t, 3, len(cfg.Requests))
+	assert.Equal(t, "auth_req", cfg.Requests[0].Name)
+	require.Equal(t, 2, len(cfg.Requests[0].Postprocessors))
+	require.Equal(t, map[string]string{"httpAuthorization": "Http-Authorization", "contentType": "Content-Type|lower"}, cfg.Requests[0].Postprocessors[0].(*postprocessor.VarHeaderPostprocessor).Mapping)
+	require.Equal(t, map[string]string{"token": "$.data.authToken"}, cfg.Requests[0].Postprocessors[1].(*postprocessor.VarJsonpathPostprocessor).Mapping)
+
+	assert.Equal(t, "list_req", cfg.Requests[1].Name)
+	assert.Equal(t, "order_req", cfg.Requests[2].Name)
+	assert.Equal(t, 2, len(cfg.Scenarios))
+	assert.Equal(t, "scenario1", cfg.Scenarios[0].Name)
+	assert.Equal(t, "scenario2", cfg.Scenarios[1].Name)
+
+}
 
 func Test_spreadNames(t *testing.T) {
 	tests := []struct {
 		name      string
-		input     []Scenario
+		input     []ScenarioConfig
 		want      map[string]int
 		wantTotal int
 	}{
 		{
 			name:      "",
-			input:     []Scenario{{Name: "a", Weight: 20}, {Name: "b", Weight: 30}, {Name: "c", Weight: 60}},
+			input:     []ScenarioConfig{{Name: "a", Weight: 20}, {Name: "b", Weight: 30}, {Name: "c", Weight: 60}},
 			want:      map[string]int{"a": 2, "b": 3, "c": 6},
 			wantTotal: 11,
 		},
 		{
 			name:      "",
-			input:     []Scenario{{Name: "a", Weight: 100}, {Name: "b", Weight: 100}, {Name: "c", Weight: 100}},
+			input:     []ScenarioConfig{{Name: "a", Weight: 100}, {Name: "b", Weight: 100}, {Name: "c", Weight: 100}},
 			want:      map[string]int{"a": 1, "b": 1, "c": 1},
 			wantTotal: 3,
 		},
 		{
 			name:      "",
-			input:     []Scenario{{Name: "a", Weight: 100}},
+			input:     []ScenarioConfig{{Name: "a", Weight: 100}},
 			want:      map[string]int{"a": 1},
 			wantTotal: 1,
 		},
@@ -72,53 +110,6 @@ func TestParseShootName(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, tc.wantName, name, "Name does not match for input: %s", tc.input)
 			assert.Equal(t, tc.wantCnt, cnt, "Count does not match for input: %s", tc.input)
-		})
-	}
-}
-
-func Test_extractParams(t *testing.T) {
-	body := "Lorem ipsum {{dolor}} sit amet, {{con.sectetur}} adipiscing elit. "
-	tests := []struct {
-		name  string
-		req   Request
-		want  []string
-		want2 []string
-	}{
-		{
-			name: "",
-			req: Request{
-				Uri:     "{{request.auth.dollor.field}}asdf ljvaosdv {{ request.auth.dollor.field['asdfl;]}} laskdfjla\n\n\n{{s v a }}",
-				Body:    &body,
-				Tag:     "{{tag1}}",
-				Headers: map[string]string{"{{request.auth.dollor1.field}}": "con.sectetur", "{{con.sectetur1}}": "{{tag2}}"},
-			},
-			want: []string{
-				"request.auth.dollor.field",
-				"request.auth.dollor.field['asdfl;]",
-				"s v a",
-				"dolor",
-				"con.sectetur",
-				"request.auth.dollor1.field",
-				"con.sectetur1",
-				"tag2",
-			},
-			want2: []string{
-				"request.auth.dollor",
-				"request.auth.dollor",
-				"s v a",
-				"dolor",
-				"con.sectetur",
-				"request.auth.dollor1",
-				"con.sectetur1",
-				"tag2",
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, got2 := extractExpectedParams(tt.req)
-			assert.ElementsMatch(t, tt.want, got, "extractExpectedParams(%v)", tt.req)
-			assert.ElementsMatch(t, tt.want2, got2, "extractExpectedParams(%v)", tt.req)
 		})
 	}
 }

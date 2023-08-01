@@ -2,7 +2,6 @@ package scenario
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 	"sync"
 	"text/template"
@@ -70,25 +69,4 @@ func (t *TextTemplater) getTemplate(tmplBody, scenarioName, stepName, key string
 		t.templatesCache.Store(urlKey, tmpl)
 	}
 	return tmpl.(*template.Template), nil
-}
-
-func (t *TextTemplater) SaveResponseToVS(resp *http.Response, varPrefix string, params []string, vs map[string]any) error {
-	headers := resp.Header
-	for _, param := range params {
-		if param == "status" {
-			vs[varPrefix+".status"] = resp.Status
-		} else if param == "headers" {
-			for k, v := range headers {
-				vs[varPrefix+".headers."+k] = v[0]
-			}
-		} else {
-			vs[varPrefix+"."+param] = "TODO"
-			// TODO: postprocessors job
-		}
-	}
-	return nil
-}
-
-func (t *TextTemplater) needsParseResponse(params []string) bool {
-	return len(params) > 0
 }
