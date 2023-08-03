@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+type Preprocessor interface {
+	Process(reqMap map[string]any) error
+}
+
 type Postprocessor interface {
 	Process(reqMap map[string]any, resp *http.Response, body []byte) error
 }
@@ -22,6 +26,7 @@ type Step interface {
 	GetTag() string
 	GetTemplater() string
 	GetPostProcessors() []Postprocessor
+	Preprocessor() Preprocessor
 	GetSleep() time.Duration
 }
 

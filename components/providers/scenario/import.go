@@ -30,18 +30,6 @@ func Import(fs afero.Fs) {
 		RegisterPostprocessor("var/xpath", postprocessor.NewVarXpathPostprocessor)
 		RegisterPostprocessor("var/header", postprocessor.NewVarHeaderPostprocessor)
 	})
-
-	//register.Provider("http/scenario", func(cfg Config) (core.Provider, error) {
-	//	return NewProvider(fs, cfg)
-	//})
-	//
-	//RegisterVariableSource("file/csv", func(cfg VariableSourceCsv) (VariableSource, error) {
-	//	return NewVSCSV(cfg, fs)
-	//})
-	//
-	//RegisterVariableSource("file/json", func(cfg VariableSourceJson) (VariableSource, error) {
-	//	return NewVSJson(cfg, fs)
-	//})
 }
 
 func RegisterPostprocessor(name string, mwConstructor interface{}, defaultConfigOptional ...interface{}) {

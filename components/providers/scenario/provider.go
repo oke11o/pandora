@@ -34,9 +34,9 @@ func NewProvider(fs afero.Fs, conf Config) (core.Provider, error) {
 		}
 	}()
 
-	ammoCfg, err := parseAmmoConfig(file)
+	ammoCfg, err := ParseAmmoConfig(file)
 	if err != nil {
-		return nil, fmt.Errorf("%s parseAmmoConfig %w", op, err)
+		return nil, fmt.Errorf("%s ParseAmmoConfig %w", op, err)
 	}
 	vs, err := buildVariableStorage(ammoCfg)
 	if err != nil {

@@ -16,9 +16,9 @@ import (
 	"github.com/yandex/pandora/lib/str"
 )
 
-func parseAmmoConfig(file io.Reader) (AmmoConfig, error) {
+func ParseAmmoConfig(file io.Reader) (AmmoConfig, error) {
 	var ammoCfg AmmoConfig
-	const op = "scenario/decoder.parseAmmoConfig"
+	const op = "scenario/decoder.ParseAmmoConfig"
 	data := make(map[string]any)
 	bytes, err := io.ReadAll(file)
 	if err != nil {
@@ -82,7 +82,7 @@ func decodeAmmo(cfg AmmoConfig, storage Storage) ([]*Ammo, error) {
 
 func convertScenarioToAmmo(sc ScenarioConfig, reqs map[string]RequestConfig) (*Ammo, error) {
 	result := &Ammo{name: sc.Name, minWaitingTime: time.Millisecond * time.Duration(sc.MinWaitingTime)}
-	for _, sh := range sc.Shoot {
+	for _, sh := range sc.Shoots {
 		name, cnt, err := parseShootName(sh)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse shoot %s: %w", sh, err)
@@ -116,7 +116,7 @@ func convertConfigToRequest(req RequestConfig) Request {
 		body:           req.Body,
 		name:           req.Name,
 		uri:            req.Uri,
-		preprocessors:  req.Preprocessors,
+		preprocessor:   req.Preprocessor,
 		postprocessors: postprocessors,
 		templater:      req.Templater,
 	}

@@ -47,7 +47,7 @@ type Request struct {
 	body           *string
 	name           string
 	uri            string
-	preprocessors  []Preprocessor
+	preprocessor   Preprocessor
 	postprocessors []scenario.Postprocessor
 	templater      string
 	sleep          time.Duration
@@ -91,4 +91,8 @@ func (r *Request) GetURL() string {
 
 func (r *Request) GetSleep() time.Duration {
 	return r.sleep
+}
+
+func (r *Request) Preprocessor() scenario.Preprocessor {
+	return &r.preprocessor
 }

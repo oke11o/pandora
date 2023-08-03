@@ -7,6 +7,5 @@ type Config struct {
 }
 
 type Postprocessor interface {
-	ReturnedParams() []string
 	Process(reqMap map[string]any, resp *http.Response, body []byte) error
 }

@@ -145,6 +145,15 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 	variableStorage["request"] = vsRequests
 	startAt := time.Now()
 	for _, step := range ammo.Steps() {
+
+		preProcessor := step.Preprocessor()
+		if preProcessor != nil {
+			err := preProcessor.Process(variableStorage)
+			if err != nil {
+				return fmt.Errorf("%s preProcessor %w", op, err)
+			}
+		}
+
 		reqParts := RequestParts{
 			URL:     step.GetURL(),
 			Method:  step.GetMethod(),
@@ -220,7 +229,6 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 			g.answReqRespLogging(reqBytes, resp, respBody)
 		}
 
-		// TODO: postprocessing
 		reqMap := map[string]any{}
 		for _, postprocessor := range step.GetPostProcessors() {
 			err := postprocessor.Process(reqMap, resp, respBody)

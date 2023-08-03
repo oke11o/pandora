@@ -47,10 +47,9 @@ requests:
           token: "$.data.authToken"
 
   - name: list_req
-    preprocessors:
-      - type: prepare
-        mapping:
-          filter: source.filter_src.list[rand]
+    preprocessor:
+      variables:
+        filter: source.filter_src.list[rand]
     uri: '/list/?{{filter|query}}'
     method: GET
     headers:
@@ -65,10 +64,9 @@ requests:
           items: $.data.items
 
   - name: order_req
-    preprocessors:
-      - type: prepare
-        mapping:
-          item: list_req.items.items[rand]
+    preprocessor:
+      variables:
+        item: list_req.items.items[rand]
     uri: '/order'
     tag: order	
     method: POST
@@ -87,7 +85,7 @@ scenarios:
   - name: scenario1
     weight: 50
     minwaitingtime: 1000
-    shoot: [
+    shoots: [
       auth(1),
       sleep(100),
       list(1),
@@ -97,7 +95,7 @@ scenarios:
   - name: scenario2
     weight: 10
     minwaitingtime: 1000
-    shoot: [
+    shoots: [
       auth(1),
       sleep(100),
       list(1),
@@ -115,7 +113,7 @@ func Test_parseAmmoConfig(t *testing.T) {
 	})
 
 	reader := strings.NewReader(exampleAmmoFile)
-	cfg, err := parseAmmoConfig(reader)
+	cfg, err := ParseAmmoConfig(reader)
 	require.NoError(t, err)
 
 	assert.Equal(t, map[string]string{"hostname": "localhost"}, cfg.Variables)
@@ -242,7 +240,7 @@ func Test_convertScenarioToAmmo(t *testing.T) {
 				Name:           "testScenario",
 				Weight:         1,
 				MinWaitingTime: 1000,
-				Shoot: []string{
+				Shoots: []string{
 					"req1",
 					"req2",
 					"req2(2)",
@@ -267,7 +265,7 @@ func Test_convertScenarioToAmmo(t *testing.T) {
 				Name:           "unknownScenario",
 				Weight:         1,
 				MinWaitingTime: 1000,
-				Shoot: []string{
+				Shoots: []string{
 					"unknownReq",
 				},
 			},

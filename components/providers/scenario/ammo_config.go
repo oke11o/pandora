@@ -12,24 +12,20 @@ type AmmoConfig struct {
 }
 
 type ScenarioConfig struct {
-	Name           string   `yaml:"name"`
-	Weight         int64    `yaml:"weight"`
-	MinWaitingTime int64    `yaml:"minwaitingtime"`
-	Shoot          []string `yaml:"shoot"`
-}
-
-type Preprocessor interface {
-	// TODO
+	Name           string   `yaml:"name" hcl:"name,label"`
+	Weight         int64    `yaml:"weight" hcl:"weight"`
+	MinWaitingTime int64    `yaml:"minwaitingtime" hcl:"min_waiting_time"`
+	Shoots         []string `yaml:"shoot" hcl:"shoot"`
 }
 
 type RequestConfig struct {
+	Name           string                        `yaml:"name"`
 	Method         string                        `yaml:"method"`
 	Headers        map[string]string             `yaml:"headers"`
 	Tag            string                        `yaml:"tag"`
 	Body           *string                       `yaml:"body"`
-	Name           string                        `yaml:"name"`
 	Uri            string                        `yaml:"uri"`
-	Preprocessors  []Preprocessor                `yaml:"preprocessors"`
+	Preprocessor   Preprocessor                  `yaml:"preprocessor"`
 	Postprocessors []postprocessor.Postprocessor `yaml:"postprocessors"`
 	Templater      string                        `yaml:"templater"`
 }
