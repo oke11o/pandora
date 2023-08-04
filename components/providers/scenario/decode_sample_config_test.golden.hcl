@@ -2,14 +2,14 @@ variables = {
   hostname = "localhost"
 }
 
-variablesource "users_src" "file/csv" {
-  file             = "_files/users.csv"
-  fields           = ["user_id", "name", "pass", "created_at"]
-  skip_header      = false
+variable_source "users" "file/csv" {
+  file             = "files/users.csv"
+  fields           = ["user_id", "name", "pass"]
+  skip_header      = true
   header_as_fields = false
 }
-variablesource "filter_src" "file/json" {
-  file             = "_files/filter.json"
+variable_source "filter_src" "file/json" {
+  file             = "files/filter.json"
   fields           = null
   skip_header      = false
   header_as_fields = false
@@ -18,27 +18,28 @@ variablesource "filter_src" "file/json" {
 request "auth_req" {
   method = "POST"
   headers = {
-    ContentType = "application/json"
-    Hostname    = "{{hostname}}"
-    Useragent   = "Tank"
+    Content-Type = "application/json"
+    Useragent    = "Tank"
   }
   tag  = "auth"
-  body = "{\"user_name\": {{source.users_src.users[next].name}}, \"user_pass\": {{source.users_src.users[next].pass}} }"
+  body = "{\"user_id\":  {{.preprocessor.user_id}}}"
   uri  = "/auth"
 
   preprocessor "" {
-    variables = null
+    variables = {
+      user_id = "source.users[0].user_id"
+    }
   }
 
   postprocessor "var/header" {
     mapping = {
-      contentType       = "Content-Type|lower"
+      Content-Type      = "Content-Type|upper"
       httpAuthorization = "Http-Authorization"
     }
   }
   postprocessor "var/jsonpath" {
     mapping = {
-      token = "$.data.authToken"
+      token = "$.auth_key"
     }
   }
 
@@ -47,62 +48,52 @@ request "auth_req" {
 request "list_req" {
   method = "GET"
   headers = {
-    Authorization = "Bearer {{request.auth_req.token}}"
-    ContentType   = "application/json"
-    Hostname      = "{{hostname}}"
+    Authorization = "Bearer {{.request.auth_req.token}}"
+    Content-Type  = "application/json"
     Useragent     = "Tank"
   }
   tag = "list"
-  uri = "/list/?{{filter|query}}"
+  uri = "/list"
 
-  preprocessor "prepare" {
-    variables = {
-      filter = "source.filter_src.list[rand]"
-    }
+  preprocessor "" {
+    variables = null
   }
 
   postprocessor "var/jsonpath" {
     mapping = {
-      items = "$.data.items"
+      item_id = "$.items[0]"
+      items   = "$.items"
     }
   }
 
   templater = ""
 }
-request "order_req" {
+request "item_req" {
   method = "POST"
   headers = {
-    Authorization = "Bearer {{request.auth_req.token}}"
-    ContentType   = "application/json"
-    Hostname      = "{{hostname}}"
+    Authorization = "Bearer {{.request.auth_req.token}}"
+    Content-Type  = "application/json"
     Useragent     = "Tank"
   }
-  tag  = "order"
-  body = "{}"
-  uri  = "/order"
+  tag  = "item_req"
+  body = "{\"item_id\": {{.preprocessor.item}}}"
+  uri  = "/item"
 
-  preprocessor "prepare" {
+  preprocessor "" {
     variables = {
-      item = "list_req.items.items[rand]"
+      item = "request.list_req.items[3]"
     }
   }
-
-  postprocessor "var/jsonpath" {
-    mapping = {
-      delivery_id = "$.data.delivery_id"
-    }
-  }
-
   templater = ""
 }
 
 scenario "scenario1" {
   weight           = 50
-  min_waiting_time = 1000
-  shoot            = ["auth(1)", "sleep(100)", "list(1)", "sleep(100)", "order(3)"]
+  min_waiting_time = 500
+  shoot            = ["auth_req(1)", "sleep(100)", "list_req(1)", "sleep(100)", "item_req(3)"]
 }
 scenario "scenario2" {
-  weight           = 10
-  min_waiting_time = 1000
-  shoot            = ["auth(1)", "sleep(100)", "list(1)", "sleep(100)", "order(3)"]
+  weight           = 50
+  min_waiting_time = 500
+  shoot            = ["auth_req(1)", "sleep(100)", "list_req(1)", "sleep(100)", "item_req(2)"]
 }

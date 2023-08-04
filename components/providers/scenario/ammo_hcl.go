@@ -12,7 +12,7 @@ import (
 
 type AmmoHCL struct {
 	Variables       map[string]string `hcl:"variables"`
-	VariableSources []SourceHCL       `hcl:"variablesource,block"`
+	VariableSources []SourceHCL       `hcl:"variable_source,block"`
 	Requests        []RequestHCL      `hcl:"request,block"`
 	Scenarios       []ScenarioHCL     `hcl:"scenario,block"`
 }
@@ -55,19 +55,19 @@ type PreprocessorHCL struct {
 	Variables map[string]string `hcl:"variables"`
 }
 
-func ReadHCLFile(file afero.File) (*AmmoHCL, error) {
-	const op = "hcl.ReadHCLFile"
+func ParseHCLFile(file afero.File) (AmmoHCL, error) {
+	const op = "hcl.ParseHCLFile"
 
 	var config AmmoHCL
 	bytes, err := io.ReadAll(file)
 	if err != nil {
-		return nil, fmt.Errorf("%s, io.ReadAll, %w", op, err)
+		return AmmoHCL{}, fmt.Errorf("%s, io.ReadAll, %w", op, err)
 	}
 	err = hclsimple.Decode(file.Name(), bytes, nil, &config)
 	if err != nil {
-		return nil, fmt.Errorf("%s, hclsimple.Decode, %w", op, err)
+		return AmmoHCL{}, fmt.Errorf("%s, hclsimple.Decode, %w", op, err)
 	}
-	return &config, nil
+	return config, nil
 }
 
 func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {

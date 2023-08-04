@@ -6,11 +6,11 @@ variablesources:
     name: "users"
     skipheader: true
     headerasfields: false
-    file: "_files/scenario/first/users.csv"
+    file: "files/users.csv"
     fields: [ "user_id", "name", "pass" ]
   - type: "file/json"
     name: "filter_src"
-    file: "_files/scenario/first/filter.json"
+    file: "files/filter.json"
 
 requests:
   - name: "auth_req"

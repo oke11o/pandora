@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/spf13/afero"
 
@@ -33,15 +34,24 @@ func NewProvider(fs afero.Fs, conf Config) (core.Provider, error) {
 			}
 		}
 	}()
-	//stat, err := file.Stat()
-	//if err != nil {
-	//	return nil, fmt.Errorf("%s file.Stat() %w", op, err)
-	//}
-	//if strings.HasPrefix(strings.ToLower(stat.Name()), ".hcl") {
-	//	hcl.ReadHCLFile(file)
-	//}
-
-	ammoCfg, err := ParseAmmoConfig(file)
+	stat, err := file.Stat()
+	if err != nil {
+		return nil, fmt.Errorf("%s file.Stat() %w", op, err)
+	}
+	var ammoCfg AmmoConfig
+	lowerName := strings.ToLower(stat.Name())
+	switch {
+	case strings.HasPrefix(lowerName, ".hcl"):
+		ammoCfg, err = ParseAmmoConfig(file)
+	case strings.HasPrefix(lowerName, ".yaml") || strings.HasPrefix(lowerName, ".yml"):
+		ammoHcl, er := ParseHCLFile(file)
+		if er != nil {
+			return nil, fmt.Errorf("%s ParseHCLFile %w", op, err)
+		}
+		ammoCfg, err = ConvertHCLToAmmo(ammoHcl, fs)
+	default:
+		return nil, fmt.Errorf("%s file extension should be .yaml or .yml", op)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("%s ParseAmmoConfig %w", op, err)
 	}
