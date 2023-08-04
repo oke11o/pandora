@@ -90,7 +90,7 @@ func ExampleEncodeAmmoHCLVariablesSources() {
 func Test_decodeHCL(t *testing.T) {
 
 	fs := afero.NewOsFs()
-	file, err := fs.Open("decode_sample_config_test.golden.hcl")
+	file, err := fs.Open("decode_sample_config_test.hcl")
 	require.NoError(t, err)
 	defer file.Close()
 
