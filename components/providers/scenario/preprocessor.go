@@ -7,7 +7,6 @@ import (
 )
 
 type Preprocessor struct {
-	Name      string
 	Variables map[string]string
 }
 

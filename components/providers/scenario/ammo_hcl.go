@@ -33,9 +33,9 @@ type RequestHCL struct {
 	Tag            string             `hcl:"tag"`
 	Body           *string            `hcl:"body"`
 	Uri            string             `hcl:"uri"`
-	Preprocessor   PreprocessorHCL    `hcl:"preprocessor,block"`
+	Preprocessor   *PreprocessorHCL   `hcl:"preprocessor,block"`
 	Postprocessors []PostprocessorHCL `hcl:"postprocessor,block"`
-	Templater      string             `hcl:"templater"`
+	Templater      *string            `hcl:"templater"`
 }
 
 type ScenarioHCL struct {
@@ -51,7 +51,6 @@ type PostprocessorHCL struct {
 }
 
 type PreprocessorHCL struct {
-	Name      string            `hcl:"name,label"`
 	Variables map[string]string `hcl:"variables"`
 }
 
@@ -116,6 +115,10 @@ func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 				return AmmoConfig{}, fmt.Errorf("%s, unknown postprocessor type: %s", op, p.Type)
 			}
 		}
+		templater := ""
+		if r.Templater != nil {
+			templater = *r.Templater
+		}
 		requests[i] = RequestConfig{
 			Name:           r.Name,
 			Method:         r.Method,
@@ -123,9 +126,9 @@ func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 			Tag:            r.Tag,
 			Body:           r.Body,
 			Uri:            r.Uri,
-			Preprocessor:   Preprocessor{Name: r.Preprocessor.Name, Variables: r.Preprocessor.Variables},
+			Preprocessor:   Preprocessor{Variables: r.Preprocessor.Variables},
 			Postprocessors: postprocessors,
-			Templater:      r.Templater,
+			Templater:      templater,
 		}
 	}
 
@@ -209,10 +212,9 @@ func ConvertAmmoToHCL(ammo AmmoConfig) (AmmoHCL, error) {
 			Headers:        r.Headers,
 			Tag:            r.Tag,
 			Body:           r.Body,
-			Templater:      r.Templater,
+			Templater:      &r.Templater,
 			Postprocessors: postprocessors,
-			Preprocessor: PreprocessorHCL{
-				Name:      r.Preprocessor.Name,
+			Preprocessor: &PreprocessorHCL{
 				Variables: r.Preprocessor.Variables,
 			},
 		}

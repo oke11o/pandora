@@ -19,7 +19,6 @@ func TestPreprocessor_Process(t *testing.T) {
 		{
 			name: "Simple Processing",
 			prep: Preprocessor{
-				Name: "sample",
 				Variables: map[string]string{
 					"var1": "source.items[0].id",
 					"var2": "source.items[1]",

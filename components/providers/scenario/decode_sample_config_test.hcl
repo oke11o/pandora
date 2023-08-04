@@ -22,16 +22,18 @@ request "auth_req" {
     Useragent    = "Tank"
   }
   tag  = "auth"
+
+  preprocessor {
+    variables = {
+      user_id = "source.users[0].user_id"
+    }
+  }
+
   body = <<EOF
 {"user_id":  {{.preprocessor.user_id}}}
 EOF
   uri  = "/auth"
 
-  preprocessor "" {
-    variables = {
-      user_id = "source.users[0].user_id"
-    }
-  }
 
   postprocessor "var/header" {
     mapping = {
@@ -57,18 +59,12 @@ request "list_req" {
   tag = "list"
   uri = "/list"
 
-  preprocessor "" {
-    variables = null
-  }
-
   postprocessor "var/jsonpath" {
     mapping = {
       item_id = "$.items[0]"
       items   = "$.items"
     }
   }
-
-  templater = ""
 }
 request "item_req" {
   method = "POST"
@@ -83,7 +79,7 @@ request "item_req" {
 EOF
   uri  = "/item"
 
-  preprocessor "" {
+  preprocessor {
     variables = {
       item = "request.list_req.items[3]"
     }
