@@ -33,11 +33,19 @@ func NewProvider(fs afero.Fs, conf Config) (core.Provider, error) {
 			}
 		}
 	}()
+	//stat, err := file.Stat()
+	//if err != nil {
+	//	return nil, fmt.Errorf("%s file.Stat() %w", op, err)
+	//}
+	//if strings.HasPrefix(strings.ToLower(stat.Name()), ".hcl") {
+	//	hcl.ReadHCLFile(file)
+	//}
 
 	ammoCfg, err := ParseAmmoConfig(file)
 	if err != nil {
 		return nil, fmt.Errorf("%s ParseAmmoConfig %w", op, err)
 	}
+
 	vs, err := buildVariableStorage(ammoCfg)
 	if err != nil {
 		return nil, fmt.Errorf("%s buildVariableStorage %w", op, err)

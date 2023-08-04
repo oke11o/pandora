@@ -139,6 +139,20 @@ func TestPreprocessor_getValue(t *testing.T) {
 			name: "",
 			reqMap: map[string]any{
 				"source": map[string]any{
+					"items": []map[string]string{
+						{"id": "1"},
+						{"id": "2"},
+					},
+				},
+			},
+			v:       "source.items[0].id",
+			want:    "1",
+			wantErr: false,
+		},
+		{
+			name: "",
+			reqMap: map[string]any{
+				"source": map[string]any{
 					"items": []any{11, 22, 33},
 				},
 			},

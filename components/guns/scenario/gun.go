@@ -137,9 +137,8 @@ func (g *BaseGun) answLogging(bodyBytes []byte, resp *http.Response, respBytes [
 func (g *BaseGun) shoot(ammo Ammo) error {
 	const op = "base_gun.shoot"
 
-	variableStorage := ammo.VariableStorage().GlobalVariables()
-	if variableStorage == nil {
-		variableStorage = map[string]any{}
+	variableStorage := map[string]any{
+		"source": ammo.VariableStorage().GlobalVariables(),
 	}
 	vsRequests := map[string]any{}
 	variableStorage["request"] = vsRequests

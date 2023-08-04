@@ -60,29 +60,45 @@ func (p *Preprocessor) getValue(reqMap map[string]any, path string) (any, error)
 				return nil, fmt.Errorf("path not found: %s", path)
 			}
 
-			slice, isSlice := value.([]map[string]any)
-			if !isSlice || index < 0 || index >= len(slice) {
+			mval, isMval := value.([]map[string]string)
+			if isMval && index >= 0 && index < len(mval) {
+				vval := mval[index]
+				currentData = make(map[string]any, len(vval))
+				for k, v := range vval {
+					currentData[k] = v
+				}
+				continue
+			}
+
+			mapSlice, isMapSlice := value.([]map[string]any)
+			if !isMapSlice {
 				anySlice, isAnySlice := value.([]any)
-				if isAnySlice || index < 0 || index >= len(anySlice) {
+				if isAnySlice {
+					if index < 0 || index >= len(anySlice) {
+						return nil, fmt.Errorf("invalid index %d for segment %s in path  %s", index, segment, path)
+					}
 					if i != len(segments)-1 {
-						return nil, fmt.Errorf("invalid index for slice: %s", segment)
+						return nil, fmt.Errorf("not last segment %s in path %s", segment, path)
 					}
 					return anySlice[index], nil
 				}
-				return nil, fmt.Errorf("invalid index for slice: %s", segment)
+				return nil, fmt.Errorf("invalid type of segment %s in path %s", segment, path)
+			}
+			if index < 0 || index >= len(mapSlice) {
+				return nil, fmt.Errorf("invalid path : %s", path)
 			}
 
-			currentData = slice[index]
+			currentData = mapSlice[index]
 		} else {
 			value, exists := currentData[segment]
 			if !exists {
-				return nil, fmt.Errorf("path not found: %s", path)
+				return nil, fmt.Errorf("segment %s not found in path %s", segment, path)
 			}
 			var ok bool
 			currentData, ok = value.(map[string]any)
 			if !ok {
 				if i != len(segments)-1 {
-					return nil, fmt.Errorf("invalid index for slice: %s", segment)
+					return nil, fmt.Errorf("not last segment %s in path %s", segment, path)
 				}
 				return value, nil
 			}
