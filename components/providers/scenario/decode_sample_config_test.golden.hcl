@@ -61,18 +61,12 @@ request "list_req" {
   tag = "list"
   uri = "/list"
 
-  preprocessor {
-    variables = null
-  }
-
   postprocessor "var/jsonpath" {
     mapping = {
       item_id = "$.items[0]"
       items   = "$.items"
     }
   }
-
-  templater = ""
 }
 request "item_req" {
   method = "POST"
@@ -90,7 +84,6 @@ request "item_req" {
       item = "request.list_req.items[3]"
     }
   }
-  templater = ""
 }
 
 scenario "scenario1" {

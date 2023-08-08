@@ -3,6 +3,7 @@ package scenario
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"testing"
 
 	"github.com/hashicorp/hcl/v2/gohcl"
@@ -11,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/yandex/pandora/components/providers/scenario/postprocessor"
 	"github.com/yandex/pandora/core/plugin/pluginconfig"
 )
 
@@ -161,6 +163,76 @@ func TestConvertHCLToAmmo(t *testing.T) {
 			want:    AmmoConfig{},
 			wantErr: true,
 		},
+		{
+			name: "MultipleVariableSources",
+			ammo: AmmoHCL{
+				Variables: map[string]string{"var1": "value1"},
+				VariableSources: []SourceHCL{
+					{Name: "source1", Type: "file/json", File: "data.json"},
+					{Name: "source2", Type: "file/csv", File: "data.csv"},
+				},
+			},
+			want: AmmoConfig{
+				Variables: map[string]string{"var1": "value1"},
+				VariableSources: []VariableSource{
+					&VariableSourceJson{Name: "source1", File: "data.json", fs: fs},
+					&VariableSourceCsv{Name: "source2", File: "data.csv", fs: fs},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "MultipleRequests",
+			ammo: AmmoHCL{
+				Requests: []RequestHCL{
+					{Name: "req1", Method: "GET", Uri: "/api/1"},
+					{Name: "req2", Method: "POST", Uri: "/api/2"},
+				},
+			},
+			want: AmmoConfig{
+				Requests: []RequestConfig{
+					{Name: "req1", Method: "GET", Uri: "/api/1"},
+					{Name: "req2", Method: "POST", Uri: "/api/2"},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "ComplexScenario",
+			ammo: AmmoHCL{
+				Scenarios: []ScenarioHCL{
+					{
+						Name:           "scenario1",
+						Weight:         2,
+						MinWaitingTime: 2000,
+						Shoots:         []string{"shoot1", "shoot2"},
+					},
+					{
+						Name:           "scenario2",
+						Weight:         1,
+						MinWaitingTime: 1000,
+						Shoots:         []string{"shoot3"},
+					},
+				},
+			},
+			want: AmmoConfig{
+				Scenarios: []ScenarioConfig{
+					{
+						Name:           "scenario1",
+						Weight:         2,
+						MinWaitingTime: 2000,
+						Shoots:         []string{"shoot1", "shoot2"},
+					},
+					{
+						Name:           "scenario2",
+						Weight:         1,
+						MinWaitingTime: 1000,
+						Shoots:         []string{"shoot3"},
+					},
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -171,6 +243,158 @@ func TestConvertHCLToAmmo(t *testing.T) {
 			}
 			require.NoError(t, err)
 			assert.Equalf(t, tt.want, got, "ConvertHCLToAmmo(%v, %v)", tt.ammo, fs)
+		})
+	}
+}
+
+type unsupportedVariableSource struct{}
+
+func (u unsupportedVariableSource) GetName() string   { return "" }
+func (u unsupportedVariableSource) GetVariables() any { return nil }
+func (u unsupportedVariableSource) Init() error       { return nil }
+
+type unsupportedPostprocessor struct{}
+
+func (u unsupportedPostprocessor) Process(_ map[string]any, _ *http.Response, _ []byte) error {
+	return nil
+}
+
+func TestConvertAmmoToHCL(t *testing.T) {
+	False := false
+	True := true
+	tests := []struct {
+		name    string
+		ammo    AmmoConfig
+		want    AmmoHCL
+		wantErr bool
+	}{
+		{
+			name: "BasicConversion",
+			ammo: AmmoConfig{
+				VariableSources: []VariableSource{
+					&VariableSourceJson{Name: "source1", File: "data.json"},
+				},
+				Requests: []RequestConfig{
+					{Name: "req1", Method: "GET", Uri: "/api"},
+				},
+				Scenarios: []ScenarioConfig{
+					{Name: "scenario1", Weight: 1, MinWaitingTime: 1000, Shoots: []string{"shoot1"}},
+				},
+			},
+			want: AmmoHCL{
+				VariableSources: []SourceHCL{
+					{Name: "source1", Type: "file/json", File: "data.json"},
+				},
+				Requests: []RequestHCL{
+					{Name: "req1", Method: "GET", Uri: "/api"},
+				},
+				Scenarios: []ScenarioHCL{
+					{Name: "scenario1", Weight: 1, MinWaitingTime: 1000, Shoots: []string{"shoot1"}},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "UnsupportedVariableSourceType",
+			ammo: AmmoConfig{
+				VariableSources: []VariableSource{
+					unsupportedVariableSource{},
+				},
+			},
+			want:    AmmoHCL{},
+			wantErr: true,
+		},
+		{
+			name: "UnsupportedPostprocessorType",
+			ammo: AmmoConfig{
+				Requests: []RequestConfig{
+					{
+						Name: "req1", Method: "GET", Uri: "/api",
+						Postprocessors: []postprocessor.Postprocessor{
+							unsupportedPostprocessor{},
+						},
+					},
+				},
+			},
+			want:    AmmoHCL{},
+			wantErr: true,
+		},
+		{
+			name: "MultipleVariableSources",
+			ammo: AmmoConfig{
+				VariableSources: []VariableSource{
+					&VariableSourceJson{Name: "source1", File: "data.json"},
+					&VariableSourceCsv{Name: "source2", File: "data.csv"},
+				},
+			},
+			want: AmmoHCL{
+				VariableSources: []SourceHCL{
+					{Name: "source1", Type: "file/json", File: "data.json"},
+					{Name: "source2", Type: "file/csv", File: "data.csv", SkipHeader: &False, HeaderAsFields: &False, Fields: nil},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "MultipleVariableSources2",
+			ammo: AmmoConfig{
+				VariableSources: []VariableSource{
+					&VariableSourceCsv{Name: "source2", File: "data.csv", HeaderAsFields: true, SkipHeader: true, Fields: []string{"field1", "field2"}},
+					&VariableSourceCsv{Name: "source2", File: "data.csv", HeaderAsFields: true, SkipHeader: true, Fields: []string{"field3", "field4"}},
+					&VariableSourceJson{Name: "source1", File: "data.json"},
+				},
+			},
+			want: AmmoHCL{
+				VariableSources: []SourceHCL{
+					{Name: "source2", Type: "file/csv", File: "data.csv", SkipHeader: &True, HeaderAsFields: &True, Fields: &([]string{"field1", "field2"})},
+					{Name: "source2", Type: "file/csv", File: "data.csv", SkipHeader: &True, HeaderAsFields: &True, Fields: &([]string{"field3", "field4"})},
+					{Name: "source1", Type: "file/json", File: "data.json"},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "MultipleRequests",
+			ammo: AmmoConfig{
+				Requests: []RequestConfig{
+					{Name: "req1", Method: "GET", Uri: "/api/1"},
+					{Name: "req2", Method: "POST", Uri: "/api/2"},
+				},
+			},
+			want: AmmoHCL{
+				Requests: []RequestHCL{
+					{Name: "req1", Method: "GET", Uri: "/api/1"},
+					{Name: "req2", Method: "POST", Uri: "/api/2"},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "ComplexScenario",
+			ammo: AmmoConfig{
+				Scenarios: []ScenarioConfig{
+					{Name: "scenario1", Weight: 2, MinWaitingTime: 2000, Shoots: []string{"shoot1", "shoot2"}},
+					{Name: "scenario2", Weight: 1, MinWaitingTime: 1000, Shoots: []string{"shoot3"}},
+				},
+			},
+			want: AmmoHCL{
+				Scenarios: []ScenarioHCL{
+					{Name: "scenario1", Weight: 2, MinWaitingTime: 2000, Shoots: []string{"shoot1", "shoot2"}},
+					{Name: "scenario2", Weight: 1, MinWaitingTime: 1000, Shoots: []string{"shoot3"}},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ConvertAmmoToHCL(tt.ammo)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equalf(t, tt.want, got, "ConvertAmmoToHCL(%v)", tt.ammo)
 		})
 	}
 }

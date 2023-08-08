@@ -72,94 +72,104 @@ func ParseHCLFile(file afero.File) (AmmoHCL, error) {
 func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 	const op = "scenario.ConvertHCLToAmmo"
 
-	sources := make([]VariableSource, len(ammo.VariableSources))
-	for i, s := range ammo.VariableSources {
-		switch s.Type {
-		case "file/json":
-			sources[i] = &VariableSourceJson{
-				Name: s.Name,
-				File: s.File,
-				fs:   fs,
-			}
-		case "file/csv":
-			var fields []string
-			if s.Fields != nil {
-				fields = make([]string, len(*s.Fields))
-				copy(fields, *s.Fields)
-			}
-			skipHeader := false
-			if s.SkipHeader != nil {
-				skipHeader = *s.SkipHeader
-			}
-			headerAsFields := false
-			if s.HeaderAsFields != nil {
-				headerAsFields = *s.HeaderAsFields
-			}
-			sources[i] = &VariableSourceCsv{
-				Name:           s.Name,
-				File:           s.File,
-				Fields:         fields,
-				SkipHeader:     skipHeader,
-				HeaderAsFields: headerAsFields,
-				fs:             fs,
-			}
-		default:
-			return AmmoConfig{}, fmt.Errorf("%s, unknown variable source type: %s", op, s.Type)
-		}
-	}
-	requests := make([]RequestConfig, len(ammo.Requests))
-	for i, r := range ammo.Requests {
-		postprocessors := make([]postprocessor.Postprocessor, len(r.Postprocessors))
-		for j, p := range r.Postprocessors {
-			switch p.Type {
-			case "var/header":
-				postprocessors[j] = &postprocessor.VarHeaderPostprocessor{
-					Mapping: p.Mapping,
+	var sources []VariableSource
+	if len(ammo.VariableSources) > 0 {
+		sources = make([]VariableSource, len(ammo.VariableSources))
+		for i, s := range ammo.VariableSources {
+			switch s.Type {
+			case "file/json":
+				sources[i] = &VariableSourceJson{
+					Name: s.Name,
+					File: s.File,
+					fs:   fs,
 				}
-			case "var/xpath":
-				postprocessors[j] = &postprocessor.VarXpathPostprocessor{
-					Mapping: p.Mapping,
+			case "file/csv":
+				var fields []string
+				if s.Fields != nil {
+					fields = make([]string, len(*s.Fields))
+					copy(fields, *s.Fields)
 				}
-			case "var/jsonpath":
-				postprocessors[j] = &postprocessor.VarJsonpathPostprocessor{
-					Mapping: p.Mapping,
+				skipHeader := false
+				if s.SkipHeader != nil {
+					skipHeader = *s.SkipHeader
+				}
+				headerAsFields := false
+				if s.HeaderAsFields != nil {
+					headerAsFields = *s.HeaderAsFields
+				}
+				sources[i] = &VariableSourceCsv{
+					Name:           s.Name,
+					File:           s.File,
+					Fields:         fields,
+					SkipHeader:     skipHeader,
+					HeaderAsFields: headerAsFields,
+					fs:             fs,
 				}
 			default:
-				return AmmoConfig{}, fmt.Errorf("%s, unknown postprocessor type: %s", op, p.Type)
+				return AmmoConfig{}, fmt.Errorf("%s, unknown variable source type: %s", op, s.Type)
 			}
-		}
-		templater := ""
-		if r.Templater != nil {
-			templater = *r.Templater
-		}
-		tag := ""
-		if r.Tag != nil {
-			tag = *r.Tag
-		}
-		var variables map[string]string
-		if r.Preprocessor != nil {
-			variables = r.Preprocessor.Variables
-		}
-		requests[i] = RequestConfig{
-			Name:           r.Name,
-			Method:         r.Method,
-			Headers:        r.Headers,
-			Tag:            tag,
-			Body:           r.Body,
-			Uri:            r.Uri,
-			Preprocessor:   Preprocessor{Variables: variables},
-			Postprocessors: postprocessors,
-			Templater:      templater,
 		}
 	}
 
-	scenarios := make([]ScenarioConfig, len(ammo.Scenarios))
-	for i, s := range ammo.Scenarios {
-		scenarios[i] = ScenarioConfig{
-			Name:           s.Name,
-			Weight:         s.Weight,
-			MinWaitingTime: s.MinWaitingTime,
-			Shoots:         s.Shoots,
+	var requests []RequestConfig
+	if len(ammo.Requests) > 0 {
+		requests = make([]RequestConfig, len(ammo.Requests))
+		for i, r := range ammo.Requests {
+			var postprocessors []postprocessor.Postprocessor
+			for j, p := range r.Postprocessors {
+				switch p.Type {
+				case "var/header":
+					postprocessors[j] = &postprocessor.VarHeaderPostprocessor{
+						Mapping: p.Mapping,
+					}
+				case "var/xpath":
+					postprocessors[j] = &postprocessor.VarXpathPostprocessor{
+						Mapping: p.Mapping,
+					}
+				case "var/jsonpath":
+					postprocessors[j] = &postprocessor.VarJsonpathPostprocessor{
+						Mapping: p.Mapping,
+					}
+				default:
+					return AmmoConfig{}, fmt.Errorf("%s, unknown postprocessor type: %s", op, p.Type)
+				}
+			}
+			templater := ""
+			if r.Templater != nil {
+				templater = *r.Templater
+			}
+			tag := ""
+			if r.Tag != nil {
+				tag = *r.Tag
+			}
+			var variables map[string]string
+			if r.Preprocessor != nil {
+				variables = r.Preprocessor.Variables
+			}
+			requests[i] = RequestConfig{
+				Name:           r.Name,
+				Method:         r.Method,
+				Headers:        r.Headers,
+				Tag:            tag,
+				Body:           r.Body,
+				Uri:            r.Uri,
+				Preprocessor:   Preprocessor{Variables: variables},
+				Postprocessors: postprocessors,
+				Templater:      templater,
+			}
+		}
+	}
+
+	var scenarios []ScenarioConfig
+	if len(ammo.Scenarios) > 0 {
+		scenarios = make([]ScenarioConfig, len(ammo.Scenarios))
+		for i, s := range ammo.Scenarios {
+			scenarios[i] = ScenarioConfig{
+				Name:           s.Name,
+				Weight:         s.Weight,
+				MinWaitingTime: s.MinWaitingTime,
+				Shoots:         s.Shoots,
+			}
 		}
 	}
 
@@ -176,83 +186,104 @@ func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 func ConvertAmmoToHCL(ammo AmmoConfig) (AmmoHCL, error) {
 	const op = "scenario.ConvertHCLToAmmo"
 
-	sources := make([]SourceHCL, len(ammo.VariableSources))
-	for i, s := range ammo.VariableSources {
-		switch val := s.(type) {
-		case *VariableSourceJson:
-			v := SourceHCL{
-				Type: "file/json",
-				Name: val.Name,
-				File: val.File,
-			}
-			sources[i] = v
-		case *VariableSourceCsv:
-			fields := val.Fields
-			skipHeader := val.SkipHeader
-			headerAsFields := val.HeaderAsFields
-			v := SourceHCL{
-				Type:           "file/csv",
-				Name:           val.Name,
-				File:           val.File,
-				Fields:         &fields,
-				SkipHeader:     &skipHeader,
-				HeaderAsFields: &headerAsFields,
-			}
-			sources[i] = v
-		default:
-			return AmmoHCL{}, fmt.Errorf("%s variable source type %T not supported", op, val)
-		}
-	}
-
-	requests := make([]RequestHCL, len(ammo.Requests))
-	for i, r := range ammo.Requests {
-		postprocessors := make([]PostprocessorHCL, len(r.Postprocessors))
-		for j, p := range r.Postprocessors {
-			switch val := p.(type) {
-			case *postprocessor.VarHeaderPostprocessor:
-				postprocessors[j] = PostprocessorHCL{
-					Type:    "var/header",
-					Mapping: val.Mapping,
+	var sources []SourceHCL
+	if len(ammo.VariableSources) > 0 {
+		sources = make([]SourceHCL, len(ammo.VariableSources))
+		for i, s := range ammo.VariableSources {
+			switch val := s.(type) {
+			case *VariableSourceJson:
+				v := SourceHCL{
+					Type: "file/json",
+					Name: val.Name,
+					File: val.File,
 				}
-			case *postprocessor.VarXpathPostprocessor:
-				postprocessors[j] = PostprocessorHCL{
-					Type:    "var/xpath",
-					Mapping: val.Mapping,
+				sources[i] = v
+			case *VariableSourceCsv:
+				var fields *[]string
+				if val.Fields != nil {
+					f := val.Fields
+					fields = &f
 				}
-			case *postprocessor.VarJsonpathPostprocessor:
-				postprocessors[j] = PostprocessorHCL{
-					Type:    "var/jsonpath",
-					Mapping: val.Mapping,
+				skipHeader := val.SkipHeader
+				headerAsFields := val.HeaderAsFields
+				v := SourceHCL{
+					Type:           "file/csv",
+					Name:           val.Name,
+					File:           val.File,
+					Fields:         fields,
+					SkipHeader:     &skipHeader,
+					HeaderAsFields: &headerAsFields,
 				}
+				sources[i] = v
 			default:
-				return AmmoHCL{}, fmt.Errorf("%s postprocessor type %T not supported", op, val)
+				return AmmoHCL{}, fmt.Errorf("%s variable source type %T not supported", op, val)
 			}
 		}
 
-		tag := r.Tag
-		templater := r.Templater
-		req := RequestHCL{
-			Name:           r.Name,
-			Uri:            r.Uri,
-			Method:         r.Method,
-			Headers:        r.Headers,
-			Tag:            &tag,
-			Body:           r.Body,
-			Templater:      &templater,
-			Postprocessors: postprocessors,
-			Preprocessor: &PreprocessorHCL{
-				Variables: r.Preprocessor.Variables,
-			},
-		}
-		requests[i] = req
 	}
-	scenarios := make([]ScenarioHCL, len(ammo.Scenarios))
-	for i, s := range ammo.Scenarios {
-		scenarios[i] = ScenarioHCL{
-			Name:           s.Name,
-			Weight:         s.Weight,
-			MinWaitingTime: s.MinWaitingTime,
-			Shoots:         s.Shoots,
+	var requests []RequestHCL
+	if len(ammo.Requests) > 0 {
+		requests = make([]RequestHCL, len(ammo.Requests))
+		for i, r := range ammo.Requests {
+			var postprocessors []PostprocessorHCL
+			if len(r.Postprocessors) > 0 {
+				postprocessors = make([]PostprocessorHCL, len(r.Postprocessors))
+				for j, p := range r.Postprocessors {
+					switch val := p.(type) {
+					case *postprocessor.VarHeaderPostprocessor:
+						postprocessors[j] = PostprocessorHCL{
+							Type:    "var/header",
+							Mapping: val.Mapping,
+						}
+					case *postprocessor.VarXpathPostprocessor:
+						postprocessors[j] = PostprocessorHCL{
+							Type:    "var/xpath",
+							Mapping: val.Mapping,
+						}
+					case *postprocessor.VarJsonpathPostprocessor:
+						postprocessors[j] = PostprocessorHCL{
+							Type:    "var/jsonpath",
+							Mapping: val.Mapping,
+						}
+					default:
+						return AmmoHCL{}, fmt.Errorf("%s postprocessor type %T not supported", op, val)
+					}
+				}
+			}
+
+			req := RequestHCL{
+				Name:           r.Name,
+				Uri:            r.Uri,
+				Method:         r.Method,
+				Headers:        r.Headers,
+				Body:           r.Body,
+				Postprocessors: postprocessors,
+			}
+			if r.Preprocessor.Variables != nil {
+				req.Preprocessor = &PreprocessorHCL{Variables: r.Preprocessor.Variables}
+			}
+			tag := r.Tag
+			if tag != "" {
+				req.Tag = &tag
+			}
+			templater := r.Templater
+			if templater != "" {
+				req.Templater = &templater
+			}
+
+			requests[i] = req
+		}
+	}
+	var scenarios []ScenarioHCL
+	if len(ammo.Scenarios) > 0 {
+		scenarios = make([]ScenarioHCL, len(ammo.Scenarios))
+		for i, s := range ammo.Scenarios {
+			scenarios[i] = ScenarioHCL{
+				Name:           s.Name,
+				Weight:         s.Weight,
+				MinWaitingTime: s.MinWaitingTime,
+				Shoots:         s.Shoots,
+			}
 		}
 	}
 
