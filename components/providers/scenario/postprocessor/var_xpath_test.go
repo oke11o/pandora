@@ -92,9 +92,9 @@ func Test_getValuesFromDOM(t *testing.T) {
 			</head>
 			<body>
 				<ul>
-					<li>Item 1</li>
-					<li>Item 2</li>
-					<li>Item 3</li>
+					<li>Order 1</li>
+					<li>Order 2</li>
+					<li>Order 3</li>
 				</ul>
 			</body>
 		</html>
@@ -108,5 +108,5 @@ func Test_getValuesFromDOM(t *testing.T) {
 	results, err := p.getValuesFromDOM(doc, xpathQuery)
 	require.NoError(t, err)
 
-	require.Equal(t, []string{"Item 1", "Item 2", "Item 3"}, results)
+	require.Equal(t, []string{"Order 1", "Order 2", "Order 3"}, results)
 }

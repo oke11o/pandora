@@ -10,9 +10,6 @@ variable_source "users" "file/csv" {
 }
 variable_source "filter_src" "file/json" {
   file             = "files/filter.json"
-  fields           = null
-  skip_header      = false
-  header_as_fields = false
 }
 
 request "auth_req" {

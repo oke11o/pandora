@@ -29,10 +29,10 @@ func Test_parseAmmoConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, map[string]string{"hostname": "localhost"}, cfg.Variables)
-	assert.Equal(t, 2, len(cfg.VariableSources))
+	assert.Equal(t, 4, len(cfg.VariableSources))
 	assert.Equal(t, "users", cfg.VariableSources[0].GetName())
 
-	assert.Equal(t, "filter_src", cfg.VariableSources[1].GetName())
+	assert.Equal(t, "users2", cfg.VariableSources[1].GetName())
 	assert.Equal(t, 3, len(cfg.Requests))
 	assert.Equal(t, "auth_req", cfg.Requests[0].Name)
 	require.Equal(t, 2, len(cfg.Requests[0].Postprocessors))

@@ -8,9 +8,18 @@ variablesources:
     headerasfields: false
     file: "files/users.csv"
     fields: [ "user_id", "name", "pass" ]
+  - type: "file/csv"
+    name: "users2"
+    skipheader: false
+    headerasfields: true
+    file: "files/users2.csv"
+    fields: [ "user_id2", "name2", "pass2" ]
   - type: "file/json"
     name: "filter_src"
     file: "files/filter.json"
+  - type: "file/json"
+    name: "filter_src2"
+    file: "files/filter2.json"
 
 requests:
   - name: "auth_req"
@@ -73,12 +82,12 @@ scenarios:
       item_req(3)
     ]
   - name: scenario2
-    weight: 50
-    minwaitingtime: 500
+    weight: 40
+    minwaitingtime: 400
     shoots: [
-      auth_req(1),
-      sleep(100),
-      list_req(1),
-      sleep(100),
-      item_req(2)
+      auth_req(2),
+      sleep(200),
+      list_req(2),
+      sleep(200),
+      item_req(4)
     ]

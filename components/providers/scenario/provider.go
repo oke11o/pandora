@@ -41,14 +41,14 @@ func NewProvider(fs afero.Fs, conf Config) (core.Provider, error) {
 	var ammoCfg AmmoConfig
 	lowerName := strings.ToLower(stat.Name())
 	switch {
-	case strings.HasPrefix(lowerName, ".hcl"):
-		ammoCfg, err = ParseAmmoConfig(file)
-	case strings.HasPrefix(lowerName, ".yaml") || strings.HasPrefix(lowerName, ".yml"):
+	case strings.HasSuffix(lowerName, ".hcl"):
 		ammoHcl, er := ParseHCLFile(file)
 		if er != nil {
 			return nil, fmt.Errorf("%s ParseHCLFile %w", op, err)
 		}
 		ammoCfg, err = ConvertHCLToAmmo(ammoHcl, fs)
+	case strings.HasSuffix(lowerName, ".yaml") || strings.HasPrefix(lowerName, ".yml"):
+		ammoCfg, err = ParseAmmoConfig(file)
 	default:
 		return nil, fmt.Errorf("%s file extension should be .yaml or .yml", op)
 	}
@@ -83,6 +83,14 @@ func buildVariableStorage(cfg AmmoConfig) (Storage, error) {
 		storage.AddStorage(vs.GetName(), vs.GetVariables())
 	}
 	return storage, nil
+}
+
+type Config struct {
+	File            string
+	Limit           uint
+	Passes          uint
+	ContinueOnError bool
+	MaxAmmoSize     int
 }
 
 type Provider struct {

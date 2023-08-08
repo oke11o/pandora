@@ -8,11 +8,17 @@ variable_source "users" "file/csv" {
   skip_header      = true
   header_as_fields = false
 }
-variable_source "filter_src" "file/json" {
-  file             = "files/filter.json"
-  fields           = null
+variable_source "users2" "file/csv" {
+  file             = "files/users2.csv"
+  fields           = ["user_id2", "name2", "pass2"]
   skip_header      = false
-  header_as_fields = false
+  header_as_fields = true
+}
+variable_source "filter_src" "file/json" {
+  file = "files/filter.json"
+}
+variable_source "filter_src2" "file/json" {
+  file = "files/filter2.json"
 }
 
 request "auth_req" {
@@ -25,7 +31,7 @@ request "auth_req" {
   body = "{\"user_id\":  {{.preprocessor.user_id}}}"
   uri  = "/auth"
 
-  preprocessor "" {
+  preprocessor {
     variables = {
       user_id = "source.users[0].user_id"
     }
@@ -55,7 +61,7 @@ request "list_req" {
   tag = "list"
   uri = "/list"
 
-  preprocessor "" {
+  preprocessor {
     variables = null
   }
 
@@ -79,7 +85,7 @@ request "item_req" {
   body = "{\"item_id\": {{.preprocessor.item}}}"
   uri  = "/item"
 
-  preprocessor "" {
+  preprocessor {
     variables = {
       item = "request.list_req.items[3]"
     }
@@ -93,7 +99,7 @@ scenario "scenario1" {
   shoot            = ["auth_req(1)", "sleep(100)", "list_req(1)", "sleep(100)", "item_req(3)"]
 }
 scenario "scenario2" {
-  weight           = 50
-  min_waiting_time = 500
-  shoot            = ["auth_req(1)", "sleep(100)", "list_req(1)", "sleep(100)", "item_req(2)"]
+  weight           = 40
+  min_waiting_time = 400
+  shoot            = ["auth_req(2)", "sleep(200)", "list_req(2)", "sleep(200)", "item_req(4)"]
 }

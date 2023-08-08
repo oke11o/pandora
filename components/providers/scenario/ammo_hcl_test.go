@@ -52,13 +52,13 @@ func ExampleEncodeAmmoHCLVariablesSources() {
 				Type:   "file/csv",
 				Name:   "user_srs",
 				File:   "users.json",
-				Fields: []string{"id", "name", "email"},
+				Fields: &([]string{"id", "name", "email"}),
 			},
 			{
 				Type:   "file/json",
 				Name:   "data_srs",
 				File:   "datas.json",
-				Fields: []string{"id", "name", "email"},
+				Fields: &([]string{"id", "name", "email"}),
 			},
 		},
 	}
@@ -73,17 +73,13 @@ func ExampleEncodeAmmoHCLVariablesSources() {
 	//   host = "localhost"
 	// }
 	//
-	// variablesource "user_srs" "file/csv" {
-	//   file             = "users.json"
-	//   fields           = ["id", "name", "email"]
-	//   skip_header      = false
-	//   header_as_fields = false
+	// variable_source "user_srs" "file/csv" {
+	//   file   = "users.json"
+	//   fields = ["id", "name", "email"]
 	// }
-	// variablesource "data_srs" "file/json" {
-	//   file             = "datas.json"
-	//   fields           = ["id", "name", "email"]
-	//   skip_header      = false
-	//   header_as_fields = false
+	// variable_source "data_srs" "file/json" {
+	//   file   = "datas.json"
+	//   fields = ["id", "name", "email"]
 	// }
 }
 
@@ -101,4 +97,80 @@ func Test_decodeHCL(t *testing.T) {
 	assert.Len(t, ammoHCL.Scenarios[0].Shoots, 5)
 	assert.Equal(t, "scenario2", ammoHCL.Scenarios[1].Name)
 	assert.Len(t, ammoHCL.Scenarios[1].Shoots, 5)
+}
+
+func TestConvertHCLToAmmo(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	tests := []struct {
+		name    string
+		ammo    AmmoHCL
+		want    AmmoConfig
+		wantErr bool
+	}{
+		{
+			name: "BasicConversion",
+			ammo: AmmoHCL{
+				Variables: map[string]string{"var1": "value1"},
+				VariableSources: []SourceHCL{
+					{Name: "source1", Type: "file/json", File: "data.json"},
+				},
+				Requests: []RequestHCL{
+					{Name: "req1", Method: "GET", Uri: "/api"},
+				},
+				Scenarios: []ScenarioHCL{
+					{Name: "scenario1", Weight: 1, MinWaitingTime: 1000, Shoots: []string{"shoot1"}},
+				},
+			},
+			want: AmmoConfig{
+				Variables: map[string]string{"var1": "value1"},
+				VariableSources: []VariableSource{
+					&VariableSourceJson{Name: "source1", File: "data.json", fs: fs},
+				},
+				Requests: []RequestConfig{
+					{Name: "req1", Method: "GET", Uri: "/api"},
+				},
+				Scenarios: []ScenarioConfig{
+					{Name: "scenario1", Weight: 1, MinWaitingTime: 1000, Shoots: []string{"shoot1"}},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "UnsupportedVariableSourceType",
+			ammo: AmmoHCL{
+				Variables: map[string]string{"var1": "value1"},
+				VariableSources: []SourceHCL{
+					{Name: "source1", Type: "unknown", File: "data.csv"},
+				},
+			},
+			want:    AmmoConfig{},
+			wantErr: true,
+		},
+		{
+			name: "UnsupportedPostprocessorType",
+			ammo: AmmoHCL{
+				Requests: []RequestHCL{
+					{
+						Name: "req1", Method: "GET", Uri: "/api",
+						Postprocessors: []PostprocessorHCL{
+							{Type: "unknown", Mapping: map[string]string{"key": "value"}},
+						},
+					},
+				},
+			},
+			want:    AmmoConfig{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ConvertHCLToAmmo(tt.ammo, fs)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equalf(t, tt.want, got, "ConvertHCLToAmmo(%v, %v)", tt.ammo, fs)
+		})
+	}
 }

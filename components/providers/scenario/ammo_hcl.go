@@ -18,19 +18,19 @@ type AmmoHCL struct {
 }
 
 type SourceHCL struct {
-	Name           string   `hcl:"name,label"`
-	Type           string   `hcl:"type,label"`
-	File           string   `hcl:"file"`
-	Fields         []string `hcl:"fields"`
-	SkipHeader     bool     `hcl:"skip_header"`
-	HeaderAsFields bool     `hcl:"header_as_fields"`
+	Name           string    `hcl:"name,label"`
+	Type           string    `hcl:"type,label"`
+	File           string    `hcl:"file"`
+	Fields         *[]string `hcl:"fields"`
+	SkipHeader     *bool     `hcl:"skip_header"`
+	HeaderAsFields *bool     `hcl:"header_as_fields"`
 }
 
 type RequestHCL struct {
 	Name           string             `hcl:"name,label"`
 	Method         string             `hcl:"method"`
 	Headers        map[string]string  `hcl:"headers"`
-	Tag            string             `hcl:"tag"`
+	Tag            *string            `hcl:"tag"`
 	Body           *string            `hcl:"body"`
 	Uri            string             `hcl:"uri"`
 	Preprocessor   *PreprocessorHCL   `hcl:"preprocessor,block"`
@@ -82,12 +82,25 @@ func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 				fs:   fs,
 			}
 		case "file/csv":
+			var fields []string
+			if s.Fields != nil {
+				fields = make([]string, len(*s.Fields))
+				copy(fields, *s.Fields)
+			}
+			skipHeader := false
+			if s.SkipHeader != nil {
+				skipHeader = *s.SkipHeader
+			}
+			headerAsFields := false
+			if s.HeaderAsFields != nil {
+				headerAsFields = *s.HeaderAsFields
+			}
 			sources[i] = &VariableSourceCsv{
 				Name:           s.Name,
 				File:           s.File,
-				Fields:         s.Fields,
-				SkipHeader:     s.SkipHeader,
-				HeaderAsFields: s.HeaderAsFields,
+				Fields:         fields,
+				SkipHeader:     skipHeader,
+				HeaderAsFields: headerAsFields,
 				fs:             fs,
 			}
 		default:
@@ -119,14 +132,22 @@ func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 		if r.Templater != nil {
 			templater = *r.Templater
 		}
+		tag := ""
+		if r.Tag != nil {
+			tag = *r.Tag
+		}
+		var variables map[string]string
+		if r.Preprocessor != nil {
+			variables = r.Preprocessor.Variables
+		}
 		requests[i] = RequestConfig{
 			Name:           r.Name,
 			Method:         r.Method,
 			Headers:        r.Headers,
-			Tag:            r.Tag,
+			Tag:            tag,
 			Body:           r.Body,
 			Uri:            r.Uri,
-			Preprocessor:   Preprocessor{Variables: r.Preprocessor.Variables},
+			Preprocessor:   Preprocessor{Variables: variables},
 			Postprocessors: postprocessors,
 			Templater:      templater,
 		}
@@ -166,13 +187,16 @@ func ConvertAmmoToHCL(ammo AmmoConfig) (AmmoHCL, error) {
 			}
 			sources[i] = v
 		case *VariableSourceCsv:
+			fields := val.Fields
+			skipHeader := val.SkipHeader
+			headerAsFields := val.HeaderAsFields
 			v := SourceHCL{
 				Type:           "file/csv",
 				Name:           val.Name,
 				File:           val.File,
-				Fields:         val.Fields,
-				SkipHeader:     val.SkipHeader,
-				HeaderAsFields: val.HeaderAsFields,
+				Fields:         &fields,
+				SkipHeader:     &skipHeader,
+				HeaderAsFields: &headerAsFields,
 			}
 			sources[i] = v
 		default:
@@ -205,14 +229,16 @@ func ConvertAmmoToHCL(ammo AmmoConfig) (AmmoHCL, error) {
 			}
 		}
 
+		tag := r.Tag
+		templater := r.Templater
 		req := RequestHCL{
 			Name:           r.Name,
 			Uri:            r.Uri,
 			Method:         r.Method,
 			Headers:        r.Headers,
-			Tag:            r.Tag,
+			Tag:            &tag,
 			Body:           r.Body,
-			Templater:      &r.Templater,
+			Templater:      &templater,
 			Postprocessors: postprocessors,
 			Preprocessor: &PreprocessorHCL{
 				Variables: r.Preprocessor.Variables,
