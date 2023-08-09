@@ -2,12 +2,50 @@ package scenario
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
 	"strings"
+	"sync"
+	"sync/atomic"
 )
+
+type iterator interface {
+	next(segment string) int
+	rand(length int) int
+}
+
+func newNextIterator(seed int64) iterator {
+	return &nextIterator{
+		gs:  make(map[string]*atomic.Uint64),
+		rnd: rand.New(rand.NewSource(seed)),
+	}
+}
+
+type nextIterator struct {
+	mx  sync.Mutex
+	gs  map[string]*atomic.Uint64
+	rnd *rand.Rand
+}
+
+func (n *nextIterator) rand(length int) int {
+	return n.rnd.Intn(length)
+}
+
+func (n *nextIterator) next(segment string) int {
+	a, ok := n.gs[segment]
+	if !ok {
+		n.mx.Lock()
+		n.gs[segment] = &atomic.Uint64{}
+		n.mx.Unlock()
+		return 0
+	}
+	add := a.Add(1)
+	return int(add)
+}
 
 type Preprocessor struct {
 	Variables map[string]string
+	iterator  iterator
 }
 
 func (p *Preprocessor) Process(reqMap map[string]any) error {
@@ -40,18 +78,17 @@ func (p *Preprocessor) setValue(reqMap map[string]any, k string, v any) error {
 }
 
 func (p *Preprocessor) getValue(reqMap map[string]any, path string) (any, error) {
+	var curSegment strings.Builder
 	segments := strings.Split(path, ".")
 
 	currentData := reqMap
 	for i, segment := range segments {
 		segment = strings.TrimSpace(segment)
+		curSegment.WriteByte('.')
+		curSegment.WriteString(segment)
 		if strings.Contains(segment, "[") && strings.HasSuffix(segment, "]") {
 			openBraceIdx := strings.Index(segment, "[")
-			indexStr := segment[openBraceIdx+1 : len(segment)-1]
-			index, err := strconv.Atoi(indexStr)
-			if err != nil {
-				return nil, fmt.Errorf("invalid index: %s", indexStr)
-			}
+			indexStr := strings.ToLower(strings.TrimSpace(segment[openBraceIdx+1 : len(segment)-1]))
 
 			segment = segment[:openBraceIdx]
 			value, exists := currentData[segment]
@@ -60,7 +97,11 @@ func (p *Preprocessor) getValue(reqMap map[string]any, path string) (any, error)
 			}
 
 			mval, isMval := value.([]map[string]string)
-			if isMval && index >= 0 && index < len(mval) {
+			if isMval {
+				index, err := p.calcIndex(indexStr, curSegment.String(), len(mval))
+				if err != nil {
+					return nil, fmt.Errorf("failed to calc index: %w", err)
+				}
 				vval := mval[index]
 				currentData = make(map[string]any, len(vval))
 				for k, v := range vval {
@@ -73,20 +114,33 @@ func (p *Preprocessor) getValue(reqMap map[string]any, path string) (any, error)
 			if !isMapSlice {
 				anySlice, isAnySlice := value.([]any)
 				if isAnySlice {
-					if index < 0 || index >= len(anySlice) {
-						return nil, fmt.Errorf("invalid index %d for segment %s in path  %s", index, segment, path)
+					index, err := p.calcIndex(indexStr, curSegment.String(), len(anySlice))
+					if err != nil {
+						return nil, fmt.Errorf("failed to calc index: %w", err)
 					}
 					if i != len(segments)-1 {
 						return nil, fmt.Errorf("not last segment %s in path %s", segment, path)
 					}
 					return anySlice[index], nil
 				}
+				stringSlice, isStringSlice := value.([]string)
+				if isStringSlice {
+					index, err := p.calcIndex(indexStr, curSegment.String(), len(stringSlice))
+					if err != nil {
+						return nil, fmt.Errorf("failed to calc index: %w", err)
+					}
+					if i != len(segments)-1 {
+						return nil, fmt.Errorf("not last segment %s in path %s", segment, path)
+					}
+					return stringSlice[index], nil
+				}
 				return nil, fmt.Errorf("invalid type of segment %s in path %s", segment, path)
 			}
-			if index < 0 || index >= len(mapSlice) {
-				return nil, fmt.Errorf("invalid path : %s", path)
-			}
 
+			index, err := p.calcIndex(indexStr, curSegment.String(), len(mapSlice))
+			if err != nil {
+				return nil, fmt.Errorf("failed to calc index: %w", err)
+			}
 			currentData = mapSlice[index]
 		} else {
 			value, exists := currentData[segment]
@@ -105,4 +159,33 @@ func (p *Preprocessor) getValue(reqMap map[string]any, path string) (any, error)
 	}
 
 	return currentData, nil
+}
+
+func (p *Preprocessor) calcIndex(indexStr string, segment string, length int) (int, error) {
+	index, err := strconv.Atoi(indexStr)
+	if err != nil && indexStr != "next" && indexStr != "rand" && indexStr != "last" {
+		return 0, fmt.Errorf("invalid index: %s", indexStr)
+	}
+	if indexStr != "next" && indexStr != "rand" && indexStr != "last" {
+		if index >= 0 && index < length {
+			return index, nil
+		}
+		index %= length
+		if index < 0 {
+			index += length
+		}
+		return index, nil
+	}
+
+	if indexStr == "last" {
+		return length - 1, nil
+	}
+	if indexStr == "rand" {
+		return p.iterator.rand(length), nil
+	}
+	index = p.iterator.next(segment)
+	if index >= length {
+		index %= length
+	}
+	return index, nil
 }

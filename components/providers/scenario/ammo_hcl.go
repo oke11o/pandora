@@ -116,22 +116,25 @@ func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 		requests = make([]RequestConfig, len(ammo.Requests))
 		for i, r := range ammo.Requests {
 			var postprocessors []postprocessor.Postprocessor
-			for j, p := range r.Postprocessors {
-				switch p.Type {
-				case "var/header":
-					postprocessors[j] = &postprocessor.VarHeaderPostprocessor{
-						Mapping: p.Mapping,
+			if len(r.Postprocessors) > 0 {
+				postprocessors = make([]postprocessor.Postprocessor, len(r.Postprocessors))
+				for j, p := range r.Postprocessors {
+					switch p.Type {
+					case "var/header":
+						postprocessors[j] = &postprocessor.VarHeaderPostprocessor{
+							Mapping: p.Mapping,
+						}
+					case "var/xpath":
+						postprocessors[j] = &postprocessor.VarXpathPostprocessor{
+							Mapping: p.Mapping,
+						}
+					case "var/jsonpath":
+						postprocessors[j] = &postprocessor.VarJsonpathPostprocessor{
+							Mapping: p.Mapping,
+						}
+					default:
+						return AmmoConfig{}, fmt.Errorf("%s, unknown postprocessor type: %s", op, p.Type)
 					}
-				case "var/xpath":
-					postprocessors[j] = &postprocessor.VarXpathPostprocessor{
-						Mapping: p.Mapping,
-					}
-				case "var/jsonpath":
-					postprocessors[j] = &postprocessor.VarJsonpathPostprocessor{
-						Mapping: p.Mapping,
-					}
-				default:
-					return AmmoConfig{}, fmt.Errorf("%s, unknown postprocessor type: %s", op, p.Type)
 				}
 			}
 			templater := ""

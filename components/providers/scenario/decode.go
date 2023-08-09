@@ -38,22 +38,9 @@ func ParseAmmoConfig(file io.Reader) (AmmoConfig, error) {
 func decodeAmmo(cfg AmmoConfig, storage Storage) ([]*Ammo, error) {
 	reqRegistry := make(map[string]RequestConfig, len(cfg.Requests))
 
-	// TODO: Я застрял с тем, что мне не хочется обрабатывать на постпроцессинге ненужные параметры.
-	// ХМ: Может тупое желание? Хотя постпросессинг выполняется на каждом запросе.
-	// И мы можем существенно улучшить производительность, если не будет делать лишнюю работу.
-	//allExpectedParams := make([]string, 0)
-	//allReturnedParams := make([]string, 0)
 	for _, req := range cfg.Requests {
 		reqRegistry[req.Name] = req
-		//_, req.expectedParams = extractExpectedParams(req)
-		//req.returnedParams = extractReturnedParams(req)
-		//allExpectedParams = append(allExpectedParams, req.expectedParams...)
-		//allReturnedParams = append(allReturnedParams, req.returnedParams...)
 	}
-	//paramsForDeleteFromReturned := intersectExpectedAndReturnedParams(allExpectedParams, allReturnedParams)
-	//_ = paramsForDeleteFromReturned
-	// TODO: end. До сюда можно выделить в отдельную функцию reqRegistry := prepareRequests(cfg.Requests)
-	// Важно, что функция prepareRequests() не просто вернет reqRegistry, но и изменить элементы слайса cfg.Requests.
 
 	scenarioRegistry := map[string]ScenarioConfig{}
 	for _, sc := range cfg.Scenarios {
@@ -81,6 +68,7 @@ func decodeAmmo(cfg AmmoConfig, storage Storage) ([]*Ammo, error) {
 }
 
 func convertScenarioToAmmo(sc ScenarioConfig, reqs map[string]RequestConfig) (*Ammo, error) {
+	iter := newNextIterator(time.Now().UnixNano())
 	result := &Ammo{name: sc.Name, minWaitingTime: time.Millisecond * time.Duration(sc.MinWaitingTime)}
 	for _, sh := range sc.Shoots {
 		name, cnt, err := parseShootName(sh)
@@ -95,7 +83,7 @@ func convertScenarioToAmmo(sc ScenarioConfig, reqs map[string]RequestConfig) (*A
 		if !ok {
 			return nil, fmt.Errorf("request %s not found", name)
 		}
-		r := convertConfigToRequest(req)
+		r := convertConfigToRequest(req, iter)
 		for i := 0; i < cnt; i++ {
 			result.Requests = append(result.Requests, r)
 		}
@@ -104,12 +92,12 @@ func convertScenarioToAmmo(sc ScenarioConfig, reqs map[string]RequestConfig) (*A
 	return result, nil
 }
 
-func convertConfigToRequest(req RequestConfig) Request {
+func convertConfigToRequest(req RequestConfig, iter iterator) Request {
 	postprocessors := make([]scenario.Postprocessor, len(req.Postprocessors))
 	for i := range req.Postprocessors {
 		postprocessors[i] = req.Postprocessors[i].(scenario.Postprocessor)
 	}
-	return Request{
+	result := Request{
 		method:         req.Method,
 		headers:        req.Headers,
 		tag:            req.Tag,
@@ -120,6 +108,9 @@ func convertConfigToRequest(req RequestConfig) Request {
 		postprocessors: postprocessors,
 		templater:      req.Templater,
 	}
+	result.preprocessor.iterator = iter
+
+	return result
 }
 
 func parseShootName(shoot string) (string, int, error) {

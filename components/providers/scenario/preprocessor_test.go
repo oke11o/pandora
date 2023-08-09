@@ -47,7 +47,6 @@ func TestPreprocessor_Process(t *testing.T) {
 			wantErr:   false,
 			errSubstr: "",
 		},
-		// Add more test cases as needed...
 	}
 
 	for _, tt := range tests {
@@ -183,4 +182,60 @@ func TestPreprocessor_getValue(t *testing.T) {
 			assert.Equalf(t, tt.want, got, "getValue(%v, %v)", tt.reqMap, tt.v)
 		})
 	}
+}
+
+func Test_getValue_iterators(t *testing.T) {
+	p := &Preprocessor{iterator: newNextIterator(0)}
+
+	reqMap := map[string]any{
+		"source": map[string]any{
+			"items": []any{11, 22, 33},
+			"list":  []string{"11", "22", "33"},
+		},
+	}
+	var got any
+
+	got, _ = p.getValue(reqMap, "source.list[next]")
+	assert.Equal(t, "11", got)
+	got, _ = p.getValue(reqMap, "source.list[next]")
+	assert.Equal(t, "22", got)
+	got, _ = p.getValue(reqMap, "source.list[next]")
+	assert.Equal(t, "33", got)
+	got, _ = p.getValue(reqMap, "source.list[next]")
+	assert.Equal(t, "11", got)
+	got, _ = p.getValue(reqMap, "source.list[next]")
+	assert.Equal(t, "22", got)
+	got, _ = p.getValue(reqMap, "source.list[next]")
+
+	got, _ = p.getValue(reqMap, "source.list[last]")
+	assert.Equal(t, "33", got)
+	got, _ = p.getValue(reqMap, "source.list[last]")
+	assert.Equal(t, "33", got)
+	got, _ = p.getValue(reqMap, "source.list[-2]")
+	assert.Equal(t, "22", got)
+
+	got, _ = p.getValue(reqMap, "source.items[rand]")
+	assert.Equal(t, 11, got)
+	got, _ = p.getValue(reqMap, "source.items[rand]")
+	assert.Equal(t, 11, got)
+	got, _ = p.getValue(reqMap, "source.items[rand]")
+	assert.Equal(t, 22, got)
+	got, _ = p.getValue(reqMap, "source.items[rand]")
+	assert.Equal(t, 22, got)
+	got, _ = p.getValue(reqMap, "source.items[rand]")
+	assert.Equal(t, 33, got)
+	got, _ = p.getValue(reqMap, "source.items[rand]")
+	assert.Equal(t, 22, got)
+
+	got, _ = p.getValue(reqMap, "source.items[next]")
+	assert.Equal(t, 11, got)
+	got, _ = p.getValue(reqMap, "source.items[next]")
+	assert.Equal(t, 22, got)
+	got, _ = p.getValue(reqMap, "source.items[next]")
+	assert.Equal(t, 33, got)
+	got, _ = p.getValue(reqMap, "source.items[next]")
+	assert.Equal(t, 11, got)
+	got, _ = p.getValue(reqMap, "source.items[next]")
+	assert.Equal(t, 22, got)
+
 }

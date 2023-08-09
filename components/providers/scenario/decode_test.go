@@ -193,13 +193,19 @@ func Test_convertScenarioToAmmo(t *testing.T) {
 				return
 			}
 			assert.NoError(t, err)
+			for i := range got.Requests {
+				assert.NotNil(t, got.Requests[i].preprocessor)
+				idx := got.Requests[i].preprocessor.iterator.next("test")
+				assert.Equal(t, i, idx) // this is a bit fragile, but it's ok for now
+				got.Requests[i].preprocessor.iterator = nil
+			}
 			assert.Equalf(t, tt.want, got, "convertScenarioToAmmo(%v, %v)", tt.sc, reqRegistry)
 		})
 	}
 }
 
 func convertConfigToRequestWithSleep(req RequestConfig, sleep time.Duration) Request {
-	res := convertConfigToRequest(req)
+	res := convertConfigToRequest(req, nil)
 	res.sleep = sleep
 	return res
 }

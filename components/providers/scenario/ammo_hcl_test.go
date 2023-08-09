@@ -117,7 +117,16 @@ func TestConvertHCLToAmmo(t *testing.T) {
 					{Name: "source1", Type: "file/json", File: "data.json"},
 				},
 				Requests: []RequestHCL{
-					{Name: "req1", Method: "GET", Uri: "/api"},
+					{
+						Name:   "req1",
+						Method: "GET",
+						Uri:    "/api",
+						Postprocessors: []PostprocessorHCL{
+							{Type: "var/header", Mapping: map[string]string{"key": "var/header"}},
+							{Type: "var/xpath", Mapping: map[string]string{"key": "var/xpath"}},
+							{Type: "var/jsonpath", Mapping: map[string]string{"key": "var/jsonpath"}},
+						},
+					},
 				},
 				Scenarios: []ScenarioHCL{
 					{Name: "scenario1", Weight: 1, MinWaitingTime: 1000, Shoots: []string{"shoot1"}},
@@ -129,7 +138,16 @@ func TestConvertHCLToAmmo(t *testing.T) {
 					&VariableSourceJson{Name: "source1", File: "data.json", fs: fs},
 				},
 				Requests: []RequestConfig{
-					{Name: "req1", Method: "GET", Uri: "/api"},
+					{
+						Name:   "req1",
+						Method: "GET",
+						Uri:    "/api",
+						Postprocessors: []postprocessor.Postprocessor{
+							&postprocessor.VarHeaderPostprocessor{Mapping: map[string]string{"key": "var/header"}},
+							&postprocessor.VarXpathPostprocessor{Mapping: map[string]string{"key": "var/xpath"}},
+							&postprocessor.VarJsonpathPostprocessor{Mapping: map[string]string{"key": "var/jsonpath"}},
+						},
+					},
 				},
 				Scenarios: []ScenarioConfig{
 					{Name: "scenario1", Weight: 1, MinWaitingTime: 1000, Shoots: []string{"shoot1"}},
