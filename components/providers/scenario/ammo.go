@@ -13,7 +13,7 @@ type Ammo struct {
 	Id              uint64
 	name            string
 	minWaitingTime  time.Duration
-	variableStorage *Storage
+	variableStorage *SourceStorage
 }
 
 func (a *Ammo) GetMinWaitingTime() time.Duration {
@@ -32,7 +32,7 @@ func (a *Ammo) ID() uint64 {
 	return a.Id
 }
 
-func (a *Ammo) VariableStorage() scenario.VariableStorage {
+func (a *Ammo) Sources() scenario.VariableStorage {
 	return a.variableStorage
 }
 

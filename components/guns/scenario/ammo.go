@@ -6,7 +6,10 @@ import (
 )
 
 type Preprocessor interface {
-	Process(reqMap map[string]any) error
+	// Process is called before request is sent
+	// templateVars - variables from template. Can be modified
+	// sourceVars - variables from sources. Must NOT be modified
+	Process(templateVars map[string]any, sourceVars map[string]any) error
 }
 
 type Postprocessor interface {
@@ -14,7 +17,7 @@ type Postprocessor interface {
 }
 
 type VariableStorage interface {
-	GlobalVariables() map[string]any
+	Variables() map[string]any
 }
 
 type Step interface {
@@ -40,7 +43,7 @@ type requestParts struct {
 type Ammo interface {
 	Steps() []Step
 	ID() uint64
-	VariableStorage() VariableStorage
+	Sources() VariableStorage
 	Name() string
 	GetMinWaitingTime() time.Duration
 }

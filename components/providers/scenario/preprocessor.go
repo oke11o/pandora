@@ -1,6 +1,7 @@
 package scenario
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"strconv"
@@ -48,13 +49,23 @@ type Preprocessor struct {
 	iterator  iterator
 }
 
-func (p *Preprocessor) Process(reqMap map[string]any) error {
+func (p *Preprocessor) Process(templateVars map[string]any, sourceVars map[string]any) error {
+	if templateVars == nil {
+		return errors.New("templateVars must not be nil")
+	}
 	for k, v := range p.Variables {
-		val, err := p.getValue(reqMap, v)
+		val, err := p.getValue(templateVars, v)
 		if err != nil {
-			return fmt.Errorf("failed to get value for %s: %w", k, err)
+			var pathError *errSegmentNotFound
+			if !errors.As(err, &pathError) {
+				return fmt.Errorf("failed to get value for %s: %w", k, err)
+			}
+			val, err = p.getValue(sourceVars, v)
+			if err != nil {
+				return fmt.Errorf("failed to get value for %s: %w", k, err)
+			}
 		}
-		err = p.setValue(reqMap, k, val)
+		err = p.setValue(templateVars, k, val)
 		if err != nil {
 			return fmt.Errorf("failed to set value for %s: %w", k, err)
 		}
@@ -77,6 +88,15 @@ func (p *Preprocessor) setValue(reqMap map[string]any, k string, v any) error {
 	return nil
 }
 
+type errSegmentNotFound struct {
+	path    string
+	segment string
+}
+
+func (e *errSegmentNotFound) Error() string {
+	return fmt.Sprintf("segment %s not found in path %s", e.segment, e.path)
+}
+
 func (p *Preprocessor) getValue(reqMap map[string]any, path string) (any, error) {
 	var curSegment strings.Builder
 	segments := strings.Split(path, ".")
@@ -93,7 +113,7 @@ func (p *Preprocessor) getValue(reqMap map[string]any, path string) (any, error)
 			segment = segment[:openBraceIdx]
 			value, exists := currentData[segment]
 			if !exists {
-				return nil, fmt.Errorf("path not found: %s", path)
+				return nil, &errSegmentNotFound{path: path, segment: segment}
 			}
 
 			mval, isMval := value.([]map[string]string)
@@ -145,7 +165,7 @@ func (p *Preprocessor) getValue(reqMap map[string]any, path string) (any, error)
 		} else {
 			value, exists := currentData[segment]
 			if !exists {
-				return nil, fmt.Errorf("segment %s not found in path %s", segment, path)
+				return nil, &errSegmentNotFound{path: path, segment: segment}
 			}
 			var ok bool
 			currentData, ok = value.(map[string]any)

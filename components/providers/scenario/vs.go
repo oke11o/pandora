@@ -13,14 +13,14 @@ func RegisterVariableSource(name string, mwConstructor interface{}, defaultConfi
 	register.RegisterPtr(ptr, name, mwConstructor, defaultConfigOptional...)
 }
 
-type Storage struct {
-	Map map[string]any
+type SourceStorage struct {
+	sources map[string]any
 }
 
-func (s *Storage) AddStorage(name string, storage any) {
-	s.Map[name] = storage
+func (s *SourceStorage) AddSource(name string, variables any) {
+	s.sources[name] = variables
 }
 
-func (s *Storage) GlobalVariables() map[string]any {
-	return s.Map
+func (s *SourceStorage) Variables() map[string]any {
+	return s.sources
 }

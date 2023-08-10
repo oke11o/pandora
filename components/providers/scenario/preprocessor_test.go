@@ -9,22 +9,46 @@ import (
 
 func TestPreprocessor_Process(t *testing.T) {
 	tests := []struct {
-		name      string
-		prep      Preprocessor
-		reqMap    map[string]any
-		wantMap   map[string]any
-		wantErr   bool
-		errSubstr string
+		name       string
+		prep       Preprocessor
+		templVars  map[string]any
+		sourceVars map[string]any
+		wantMap    map[string]any
+		wantErr    bool
 	}{
 		{
-			name: "Simple Processing",
+			name: "Nil templateVars",
 			prep: Preprocessor{
 				Variables: map[string]string{
 					"var1": "source.items[0].id",
 					"var2": "source.items[1]",
 				},
 			},
-			reqMap: map[string]any{
+			sourceVars: map[string]any{
+				"source": map[string]any{
+					"items": []map[string]any{
+						{"id": "1"},
+						{"id": "2"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Simple Processing",
+			prep: Preprocessor{
+				Variables: map[string]string{
+					"var1": "source.items[0].id",
+					"var2": "source.items[1]",
+					"var3": "request.auth.token",
+				},
+			},
+			templVars: map[string]any{
+				"request": map[string]any{
+					"auth": map[string]any{"token": "Bearer token"},
+				},
+			},
+			sourceVars: map[string]any{
 				"source": map[string]any{
 					"items": []map[string]any{
 						{"id": "1"},
@@ -33,34 +57,28 @@ func TestPreprocessor_Process(t *testing.T) {
 				},
 			},
 			wantMap: map[string]any{
-				"source": map[string]any{
-					"items": []map[string]any{
-						{"id": "1"},
-						{"id": "2"},
-					},
+				"request": map[string]any{
+					"auth": map[string]any{"token": "Bearer token"},
 				},
 				"preprocessor": map[string]any{
 					"var1": "1",
 					"var2": map[string]any{"id": "2"},
+					"var3": "Bearer token",
 				},
 			},
-			wantErr:   false,
-			errSubstr: "",
+			wantErr: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.prep.Process(tt.reqMap)
+			err := tt.prep.Process(tt.templVars, tt.sourceVars)
 
 			if tt.wantErr {
 				assert.Error(t, err)
-				if tt.errSubstr != "" {
-					assert.Contains(t, err.Error(), tt.errSubstr)
-				}
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.wantMap, tt.reqMap)
+				assert.Equal(t, tt.wantMap, tt.templVars)
 			}
 		})
 	}

@@ -72,15 +72,15 @@ func NewProvider(fs afero.Fs, conf Config) (core.Provider, error) {
 	}, nil
 }
 
-func buildVariableStorage(cfg AmmoConfig) (Storage, error) {
-	storage := Storage{Map: make(map[string]any)}
+func buildVariableStorage(cfg AmmoConfig) (SourceStorage, error) {
+	storage := SourceStorage{sources: make(map[string]any)}
 	for _, vs := range cfg.VariableSources {
 		err := vs.Init()
 		if err != nil {
 
 			return storage, err
 		}
-		storage.AddStorage(vs.GetName(), vs.GetVariables())
+		storage.AddSource(vs.GetName(), vs.GetVariables())
 	}
 	return storage, nil
 }

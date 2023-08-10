@@ -35,7 +35,7 @@ func ParseAmmoConfig(file io.Reader) (AmmoConfig, error) {
 	return ammoCfg, nil
 }
 
-func decodeAmmo(cfg AmmoConfig, storage Storage) ([]*Ammo, error) {
+func decodeAmmo(cfg AmmoConfig, storage SourceStorage) ([]*Ammo, error) {
 	reqRegistry := make(map[string]RequestConfig, len(cfg.Requests))
 
 	for _, req := range cfg.Requests {
