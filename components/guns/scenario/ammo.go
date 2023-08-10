@@ -30,7 +30,7 @@ type Step interface {
 	GetSleep() time.Duration
 }
 
-type RequestParts struct {
+type requestParts struct {
 	URL     string
 	Method  string
 	Body    []byte

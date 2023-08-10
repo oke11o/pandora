@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTextTemplater_Apply(t *testing.T) {
+func TestHTMLTemplater_Apply(t *testing.T) {
 	tests := []struct {
 		name            string
 		scenarioName    string
@@ -28,7 +28,7 @@ func TestTextTemplater_Apply(t *testing.T) {
 					"Authorization": "Bearer {{.token}}",
 					"Content-Type":  "application/json",
 				},
-				Body: []byte(`{"name": "{{.name}}", "age": {{.age}}}`),
+				Body: []byte(`<div data-age="{{.age}}" >{{.name}}</div>`),
 			},
 			vs: map[string]interface{}{
 				"endpoint": "users",
@@ -41,7 +41,7 @@ func TestTextTemplater_Apply(t *testing.T) {
 				"Authorization": "Bearer abc123",
 				"Content-Type":  "application/json",
 			},
-			expectedBody: `{"name": "John", "age": 30}`,
+			expectedBody: `<div data-age="30" >John</div>`,
 			expectError:  false,
 		},
 		{
@@ -79,14 +79,14 @@ func TestTextTemplater_Apply(t *testing.T) {
 				Headers: map[string]string{
 					"Authorization": "Bearer abc123",
 				},
-				Body: []byte(`{"name": "John", "age": 30}`),
+				Body: []byte(`<div data-age="30" >John</div>`),
 			},
 			vs:          map[string]interface{}{},
 			expectedURL: "http://example.com",
 			expectedHeaders: map[string]string{
 				"Authorization": "Bearer abc123",
 			},
-			expectedBody: `{"name": "John", "age": 30}`,
+			expectedBody: `<div data-age="30" >John</div>`,
 			expectError:  false,
 		},
 		{
@@ -130,7 +130,7 @@ func TestTextTemplater_Apply(t *testing.T) {
 			scenarioName: "BodyScenario",
 			stepName:     "BodyStep",
 			parts: &requestParts{
-				Body: []byte(`{"name": "{{.name}}", "age": {{.age}}}`),
+				Body: []byte(`<div data-age="{{.age}}" >{{.name}}</div>`),
 			},
 			vs: map[string]interface{}{
 				"name": "Alice",
@@ -138,7 +138,7 @@ func TestTextTemplater_Apply(t *testing.T) {
 			},
 			expectedURL:     "",
 			expectedHeaders: nil,
-			expectedBody:    `{"name": "Alice", "age": 25}`,
+			expectedBody:    `<div data-age="25" >Alice</div>`,
 			expectError:     false,
 		},
 		{
@@ -186,7 +186,7 @@ func TestTextTemplater_Apply(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			templater := &TextTemplater{}
+			templater := &HTMLTemplater{}
 			err := templater.Apply(test.parts, test.vs, test.scenarioName, test.stepName)
 
 			if test.expectError {

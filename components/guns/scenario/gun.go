@@ -5,9 +5,12 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strconv"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -119,8 +122,8 @@ func (g *BaseGun) verboseLogging(resp *http.Response, reqBody, respBody []byte) 
 	g.Log.Debug("Response debug info", fields...)
 }
 
-func (g *BaseGun) answLogging(bodyBytes []byte, resp *http.Response, respBytes []byte) {
-	msg := fmt.Sprintf("REQUEST:\n%s\n", string(bodyBytes))
+func (g *BaseGun) answLogging(bodyBytes []byte, resp *http.Response, respBytes []byte, stepName string) {
+	msg := fmt.Sprintf("REQUEST[%s]:\n%s\n", stepName, string(bodyBytes))
 	g.AnswLog.Debug(msg)
 
 	var writer bytes.Buffer
@@ -130,7 +133,7 @@ func (g *BaseGun) answLogging(bodyBytes []byte, resp *http.Response, respBytes [
 		return
 	}
 
-	msg = fmt.Sprintf("RESPONSE:\n%s %s\n%s\n%s\n", resp.Proto, resp.Status, writer.String(), string(respBytes))
+	msg = fmt.Sprintf("RESPONSE[%s]:\n%s %s\n%s\n%s\n", stepName, resp.Proto, resp.Status, writer.String(), string(respBytes))
 	g.AnswLog.Debug(msg)
 }
 
@@ -143,7 +146,18 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 	vsRequests := map[string]any{}
 	variableStorage["request"] = vsRequests
 	startAt := time.Now()
+	stepId := strings.Builder{}
+	rnd := rand.Int()
 	for _, step := range ammo.Steps() {
+		if g.Config.AnswLog.Enabled {
+			stepId.WriteString(ammo.Name())
+			stepId.WriteByte('.')
+			stepId.WriteString(strconv.Itoa(rnd))
+			stepId.WriteByte('.')
+			stepId.WriteString(strconv.Itoa(int(ammo.ID())))
+			stepId.WriteByte('.')
+			stepId.WriteString(step.GetName())
+		}
 
 		preProcessor := step.Preprocessor()
 		if preProcessor != nil {
@@ -153,7 +167,7 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 			}
 		}
 
-		reqParts := RequestParts{
+		reqParts := requestParts{
 			URL:     step.GetURL(),
 			Method:  step.GetMethod(),
 			Body:    step.GetBody(),
@@ -225,7 +239,8 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 			g.verboseLogging(resp, reqBytes, respBody)
 		}
 		if g.Config.AnswLog.Enabled {
-			g.answReqRespLogging(reqBytes, resp, respBody)
+			g.answReqRespLogging(reqBytes, resp, respBody, stepId.String())
+			stepId.Reset()
 		}
 
 		reqMap := map[string]any{}
@@ -258,19 +273,17 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 	return nil
 }
 
-func (g *BaseGun) answReqRespLogging(reqBytes []byte, resp *http.Response, respBytes []byte) {
+func (g *BaseGun) answReqRespLogging(reqBytes []byte, resp *http.Response, respBytes []byte, stepName string) {
 	switch g.Config.AnswLog.Filter {
 	case "all":
-		g.answLogging(reqBytes, resp, respBytes)
-
+		g.answLogging(reqBytes, resp, respBytes, stepName)
 	case "warning":
 		if resp.StatusCode >= 400 {
-			g.answLogging(reqBytes, resp, respBytes)
+			g.answLogging(reqBytes, resp, respBytes, stepName)
 		}
-
 	case "error":
 		if resp.StatusCode >= 500 {
-			g.answLogging(reqBytes, resp, respBytes)
+			g.answLogging(reqBytes, resp, respBytes, stepName)
 		}
 	}
 }
@@ -289,8 +302,6 @@ func (g *BaseGun) resolveTemplater(templaterType string) (Templater, error) {
 	switch templaterType {
 	case "text":
 		return NewTextTempalter(), nil
-	case "json":
-		return NewJsonTempalter(), nil
 	case "html":
 		return NewHTMLTemplater(), nil
 	}
