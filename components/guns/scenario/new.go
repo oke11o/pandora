@@ -33,7 +33,7 @@ func NewClientGun(client Client, conf phttp.ClientGunConfig, answLog *zap.Logger
 	if conf.SSL {
 		scheme = "https"
 	}
-	g := BaseGun{
+	return &BaseGun{
 		Config: conf.Base,
 		OnClose: func() error {
 			client.CloseIdleConnections()
@@ -46,8 +46,6 @@ func NewClientGun(client Client, conf phttp.ClientGunConfig, answLog *zap.Logger
 		client:         client,
 		templater:      &TextTemplater{},
 	}
-
-	return &g
 }
 
 func getHostWithoutPort(target string) string {

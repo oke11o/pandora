@@ -18,10 +18,12 @@ func WrapGun(g Gun) core.Gun {
 	if g == nil {
 		return nil
 	}
-	return &gunWrapper{g}
+	return &gunWrapper{Gun: g}
 }
 
-type gunWrapper struct{ Gun }
+type gunWrapper struct {
+	Gun Gun
+}
 
 func (g *gunWrapper) Shoot(ammo core.Ammo) {
 	g.Gun.Shoot(ammo.(Ammo))
@@ -36,7 +38,8 @@ func Import(fs afero.Fs) {
 		targetResolved, _ := PreResolveTargetAddr(&conf.Client, conf.Gun.Target)
 		answLog := answlog.Init(conf.Gun.Base.AnswLog.Path)
 		return func() core.Gun {
-			return WrapGun(NewHTTPGun(conf, answLog, targetResolved))
+			gun := NewHTTPGun(conf, answLog, targetResolved)
+			return WrapGun(gun)
 		}
 	}, phttp.DefaultHTTPGunConfig)
 

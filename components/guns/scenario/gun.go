@@ -7,6 +7,7 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"net/http/httptrace"
 	"net/http/httputil"
 	"net/url"
 	"strconv"
@@ -87,7 +88,6 @@ func (g *BaseGun) Shoot(ammo Ammo) {
 }
 
 func (g *BaseGun) Do(req *http.Request) (*http.Response, error) {
-
 	return g.client.Do(req)
 }
 
@@ -223,7 +223,37 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 			}
 		}
 
+		var timings *phttp.TraceTimings
+		if g.Config.HTTPTrace.TraceEnabled {
+			var clientTracer *httptrace.ClientTrace
+			clientTracer, timings = phttp.CreateHTTPTrace()
+			req = req.WithContext(httptrace.WithClientTrace(req.Context(), clientTracer))
+		}
+		if g.Config.HTTPTrace.DumpEnabled {
+			requestDump, err := httputil.DumpRequest(req, true)
+			if err != nil {
+				g.Log.Error("DumpRequest error", zap.Error(err))
+			} else {
+				sample.SetRequestBytes(len(requestDump))
+			}
+		}
 		resp, err := g.Do(req)
+		if g.Config.HTTPTrace.TraceEnabled && timings != nil {
+			sample.SetReceiveTime(timings.GetReceiveTime())
+		}
+		if g.Config.HTTPTrace.DumpEnabled && resp != nil {
+			responseDump, err := httputil.DumpResponse(resp, true)
+			if err != nil {
+				g.Log.Error("DumpResponse error", zap.Error(err))
+			} else {
+				sample.SetResponseBytes(len(responseDump))
+			}
+		}
+		if g.Config.HTTPTrace.TraceEnabled && timings != nil {
+			sample.SetConnectTime(timings.GetConnectTime())
+			sample.SetSendTime(timings.GetSendTime())
+			sample.SetLatency(timings.GetLatency())
+		}
 		if err != nil {
 			g.reportErr(sample, err)
 			return fmt.Errorf("%s g.Do %w", op, err)
