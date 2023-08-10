@@ -4,9 +4,7 @@ import (
 	"testing"
 
 	"github.com/spf13/afero"
-
 	"github.com/stretchr/testify/assert"
-
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
@@ -20,8 +18,8 @@ src:
   type: "file/csv"
   name: "users_src"
   file: "_files/users.csv"
-  skipheader: true
-  headerAsFields: true
+  skip_header: true
+  header_as_fields: true
   fields: [ "user_id", "name" ]
 `
 

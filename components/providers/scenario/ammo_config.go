@@ -5,27 +5,27 @@ import (
 )
 
 type AmmoConfig struct {
-	Variables       map[string]string `yaml:"variables"`
-	VariableSources []VariableSource  `yaml:"variablesources"`
-	Requests        []RequestConfig   `yaml:"requests"`
-	Scenarios       []ScenarioConfig  `yaml:"scenarios"`
+	Variables       map[string]string
+	VariableSources []VariableSource `config:"variable_sources"`
+	Requests        []RequestConfig
+	Scenarios       []ScenarioConfig
 }
 
 type ScenarioConfig struct {
-	Name           string   `yaml:"name" hcl:"name,label"`
-	Weight         int64    `yaml:"weight" hcl:"weight"`
-	MinWaitingTime int64    `yaml:"minwaitingtime" hcl:"min_waiting_time"`
-	Shoots         []string `yaml:"shoot" hcl:"shoot"`
+	Name           string
+	Weight         int64
+	MinWaitingTime int64 `config:"min_waiting_time"`
+	Shoots         []string
 }
 
 type RequestConfig struct {
-	Name           string                        `yaml:"name"`
-	Method         string                        `yaml:"method"`
-	Headers        map[string]string             `yaml:"headers"`
-	Tag            string                        `yaml:"tag"`
-	Body           *string                       `yaml:"body"`
-	Uri            string                        `yaml:"uri"`
-	Preprocessor   Preprocessor                  `yaml:"preprocessor"`
-	Postprocessors []postprocessor.Postprocessor `yaml:"postprocessors"`
-	Templater      string                        `yaml:"templater"`
+	Name           string
+	Method         string
+	Headers        map[string]string
+	Tag            string
+	Body           *string
+	Uri            string
+	Preprocessor   Preprocessor
+	Postprocessors []postprocessor.Postprocessor
+	Templater      string
 }

@@ -1,17 +1,17 @@
 variables:
   hostname: localhost
 
-variablesources:
+variable_sources:
   - type: "file/csv"
     name: "users"
-    skipheader: true
-    headerasfields: false
+    skip_header: true
+    header_as_fields: false
     file: "files/users.csv"
     fields: [ "user_id", "name", "pass" ]
   - type: "file/csv"
     name: "users2"
-    skipheader: false
-    headerasfields: true
+    skip_header: false
+    header_as_fields: true
     file: "files/users2.csv"
     fields: [ "user_id2", "name2", "pass2" ]
   - type: "file/json"
@@ -73,7 +73,7 @@ requests:
 scenarios:
   - name: scenario1
     weight: 50
-    minwaitingtime: 500
+    min_waiting_time: 500
     shoots: [
       auth_req(1),
       sleep(100),
@@ -83,7 +83,7 @@ scenarios:
     ]
   - name: scenario2
     weight: 40
-    minwaitingtime: 400
+    min_waiting_time: 400
     shoots: [
       auth_req(2),
       sleep(200),

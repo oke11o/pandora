@@ -12,8 +12,8 @@ type VariableSourceCsv struct {
 	Name           string
 	File           string
 	Fields         []string
-	SkipHeader     bool
-	HeaderAsFields bool
+	SkipHeader     bool `config:"skip_header"`
+	HeaderAsFields bool `config:"header_as_fields"`
 	fs             afero.Fs
 	store          []map[string]string
 }
