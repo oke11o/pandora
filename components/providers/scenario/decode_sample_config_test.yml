@@ -42,6 +42,10 @@ requests:
       - type: 'var/jsonpath'
         mapping:
           token: "$.auth_key"
+      - type: 'assert/response'
+        headers:
+          Content-Type: "json"
+        body: ["token", "auth"]
 
   - name: list_req
     uri: '/list'

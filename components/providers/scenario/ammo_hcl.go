@@ -46,8 +46,10 @@ type ScenarioHCL struct {
 }
 
 type PostprocessorHCL struct {
-	Type    string            `hcl:"type,label"`
-	Mapping map[string]string `hcl:"mapping"`
+	Type    string             `hcl:"type,label"`
+	Mapping *map[string]string `hcl:"mapping"`
+	Headers *map[string]string `hcl:"headers"`
+	Body    *[]string          `hcl:"body"`
 }
 
 type PreprocessorHCL struct {
@@ -122,16 +124,25 @@ func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 					switch p.Type {
 					case "var/header":
 						postprocessors[j] = &postprocessor.VarHeaderPostprocessor{
-							Mapping: p.Mapping,
+							Mapping: *p.Mapping,
 						}
 					case "var/xpath":
 						postprocessors[j] = &postprocessor.VarXpathPostprocessor{
-							Mapping: p.Mapping,
+							Mapping: *p.Mapping,
 						}
 					case "var/jsonpath":
 						postprocessors[j] = &postprocessor.VarJsonpathPostprocessor{
-							Mapping: p.Mapping,
+							Mapping: *p.Mapping,
 						}
+					case "assert/response":
+						postp := &postprocessor.AssertResponse{}
+						if p.Headers != nil {
+							postp.Headers = *p.Headers
+						}
+						if p.Body != nil {
+							postp.Body = *p.Body
+						}
+						postprocessors[j] = postp
 					default:
 						return AmmoConfig{}, fmt.Errorf("%s, unknown postprocessor type: %s", op, p.Type)
 					}
@@ -236,17 +247,23 @@ func ConvertAmmoToHCL(ammo AmmoConfig) (AmmoHCL, error) {
 					case *postprocessor.VarHeaderPostprocessor:
 						postprocessors[j] = PostprocessorHCL{
 							Type:    "var/header",
-							Mapping: val.Mapping,
+							Mapping: &val.Mapping,
 						}
 					case *postprocessor.VarXpathPostprocessor:
 						postprocessors[j] = PostprocessorHCL{
 							Type:    "var/xpath",
-							Mapping: val.Mapping,
+							Mapping: &val.Mapping,
 						}
 					case *postprocessor.VarJsonpathPostprocessor:
 						postprocessors[j] = PostprocessorHCL{
 							Type:    "var/jsonpath",
-							Mapping: val.Mapping,
+							Mapping: &val.Mapping,
+						}
+					case *postprocessor.AssertResponse:
+						postprocessors[j] = PostprocessorHCL{
+							Type:    "assert/response",
+							Headers: &val.Headers,
+							Body:    &val.Body,
 						}
 					default:
 						return AmmoHCL{}, fmt.Errorf("%s postprocessor type %T not supported", op, val)

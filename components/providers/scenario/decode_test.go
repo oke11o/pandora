@@ -35,7 +35,7 @@ func Test_parseAmmoConfig(t *testing.T) {
 	assert.Equal(t, "users2", cfg.VariableSources[1].GetName())
 	assert.Equal(t, 3, len(cfg.Requests))
 	assert.Equal(t, "auth_req", cfg.Requests[0].Name)
-	require.Equal(t, 2, len(cfg.Requests[0].Postprocessors))
+	require.Equal(t, 3, len(cfg.Requests[0].Postprocessors))
 	require.Equal(t, map[string]string{"Content-Type": "Content-Type|upper", "httpAuthorization": "Http-Authorization"}, cfg.Requests[0].Postprocessors[0].(*postprocessor.VarHeaderPostprocessor).Mapping)
 	require.Equal(t, map[string]string{"token": "$.auth_key"}, cfg.Requests[0].Postprocessors[1].(*postprocessor.VarJsonpathPostprocessor).Mapping)
 

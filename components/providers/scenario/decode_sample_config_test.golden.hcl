@@ -48,6 +48,12 @@ request "auth_req" {
       token = "$.auth_key"
     }
   }
+  postprocessor "assert/response" {
+    headers = {
+      Content-Type = "json"
+    }
+    body = ["token", "auth"]
+  }
 
   templater = "text"
 }

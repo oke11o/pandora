@@ -122,9 +122,9 @@ func TestConvertHCLToAmmo(t *testing.T) {
 						Method: "GET",
 						Uri:    "/api",
 						Postprocessors: []PostprocessorHCL{
-							{Type: "var/header", Mapping: map[string]string{"key": "var/header"}},
-							{Type: "var/xpath", Mapping: map[string]string{"key": "var/xpath"}},
-							{Type: "var/jsonpath", Mapping: map[string]string{"key": "var/jsonpath"}},
+							{Type: "var/header", Mapping: &(map[string]string{"key": "var/header"})},
+							{Type: "var/xpath", Mapping: &(map[string]string{"key": "var/xpath"})},
+							{Type: "var/jsonpath", Mapping: &(map[string]string{"key": "var/jsonpath"})},
 						},
 					},
 				},
@@ -173,7 +173,7 @@ func TestConvertHCLToAmmo(t *testing.T) {
 					{
 						Name: "req1", Method: "GET", Uri: "/api",
 						Postprocessors: []PostprocessorHCL{
-							{Type: "unknown", Mapping: map[string]string{"key": "value"}},
+							{Type: "unknown", Mapping: &(map[string]string{"key": "value"})},
 						},
 					},
 				},

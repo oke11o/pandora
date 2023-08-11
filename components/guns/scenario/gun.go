@@ -258,8 +258,6 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 			g.reportErr(sample, err)
 			return fmt.Errorf("%s g.Do %w", op, err)
 		}
-		sample.SetProtoCode(resp.StatusCode)
-		g.Aggregator.Report(sample)
 
 		var respBody []byte
 		if g.Config.AnswLog.Enabled || g.DebugLog {
@@ -281,9 +279,12 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 		for _, postprocessor := range step.GetPostProcessors() {
 			err := postprocessor.Process(reqMap, resp, respBody)
 			if err != nil {
+				g.reportErr(sample, err)
 				return fmt.Errorf("%s postprocessor.Postprocess %w", op, err)
 			}
 		}
+		sample.SetProtoCode(resp.StatusCode)
+		g.Aggregator.Report(sample)
 
 		if respBody == nil {
 			_, err = io.Copy(io.Discard, resp.Body) // Buffers are pooled for ioutil.Discard
