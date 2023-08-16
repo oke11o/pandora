@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.uber.org/multierr"
+	multierr "github.com/hashicorp/go-multierror"
 
 	"github.com/PaesslerAG/jsonpath"
 )
