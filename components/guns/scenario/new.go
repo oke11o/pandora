@@ -19,7 +19,7 @@ func NewHTTPGun(conf phttp.HTTPGunConfig, answLog *zap.Logger, targetResolved st
 func NewHTTP2Gun(conf phttp.HTTP2GunConfig, answLog *zap.Logger, targetResolved string) (*BaseGun, error) {
 	if !conf.Gun.SSL {
 		// Open issue on github if you really need this feature.
-		return nil, errors.New("HTTP/2.0 over TCP is not supported. Please leave SSL option true by default.")
+		return nil, errors.New("HTTP/2.0 over TCP is not supported. Please leave SSL option true by default")
 	}
 	transport := phttp.NewHTTP2Transport(conf.Client.Transport, phttp.NewDialer(conf.Client.Dialer).DialContext, conf.Gun.Target)
 	client := newClient(transport, conf.Client.Redirect)

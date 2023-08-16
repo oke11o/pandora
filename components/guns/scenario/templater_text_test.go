@@ -3,6 +3,8 @@ package scenario
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -190,9 +192,9 @@ func TestTextTemplater_Apply(t *testing.T) {
 			err := templater.Apply(test.parts, test.vs, test.scenarioName, test.stepName)
 
 			if test.expectError {
-				assert.NotNil(t, err)
+				require.Error(t, err)
 			} else {
-				assert.Nil(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, test.expectedURL, test.parts.URL)
 				assert.Equal(t, test.expectedHeaders, test.parts.Headers)
 				assert.Equal(t, test.expectedBody, string(test.parts.Body))

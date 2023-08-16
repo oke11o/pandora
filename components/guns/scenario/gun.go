@@ -147,17 +147,17 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 	templateVars["request"] = requestVars
 
 	startAt := time.Now()
-	stepId := strings.Builder{}
+	stepID := strings.Builder{}
 	rnd := rand.Int()
 	for _, step := range ammo.Steps() {
 		if g.Config.AnswLog.Enabled {
-			stepId.WriteString(ammo.Name())
-			stepId.WriteByte('.')
-			stepId.WriteString(strconv.Itoa(rnd))
-			stepId.WriteByte('.')
-			stepId.WriteString(strconv.Itoa(int(ammo.ID())))
-			stepId.WriteByte('.')
-			stepId.WriteString(step.GetName())
+			stepID.WriteString(ammo.Name())
+			stepID.WriteByte('.')
+			stepID.WriteString(strconv.Itoa(rnd))
+			stepID.WriteByte('.')
+			stepID.WriteString(strconv.Itoa(int(ammo.ID())))
+			stepID.WriteByte('.')
+			stepID.WriteString(step.GetName())
 		}
 
 		preProcessor := step.Preprocessor()
@@ -271,8 +271,8 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 			g.verboseLogging(resp, reqBytes, respBody)
 		}
 		if g.Config.AnswLog.Enabled {
-			g.answReqRespLogging(reqBytes, resp, respBody, stepId.String())
-			stepId.Reset()
+			g.answReqRespLogging(reqBytes, resp, respBody, stepID.String())
+			stepID.Reset()
 		}
 
 		reqMap := map[string]any{}
@@ -292,7 +292,10 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 				return fmt.Errorf("%s io.Copy %w", op, err)
 			}
 		}
-		resp.Body.Close()
+		err = resp.Body.Close()
+		if err != nil {
+			return fmt.Errorf("%s resp.Body.Close %w", op, err)
+		}
 
 		requestVars[step.GetName()] = reqMap
 
