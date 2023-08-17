@@ -150,7 +150,6 @@ func (p *Provider) Acquire() (core.Ammo, bool) {
 }
 
 func (p *Provider) Release(_ core.Ammo) {
-	return
 }
 
 var _ core.Provider = (*Provider)(nil)

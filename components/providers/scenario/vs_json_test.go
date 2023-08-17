@@ -13,7 +13,7 @@ import (
 )
 
 func Test_decode_parseVariableSourceJson(t *testing.T) {
-	const exampleVariableSourceJson = `
+	const exampleVariableSourceJSON = `
 src:
   type: "file/json"
   name: "json_src"
@@ -26,7 +26,7 @@ src:
 	})
 
 	data := make(map[string]any)
-	err := yaml.Unmarshal([]byte(exampleVariableSourceJson), &data)
+	err := yaml.Unmarshal([]byte(exampleVariableSourceJSON), &data)
 	require.NoError(t, err)
 
 	out := struct {
@@ -36,7 +36,7 @@ src:
 	err = config.DecodeAndValidate(data, &out)
 	require.NoError(t, err)
 
-	vs, ok := out.Src.(*VariableSourceJson)
+	vs, ok := out.Src.(*VariableSourceJSON)
 	require.True(t, ok)
 	require.Equal(t, "json_src", vs.GetName())
 }
@@ -59,7 +59,7 @@ func TestVariableSourceJson_Init(t *testing.T) {
 		name      string
 		initFs    func(t *testing.T) afero.Fs
 		deferFs   func(t *testing.T, fs afero.Fs)
-		vs        *VariableSourceJson
+		vs        *VariableSourceJSON
 		wantErr   bool
 		wantStore any
 	}{
@@ -67,7 +67,7 @@ func TestVariableSourceJson_Init(t *testing.T) {
 			name:    "default",
 			initFs:  initFs,
 			deferFs: deferFs,
-			vs: &VariableSourceJson{
+			vs: &VariableSourceJSON{
 				Name: "users",
 				File: "users.json",
 			},
@@ -88,7 +88,7 @@ func TestVariableSourceJson_Init(t *testing.T) {
 				err := fs.Remove("users.json")
 				require.NoError(t, err)
 			},
-			vs: &VariableSourceJson{
+			vs: &VariableSourceJSON{
 				Name: "users",
 				File: "users.json",
 			},

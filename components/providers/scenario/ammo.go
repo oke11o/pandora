@@ -10,7 +10,7 @@ var _ scenario.Ammo = (*Ammo)(nil)
 
 type Ammo struct {
 	Requests        []Request
-	Id              uint64
+	id              uint64
 	name            string
 	minWaitingTime  time.Duration
 	variableStorage *SourceStorage
@@ -29,7 +29,7 @@ func (a *Ammo) Steps() []scenario.Step {
 }
 
 func (a *Ammo) ID() uint64 {
-	return a.Id
+	return a.id
 }
 
 func (a *Ammo) Sources() scenario.VariableStorage {

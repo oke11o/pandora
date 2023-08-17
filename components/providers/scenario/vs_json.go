@@ -8,23 +8,23 @@ import (
 	"github.com/spf13/afero"
 )
 
-type VariableSourceJson struct {
+type VariableSourceJSON struct {
 	Name  string `yaml:"name"`
 	File  string `yaml:"file"`
 	fs    afero.Fs
 	store any
 }
 
-func (v *VariableSourceJson) GetName() string {
+func (v *VariableSourceJSON) GetName() string {
 	return v.Name
 }
 
-func (v *VariableSourceJson) GetVariables() any {
+func (v *VariableSourceJSON) GetVariables() any {
 	return v.store
 }
 
-func (v *VariableSourceJson) Init() (err error) {
-	const op = "VariableSourceJson.Init"
+func (v *VariableSourceJSON) Init() (err error) {
+	const op = "VariableSourceJSON.Init"
 	var file afero.File
 	file, err = v.fs.Open(v.File)
 	if err != nil {
@@ -52,9 +52,9 @@ func (v *VariableSourceJson) Init() (err error) {
 	return nil
 }
 
-func NewVSJson(cfg VariableSourceJson, fs afero.Fs) (VariableSource, error) {
+func NewVSJson(cfg VariableSourceJSON, fs afero.Fs) (VariableSource, error) {
 	cfg.fs = fs
 	return &cfg, nil
 }
 
-var _ VariableSource = (*VariableSourceJson)(nil)
+var _ VariableSource = (*VariableSourceJSON)(nil)

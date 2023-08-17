@@ -124,7 +124,7 @@ func Test_convertScenarioToAmmo(t *testing.T) {
 			"Content-Type": "application/json",
 		},
 		Name: "req1",
-		Uri:  "https://example.com/api/endpoint",
+		URI:  "https://example.com/api/endpoint",
 	}
 	req2 := RequestConfig{
 		Method: "POST",
@@ -132,7 +132,7 @@ func Test_convertScenarioToAmmo(t *testing.T) {
 			"Authorization": "Bearer abcdef",
 		},
 		Name: "req2",
-		Uri:  "https://example.com/api/another-endpoint",
+		URI:  "https://example.com/api/another-endpoint",
 	}
 
 	reqRegistry := map[string]RequestConfig{

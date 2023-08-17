@@ -22,7 +22,7 @@ func Import(fs afero.Fs) {
 			return NewVSCSV(cfg, fs)
 		})
 
-		RegisterVariableSource("file/json", func(cfg VariableSourceJson) (VariableSource, error) {
+		RegisterVariableSource("file/json", func(cfg VariableSourceJSON) (VariableSource, error) {
 			return NewVSJson(cfg, fs)
 		})
 

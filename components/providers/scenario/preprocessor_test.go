@@ -224,6 +224,7 @@ func Test_getValue_iterators(t *testing.T) {
 	got, _ = p.getValue(reqMap, "source.list[next]")
 	assert.Equal(t, "22", got)
 	got, _ = p.getValue(reqMap, "source.list[next]")
+	assert.Equal(t, "33", got)
 
 	got, _ = p.getValue(reqMap, "source.list[last]")
 	assert.Equal(t, "33", got)

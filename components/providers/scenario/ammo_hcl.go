@@ -32,7 +32,7 @@ type RequestHCL struct {
 	Headers        map[string]string  `hcl:"headers"`
 	Tag            *string            `hcl:"tag"`
 	Body           *string            `hcl:"body"`
-	Uri            string             `hcl:"uri"`
+	URI            string             `hcl:"uri"`
 	Preprocessor   *PreprocessorHCL   `hcl:"preprocessor,block"`
 	Postprocessors []PostprocessorHCL `hcl:"postprocessor,block"`
 	Templater      *string            `hcl:"templater"`
@@ -80,7 +80,7 @@ func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 		for i, s := range ammo.VariableSources {
 			switch s.Type {
 			case "file/json":
-				sources[i] = &VariableSourceJson{
+				sources[i] = &VariableSourceJSON{
 					Name: s.Name,
 					File: s.File,
 					fs:   fs,
@@ -166,7 +166,7 @@ func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 				Headers:        r.Headers,
 				Tag:            tag,
 				Body:           r.Body,
-				Uri:            r.Uri,
+				URI:            r.URI,
 				Preprocessor:   Preprocessor{Variables: variables},
 				Postprocessors: postprocessors,
 				Templater:      templater,
@@ -178,12 +178,7 @@ func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 	if len(ammo.Scenarios) > 0 {
 		scenarios = make([]ScenarioConfig, len(ammo.Scenarios))
 		for i, s := range ammo.Scenarios {
-			scenarios[i] = ScenarioConfig{
-				Name:           s.Name,
-				Weight:         s.Weight,
-				MinWaitingTime: s.MinWaitingTime,
-				Shoots:         s.Shoots,
-			}
+			scenarios[i] = ScenarioConfig(s)
 		}
 	}
 
@@ -205,7 +200,7 @@ func ConvertAmmoToHCL(ammo AmmoConfig) (AmmoHCL, error) {
 		sources = make([]SourceHCL, len(ammo.VariableSources))
 		for i, s := range ammo.VariableSources {
 			switch val := s.(type) {
-			case *VariableSourceJson:
+			case *VariableSourceJSON:
 				v := SourceHCL{
 					Type: "file/json",
 					Name: val.Name,
@@ -273,7 +268,7 @@ func ConvertAmmoToHCL(ammo AmmoConfig) (AmmoHCL, error) {
 
 			req := RequestHCL{
 				Name:           r.Name,
-				Uri:            r.Uri,
+				URI:            r.URI,
 				Method:         r.Method,
 				Headers:        r.Headers,
 				Body:           r.Body,
@@ -298,12 +293,7 @@ func ConvertAmmoToHCL(ammo AmmoConfig) (AmmoHCL, error) {
 	if len(ammo.Scenarios) > 0 {
 		scenarios = make([]ScenarioHCL, len(ammo.Scenarios))
 		for i, s := range ammo.Scenarios {
-			scenarios[i] = ScenarioHCL{
-				Name:           s.Name,
-				Weight:         s.Weight,
-				MinWaitingTime: s.MinWaitingTime,
-				Shoots:         s.Shoots,
-			}
+			scenarios[i] = ScenarioHCL(s)
 		}
 	}
 

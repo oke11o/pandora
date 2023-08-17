@@ -24,7 +24,7 @@ type RequestConfig struct {
 	Headers        map[string]string
 	Tag            string
 	Body           *string
-	Uri            string
+	URI            string
 	Preprocessor   Preprocessor
 	Postprocessors []postprocessor.Postprocessor
 	Templater      string
