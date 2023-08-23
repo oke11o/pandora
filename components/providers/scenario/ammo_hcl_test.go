@@ -46,7 +46,7 @@ func Test_convertingYamlToHCL(t *testing.T) {
 	assert.Equal(t, string(goldenBytes), string(bytes))
 }
 
-func ExampleEncodeAmmoHCLVariablesSources() {
+func Example_encodeAmmoHCLVariablesSources() {
 	app := AmmoHCL{
 		Variables: map[string]string{"host": "localhost"},
 		VariableSources: []SourceHCL{
