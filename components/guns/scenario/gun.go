@@ -242,9 +242,9 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 			sample.SetReceiveTime(timings.GetReceiveTime())
 		}
 		if g.Config.HTTPTrace.DumpEnabled && resp != nil {
-			responseDump, err := httputil.DumpResponse(resp, true)
-			if err != nil {
-				g.Log.Error("DumpResponse error", zap.Error(err))
+			responseDump, e := httputil.DumpResponse(resp, true)
+			if e != nil {
+				g.Log.Error("DumpResponse error", zap.Error(e))
 			} else {
 				sample.SetResponseBytes(len(responseDump))
 			}
