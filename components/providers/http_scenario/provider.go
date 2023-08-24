@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
+
 	"github.com/yandex/pandora/components/providers/base"
 	"github.com/yandex/pandora/components/providers/http/decoders"
 	"github.com/yandex/pandora/core"
