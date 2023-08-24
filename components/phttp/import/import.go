@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 
 	phttp "github.com/yandex/pandora/components/guns/http"
-	scenarioGun "github.com/yandex/pandora/components/guns/scenario"
+	scenarioGun "github.com/yandex/pandora/components/guns/http_scenario"
 	httpProvider "github.com/yandex/pandora/components/providers/http"
 	scenarioProvider "github.com/yandex/pandora/components/providers/http_scenario"
 	"github.com/yandex/pandora/core"

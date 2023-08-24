@@ -1,4 +1,4 @@
-package scenario
+package httpscenario
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsimple"
 	"github.com/spf13/afero"
 
-	"github.com/yandex/pandora/components/providers/scenario/postprocessor"
+	"github.com/yandex/pandora/components/providers/http_scenario/postprocessor"
 )
 
 type AmmoHCL struct {

@@ -1,4 +1,4 @@
-package scenario
+package httpscenario
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/yandex/pandora/components/providers/scenario/postprocessor"
+	"github.com/yandex/pandora/components/providers/http_scenario/postprocessor"
 	"github.com/yandex/pandora/core/plugin/pluginconfig"
 )
 

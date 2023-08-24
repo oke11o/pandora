@@ -1,14 +1,15 @@
-package scenario
+package httpscenario
 
 import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"go.uber.org/zap"
-	"golang.org/x/net/http2"
 	"net"
 	"net/http"
 	"strings"
+
+	"go.uber.org/zap"
+	"golang.org/x/net/http2"
 )
 
 type Client interface {
