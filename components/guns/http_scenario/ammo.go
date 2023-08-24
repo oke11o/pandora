@@ -1,4 +1,4 @@
-package scenario
+package httpscenario
 
 import (
 	"net/http"
@@ -13,7 +13,7 @@ type Preprocessor interface {
 }
 
 type Postprocessor interface {
-	Process(reqMap map[string]any, resp *http.Response, body []byte) error
+	Process(requestVars map[string]any, resp *http.Response, body []byte) error
 }
 
 type VariableStorage interface {

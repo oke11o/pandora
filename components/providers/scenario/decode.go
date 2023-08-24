@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 
-	"github.com/yandex/pandora/components/guns/scenario"
+	httpscenario "github.com/yandex/pandora/components/guns/http_scenario"
 	"github.com/yandex/pandora/core/config"
 	"github.com/yandex/pandora/lib/math"
 	"github.com/yandex/pandora/lib/str"
@@ -93,9 +93,9 @@ func convertScenarioToAmmo(sc ScenarioConfig, reqs map[string]RequestConfig) (*A
 }
 
 func convertConfigToRequest(req RequestConfig, iter iterator) Request {
-	postprocessors := make([]scenario.Postprocessor, len(req.Postprocessors))
+	postprocessors := make([]httpscenario.Postprocessor, len(req.Postprocessors))
 	for i := range req.Postprocessors {
-		postprocessors[i] = req.Postprocessors[i].(scenario.Postprocessor)
+		postprocessors[i] = req.Postprocessors[i].(httpscenario.Postprocessor)
 	}
 	result := Request{
 		method:         req.Method,
