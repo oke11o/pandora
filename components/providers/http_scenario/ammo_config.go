@@ -1,7 +1,7 @@
-package scenario
+package httpscenario
 
 import (
-	"github.com/yandex/pandora/components/providers/scenario/postprocessor"
+	"github.com/yandex/pandora/components/providers/http_scenario/postprocessor"
 )
 
 type AmmoConfig struct {

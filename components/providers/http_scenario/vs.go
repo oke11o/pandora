@@ -1,4 +1,4 @@
-package scenario
+package httpscenario
 
 import "github.com/yandex/pandora/core/register"
 

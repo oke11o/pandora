@@ -13,7 +13,7 @@ import (
 
 	phttp "github.com/yandex/pandora/components/guns/http"
 	httpProvider "github.com/yandex/pandora/components/providers/http"
-	scenarioProvider "github.com/yandex/pandora/components/providers/scenario"
+	scenarioProvider "github.com/yandex/pandora/components/providers/http_scenario"
 	"github.com/yandex/pandora/core"
 	"github.com/yandex/pandora/core/register"
 	"github.com/yandex/pandora/lib/answlog"
