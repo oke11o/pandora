@@ -45,7 +45,7 @@ requests:
       - type: 'assert/response'
         headers:
           Content-Type: "json"
-        body: ["token", "auth"]
+        body: [ "token", "auth" ]
 
   - name: list_req
     uri: '/list'
