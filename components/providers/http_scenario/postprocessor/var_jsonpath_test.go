@@ -7,12 +7,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type testSetter map[string]any
+
+func (s testSetter) Set(key string, value any) error {
+	s[key] = value
+	return nil
+}
+
 func TestVarJsonpathPostprocessor_Process(t *testing.T) {
+
 	testCases := []struct {
 		name      string
 		mappings  map[string]string
 		body      []byte
-		expected  map[string]interface{}
+		expected  testSetter
 		expectErr bool
 	}{
 		{
@@ -22,7 +30,7 @@ func TestVarJsonpathPostprocessor_Process(t *testing.T) {
 				"person_age":  "$.age",
 			},
 			body: []byte(`{"name": "John", "age": 30}`),
-			expected: map[string]interface{}{
+			expected: testSetter{
 				"person_name": "John",
 				"person_age":  float64(30),
 			},
@@ -35,7 +43,7 @@ func TestVarJsonpathPostprocessor_Process(t *testing.T) {
 				"user_age":  "$.age",
 			},
 			body: []byte(`{"username": "Alice", "age": 25}`),
-			expected: map[string]interface{}{
+			expected: testSetter{
 				"user_name": "Alice",
 				"user_age":  float64(25),
 			},
@@ -82,7 +90,7 @@ func TestVarJsonpathPostprocessor_Process(t *testing.T) {
 					"country": "USA"
 				}
 			}`),
-			expected: map[string]interface{}{
+			expected: testSetter{
 				"city":      "New York",
 				"zip_code":  "10001",
 				"country":   "USA",
@@ -95,24 +103,18 @@ func TestVarJsonpathPostprocessor_Process(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create a VarJsonpathPostprocessor instance with the mappings
 			p := &VarJsonpathPostprocessor{Mapping: tc.mappings}
 
-			// Initialize reqMap with some sample data for testing
-			reqMap := make(map[string]interface{})
-
-			// Call the Process method with the sample body
-			err := p.Process(reqMap, &http.Response{}, tc.body)
-
-			// Check if an error is expected and if it matches the actual result
+			request := testSetter{}
+			err := p.Process(request, &http.Response{}, tc.body)
 			if tc.expectErr {
 				assert.Error(t, err, "Expected an error, but got none")
+				return
 			} else {
 				assert.NoError(t, err, "Process should not return an error")
 			}
 
-			// Check if the reqMap is updated as expected
-			assert.Equal(t, tc.expected, reqMap, "Process result not as expected")
+			assert.Equal(t, tc.expected, request, "Process result not as expected")
 		})
 	}
 }

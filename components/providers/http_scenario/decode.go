@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/yandex/pandora/lib/mp"
+
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 
@@ -68,7 +70,7 @@ func decodeAmmo(cfg AmmoConfig, storage SourceStorage) ([]*Ammo, error) {
 }
 
 func convertScenarioToAmmo(sc ScenarioConfig, reqs map[string]RequestConfig) (*Ammo, error) {
-	iter := newNextIterator(time.Now().UnixNano())
+	iter := mp.NewNextIterator(time.Now().UnixNano())
 	result := &Ammo{name: sc.Name, minWaitingTime: time.Millisecond * time.Duration(sc.MinWaitingTime)}
 	for _, sh := range sc.Shoots {
 		name, cnt, err := parseShootName(sh)
@@ -92,7 +94,7 @@ func convertScenarioToAmmo(sc ScenarioConfig, reqs map[string]RequestConfig) (*A
 	return result, nil
 }
 
-func convertConfigToRequest(req RequestConfig, iter iterator) Request {
+func convertConfigToRequest(req RequestConfig, iter mp.Iterator) Request {
 	postprocessors := make([]httpscenario.Postprocessor, len(req.Postprocessors))
 	for i := range req.Postprocessors {
 		postprocessors[i] = req.Postprocessors[i].(httpscenario.Postprocessor)

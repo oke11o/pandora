@@ -15,7 +15,7 @@ func TestVarXpathPostprocessor_Process(t *testing.T) {
 		name           string
 		body           []byte
 		mappings       map[string]string
-		expectedReqMap map[string]interface{}
+		expectedReqMap testSetter
 	}{
 		{
 			name: "Test Case 1",
@@ -30,7 +30,7 @@ func TestVarXpathPostprocessor_Process(t *testing.T) {
 			mappings: map[string]string{
 				"key1": "//div[@class='data']",
 			},
-			expectedReqMap: map[string]interface{}{
+			expectedReqMap: testSetter{
 				"key1": []string{"Value1", "Value2"},
 			},
 		},
@@ -47,7 +47,7 @@ func TestVarXpathPostprocessor_Process(t *testing.T) {
 			mappings: map[string]string{
 				"keyAlpha": "//span[@class='span-data']",
 			},
-			expectedReqMap: map[string]interface{}{
+			expectedReqMap: testSetter{
 				"keyAlpha": []string{"ValueX", "ValueY"},
 			},
 		},
@@ -63,7 +63,7 @@ func TestVarXpathPostprocessor_Process(t *testing.T) {
 			mappings: map[string]string{
 				"keyParagraph": "//p[@class='paragraph']",
 			},
-			expectedReqMap: map[string]interface{}{
+			expectedReqMap: testSetter{
 				"keyParagraph": []string{"This is a paragraph"},
 			},
 		},
@@ -75,7 +75,7 @@ func TestVarXpathPostprocessor_Process(t *testing.T) {
 				Mapping: tc.mappings,
 			}
 
-			reqMap := make(map[string]interface{})
+			reqMap := testSetter{}
 			err := postprocessor.Process(reqMap, nil, tc.body)
 
 			assert.NoError(t, err)

@@ -202,3 +202,58 @@ func TestTextTemplater_Apply(t *testing.T) {
 		})
 	}
 }
+
+func TestTextTemplater_Apply2(t *testing.T) {
+	requestVars := map[string]GetSetter{
+		"req1": &gunGetSetter{m: map[string]any{"name": "John"}},
+	}
+	preprocessorVars := map[string]Getter{
+		"req1": &gunGetSetter{m: map[string]any{"age": 30}},
+	}
+	tests := []struct {
+		name            string
+		scenarioName    string
+		stepName        string
+		parts           *requestParts
+		vs              map[string]interface{}
+		expectedURL     string
+		expectedHeaders map[string]string
+		expectedBody    string
+		expectError     bool
+	}{
+		{
+			name:         "Test Scenario 1",
+			scenarioName: "TestScenario",
+			stepName:     "TestStep",
+			parts: &requestParts{
+				URL:     "http://example.com",
+				Headers: map[string]string{},
+				Body:    []byte(`{"name": "{{.request.req1.name}}", "age": {{.preprocessor.req1.age}}}`),
+			},
+			vs: map[string]any{
+				"request":      requestVars,
+				"preprocessor": preprocessorVars,
+			},
+			expectedURL:     "http://example.com",
+			expectedHeaders: map[string]string{},
+			expectedBody:    `{"name": "John", "age": 30}`,
+			expectError:     false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			templater := &TextTemplater{}
+			err := templater.Apply(test.parts, test.vs, test.scenarioName, test.stepName)
+
+			if test.expectError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, test.expectedURL, test.parts.URL)
+				assert.Equal(t, test.expectedHeaders, test.parts.Headers)
+				assert.Equal(t, test.expectedBody, string(test.parts.Body))
+			}
+		})
+	}
+}

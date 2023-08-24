@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/PaesslerAG/jsonpath"
 	multierr "github.com/hashicorp/go-multierror"
 
-	"github.com/PaesslerAG/jsonpath"
+	httpscenario "github.com/yandex/pandora/components/guns/http_scenario"
 )
 
 type VarJsonpathPostprocessor struct {
@@ -28,7 +29,7 @@ func (p *VarJsonpathPostprocessor) ReturnedParams() []string {
 	return result
 }
 
-func (p *VarJsonpathPostprocessor) Process(reqMap map[string]any, _ *http.Response, body []byte) error {
+func (p *VarJsonpathPostprocessor) Process(request httpscenario.Setter, _ *http.Response, body []byte) error {
 	var data any
 	err := json.Unmarshal(body, &data)
 	if err != nil {
@@ -40,7 +41,10 @@ func (p *VarJsonpathPostprocessor) Process(reqMap map[string]any, _ *http.Respon
 			err = multierr.Append(err, fmt.Errorf("failed to get value by jsonpath %s: %w", path, e))
 			continue
 		}
-		reqMap[k] = val
+		e = request.Set(k, val)
+		if e != nil {
+			err = multierr.Append(err, fmt.Errorf("failed to set `%s` value %s: %w", k, val, e))
+		}
 	}
 	return err
 }

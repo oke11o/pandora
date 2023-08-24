@@ -3,6 +3,8 @@ package postprocessor
 import (
 	"net/http"
 	"strings"
+
+	httpscenario "github.com/yandex/pandora/components/guns/http_scenario"
 )
 
 type errAssert struct {
@@ -19,7 +21,7 @@ type AssertResponse struct {
 	Body    []string
 }
 
-func (a AssertResponse) Process(reqMap map[string]any, resp *http.Response, body []byte) error {
+func (a AssertResponse) Process(request httpscenario.Setter, resp *http.Response, body []byte) error {
 	for _, v := range a.Body {
 		if !strings.Contains(string(body), v) {
 			return &errAssert{pattern: v, t: "body"}

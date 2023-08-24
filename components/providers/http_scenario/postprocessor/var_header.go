@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	httpscenario "github.com/yandex/pandora/components/guns/http_scenario"
+
 	"github.com/yandex/pandora/lib/str"
 )
 
@@ -27,7 +29,7 @@ func (p *VarHeaderPostprocessor) ReturnedParams() []string {
 	return result
 }
 
-func (p *VarHeaderPostprocessor) Process(reqMap map[string]any, resp *http.Response, _ []byte) error {
+func (p *VarHeaderPostprocessor) Process(request httpscenario.Setter, resp *http.Response, _ []byte) error {
 	for k, v := range p.Mapping {
 		headerVal, modifier, err := p.parseValue(v)
 		if err != nil {
@@ -37,7 +39,10 @@ func (p *VarHeaderPostprocessor) Process(reqMap map[string]any, resp *http.Respo
 		if val == "" {
 			continue
 		}
-		reqMap[k] = modifier(val)
+		err = request.Set(k, modifier(val))
+		if err != nil {
+			return fmt.Errorf("failed to set `%s` value %s: %w", k, val, err)
+		}
 	}
 	return nil
 }

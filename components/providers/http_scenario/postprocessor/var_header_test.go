@@ -13,7 +13,7 @@ func TestVarHeaderPostprocessor_Process(t *testing.T) {
 		name        string
 		mappings    map[string]string
 		respHeaders map[string]string
-		expectedMap map[string]any
+		wantRequest testSetter
 		expectErr   bool
 	}{
 		{
@@ -23,7 +23,7 @@ func TestVarHeaderPostprocessor_Process(t *testing.T) {
 				"key2": "header2",
 			},
 			respHeaders: map[string]string{},
-			expectedMap: map[string]any{},
+			wantRequest: testSetter{},
 		},
 		{
 			name:     "No Fields",
@@ -31,7 +31,7 @@ func TestVarHeaderPostprocessor_Process(t *testing.T) {
 			respHeaders: map[string]string{
 				"key1": "header1",
 				"key2": "header2"},
-			expectedMap: map[string]any{},
+			wantRequest: testSetter{},
 		},
 		{
 			name: "Error in Fields",
@@ -39,7 +39,7 @@ func TestVarHeaderPostprocessor_Process(t *testing.T) {
 				"key1": "header1||",
 			},
 			respHeaders: map[string]string{},
-			expectedMap: map[string]any{},
+			wantRequest: testSetter{},
 			expectErr:   true,
 		},
 		{
@@ -56,7 +56,7 @@ func TestVarHeaderPostprocessor_Process(t *testing.T) {
 				"header3": "Value3",
 				"header4": "Value4",
 			},
-			expectedMap: map[string]any{
+			wantRequest: testSetter{
 				"key1": "Value1",
 				"key2": "value2",
 				"key3": "VALUE3",
@@ -75,14 +75,14 @@ func TestVarHeaderPostprocessor_Process(t *testing.T) {
 				resp.Header.Set(k, v)
 			}
 
-			reqMap := make(map[string]any)
-			err := p.Process(reqMap, resp, nil)
+			request := testSetter{}
+			err := p.Process(request, resp, nil)
 			if tt.expectErr {
 				assert.Error(t, err)
 				return
 			}
 			assert.NoError(t, err)
-			assert.Equal(t, tt.expectedMap, reqMap)
+			assert.Equal(t, tt.wantRequest, request)
 		})
 	}
 }

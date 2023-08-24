@@ -1,5 +1,5 @@
 package httpscenario
 
 type Templater interface {
-	Apply(parts *requestParts, vs map[string]any, scenarioName, stepName string) error
+	Apply(parts *requestParts, vs any, scenarioName, stepName string) error
 }

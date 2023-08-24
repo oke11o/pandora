@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"testing"
 
+	httpscenario "github.com/yandex/pandora/components/guns/http_scenario"
+
 	"github.com/hashicorp/hcl/v2/gohcl"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/spf13/afero"
@@ -273,7 +275,7 @@ func (u unsupportedVariableSource) Init() error       { return nil }
 
 type unsupportedPostprocessor struct{}
 
-func (u unsupportedPostprocessor) Process(_ map[string]any, _ *http.Response, _ []byte) error {
+func (u unsupportedPostprocessor) Process(request httpscenario.Setter, resp *http.Response, body []byte) error {
 	return nil
 }
 

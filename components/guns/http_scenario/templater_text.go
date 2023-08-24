@@ -15,7 +15,7 @@ type TextTemplater struct {
 	templatesCache sync.Map
 }
 
-func (t *TextTemplater) Apply(parts *requestParts, vs map[string]any, scenarioName, stepName string) error {
+func (t *TextTemplater) Apply(parts *requestParts, vs any, scenarioName, stepName string) error {
 	const op = "scenario/TextTemplater.Apply"
 	tmpl, err := t.getTemplate(parts.URL, scenarioName, stepName, "url")
 	if err != nil {

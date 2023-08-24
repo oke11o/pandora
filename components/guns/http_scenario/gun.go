@@ -142,9 +142,8 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 
 	sourceVars := ammo.Sources().Variables()
 
-	templateVars := map[string]any{}
-	requestVars := map[string]any{}
-	templateVars["request"] = requestVars
+	requestVars := map[string]GetSetter{}
+	preprocessorVars := map[string]Getter{}
 
 	startAt := time.Now()
 	stepID := strings.Builder{}
@@ -162,10 +161,11 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 
 		preProcessor := step.Preprocessor()
 		if preProcessor != nil {
-			err := preProcessor.Process(templateVars, map[string]any{"source": sourceVars})
+			preProcVar, err := preProcessor.Process(requestVars)
 			if err != nil {
 				return fmt.Errorf("%s preProcessor %w", op, err)
 			}
+			preprocessorVars[step.GetName()] = preProcVar
 		}
 
 		reqParts := requestParts{
@@ -189,12 +189,16 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 				return fmt.Errorf("%s resolveTemplater %w", op, err)
 			}
 		}
-		templateVars["source"] = sourceVars
-		if err := templater.Apply(&reqParts, templateVars, ammo.Name(), step.GetName()); err != nil {
+
+		err = templater.Apply(&reqParts, map[string]any{
+			"source":       sourceVars,
+			"request":      requestVars,
+			"preprocessor": preprocessorVars,
+		}, ammo.Name(), step.GetName())
+		if err != nil {
 			g.reportErr(sample, err)
 			return fmt.Errorf("%s templater.Apply %w", op, err)
 		}
-		delete(templateVars, "source")
 
 		var reader io.Reader
 		if reqParts.Body != nil {
@@ -275,9 +279,9 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 			stepID.Reset()
 		}
 
-		reqMap := map[string]any{}
+		reqVars := &gunGetSetter{}
 		for _, postprocessor := range step.GetPostProcessors() {
-			err := postprocessor.Process(reqMap, resp, respBody)
+			err := postprocessor.Process(reqVars, resp, respBody)
 			if err != nil {
 				g.reportErr(sample, err)
 				return fmt.Errorf("%s postprocessor.Postprocess %w", op, err)
@@ -297,7 +301,7 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 			return fmt.Errorf("%s resp.Body.Close %w", op, err)
 		}
 
-		requestVars[step.GetName()] = reqMap
+		requestVars[step.GetName()] = reqVars
 
 		if step.GetSleep() > 0 {
 			time.Sleep(step.GetSleep())
