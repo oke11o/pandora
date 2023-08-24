@@ -2,7 +2,6 @@ package util
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"testing"
 
@@ -185,9 +184,7 @@ func TestEnrichRequestWithHeaders(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			assert := assert.New(t)
 			req := tt.input.req()
-			fmt.Println(req)
 			EnrichRequestWithHeaders(req, tt.input.headers)
-			fmt.Println(req, req.Host)
 			assert.EqualValues(tt.want.Host, req.Host)
 			assert.EqualValues(tt.want.Header, req.Header)
 		})

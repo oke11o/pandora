@@ -8,6 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestTextTemplater_Apply1(t *testing.T) {
+
+}
 func TestTextTemplater_Apply(t *testing.T) {
 	tests := []struct {
 		name            string

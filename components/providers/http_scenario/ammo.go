@@ -78,7 +78,11 @@ func (r *Request) GetBody() []byte {
 }
 
 func (r *Request) GetHeaders() map[string]string {
-	return r.headers
+	result := make(map[string]string, len(r.headers))
+	for k, v := range r.headers {
+		result[k] = v
+	}
+	return result
 }
 
 func (r *Request) GetTag() string {
