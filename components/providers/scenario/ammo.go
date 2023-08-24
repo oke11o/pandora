@@ -3,10 +3,10 @@ package scenario
 import (
 	"time"
 
-	"github.com/yandex/pandora/components/guns/scenario"
+	httpscenario "github.com/yandex/pandora/components/guns/http_scenario"
 )
 
-var _ scenario.Ammo = (*Ammo)(nil)
+var _ httpscenario.Ammo = (*Ammo)(nil)
 
 type Ammo struct {
 	Requests        []Request
@@ -20,8 +20,8 @@ func (a *Ammo) GetMinWaitingTime() time.Duration {
 	return a.minWaitingTime
 }
 
-func (a *Ammo) Steps() []scenario.Step {
-	result := make([]scenario.Step, 0)
+func (a *Ammo) Steps() []httpscenario.Step {
+	result := make([]httpscenario.Step, 0)
 	for i := range a.Requests {
 		result = append(result, &a.Requests[i])
 	}
@@ -32,7 +32,7 @@ func (a *Ammo) ID() uint64 {
 	return a.id
 }
 
-func (a *Ammo) Sources() scenario.VariableStorage {
+func (a *Ammo) Sources() httpscenario.VariableStorage {
 	return a.variableStorage
 }
 
@@ -48,12 +48,12 @@ type Request struct {
 	name           string
 	uri            string
 	preprocessor   Preprocessor
-	postprocessors []scenario.Postprocessor
+	postprocessors []httpscenario.Postprocessor
 	templater      string
 	sleep          time.Duration
 }
 
-func (r *Request) GetPostProcessors() []scenario.Postprocessor {
+func (r *Request) GetPostProcessors() []httpscenario.Postprocessor {
 	return r.postprocessors
 }
 
@@ -61,7 +61,7 @@ func (r *Request) GetTemplater() string {
 	return r.templater
 }
 
-var _ scenario.Step = (*Request)(nil)
+var _ httpscenario.Step = (*Request)(nil)
 
 func (r *Request) GetName() string {
 	return r.name
@@ -93,6 +93,6 @@ func (r *Request) GetSleep() time.Duration {
 	return r.sleep
 }
 
-func (r *Request) Preprocessor() scenario.Preprocessor {
+func (r *Request) Preprocessor() httpscenario.Preprocessor {
 	return &r.preprocessor
 }
