@@ -155,7 +155,7 @@ func Test_convertScenarioToAmmo(t *testing.T) {
 			assert.NoError(t, err)
 			for i := range got.Requests {
 				assert.NotNil(t, got.Requests[i].preprocessor)
-				idx := got.Requests[i].preprocessor.iterator.next("test")
+				idx := got.Requests[i].preprocessor.iterator.Next("test")
 				assert.Equal(t, i, idx) // this is a bit fragile, but it's ok for now
 				got.Requests[i].preprocessor.iterator = nil
 			}

@@ -9,7 +9,7 @@ type Preprocessor interface {
 	// Process is called before request is sent
 	// templateVars - variables from template. Can be modified
 	// sourceVars - variables from sources. Must NOT be modified
-	Process(templateVars map[string]any, sourceVars map[string]any) error
+	Process(templateVars map[string]any) (map[string]any, error)
 }
 
 type Postprocessor interface {
