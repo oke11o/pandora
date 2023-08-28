@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/spf13/afero"
+
 	"github.com/yandex/pandora/components/providers/http_scenario/postprocessor"
 	"github.com/yandex/pandora/core"
 	"github.com/yandex/pandora/core/register"
@@ -16,6 +17,15 @@ func Import(fs afero.Fs) {
 		register.Provider("http/scenario", func(cfg Config) (core.Provider, error) {
 			return NewProvider(fs, cfg)
 		})
+
+		RegisterVariableSource("file/csv", func(cfg VariableSourceCsv) (VariableSource, error) {
+			return NewVSCSV(cfg, fs)
+		})
+
+		RegisterVariableSource("file/json", func(cfg VariableSourceJSON) (VariableSource, error) {
+			return NewVSJson(cfg, fs)
+		})
+
 	})
 }
 
