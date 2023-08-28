@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	httpscenario "github.com/yandex/pandora/components/guns/http_scenario"
 )
 

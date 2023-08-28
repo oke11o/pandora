@@ -7,13 +7,14 @@ import (
 	"strconv"
 	"time"
 
+	"go.uber.org/zap"
+	"gopkg.in/yaml.v2"
+
 	httpscenario "github.com/yandex/pandora/components/guns/http_scenario"
 	"github.com/yandex/pandora/core/config"
 	"github.com/yandex/pandora/lib/math"
 	"github.com/yandex/pandora/lib/mp"
 	"github.com/yandex/pandora/lib/str"
-	"go.uber.org/zap"
-	"gopkg.in/yaml.v2"
 )
 
 func ParseAmmoConfig(file io.Reader) (AmmoConfig, error) {
