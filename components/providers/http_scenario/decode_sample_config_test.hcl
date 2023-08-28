@@ -3,22 +3,22 @@ variables = {
 }
 
 variable_source "users" "file/csv" {
-  file             = "files/users.csv"
-  fields           = ["user_id", "name", "pass"]
-  skip_header      = true
-  header_as_fields = false
+  file              = "files/users.csv"
+  fields            = ["user_id", "name", "pass"]
+  ignore_first_line = true
+  delimiter         = ";"
 }
 variable_source "filter_src" "file/json" {
-  file             = "files/filter.json"
+  file = "files/filter.json"
 }
 
 request "auth_req" {
-  method = "POST"
+  method  = "POST"
   headers = {
     Content-Type = "application/json"
     Useragent    = "Tank"
   }
-  tag  = "auth"
+  tag = "auth"
 
   preprocessor {
     variables = {
@@ -43,11 +43,23 @@ EOF
       token = "$.auth_key"
     }
   }
+  postprocessor "assert/response" {
+    headers = {
+      "Content-Type" = "application/json"
+    }
+    body        = ["token"]
+    status_code = 200
+
+    size {
+      val = 10000
+      op  = ">"
+    }
+  }
 
   templater = "text"
 }
 request "list_req" {
-  method = "GET"
+  method  = "GET"
   headers = {
     Authorization = "Bearer {{.request.auth_req.token}}"
     Content-Type  = "application/json"
@@ -64,7 +76,7 @@ request "list_req" {
   }
 }
 request "item_req" {
-  method = "POST"
+  method  = "POST"
   headers = {
     Authorization = "Bearer {{.request.auth_req.token}}"
     Content-Type  = "application/json"

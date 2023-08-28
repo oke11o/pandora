@@ -3,16 +3,16 @@ variables = {
 }
 
 variable_source "users" "file/csv" {
-  file             = "files/users.csv"
-  fields           = ["user_id", "name", "pass"]
-  skip_header      = true
-  header_as_fields = false
+  file              = "files/users.csv"
+  fields            = ["user_id", "name", "pass"]
+  ignore_first_line = true
+  delimiter         = ";"
 }
 variable_source "users2" "file/csv" {
-  file             = "files/users2.csv"
-  fields           = ["user_id2", "name2", "pass2"]
-  skip_header      = false
-  header_as_fields = true
+  file              = "files/users2.csv"
+  fields            = ["user_id2", "name2", "pass2"]
+  ignore_first_line = false
+  delimiter         = ";"
 }
 variable_source "filter_src" "file/json" {
   file = "files/filter.json"
@@ -52,7 +52,13 @@ request "auth_req" {
     headers = {
       Content-Type = "json"
     }
-    body = ["token", "auth"]
+    body        = ["token", "auth"]
+    status_code = 200
+
+    size {
+      val = 10000
+      op  = ">"
+    }
   }
 
   templater = "text"
