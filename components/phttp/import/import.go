@@ -11,8 +11,6 @@ import (
 	"github.com/spf13/afero"
 	"go.uber.org/zap"
 
-	"go.uber.org/zap"
-
 	phttp "github.com/yandex/pandora/components/guns/http"
 	scenarioGun "github.com/yandex/pandora/components/guns/http_scenario"
 	httpProvider "github.com/yandex/pandora/components/providers/http"

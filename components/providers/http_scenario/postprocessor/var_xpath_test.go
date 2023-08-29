@@ -75,8 +75,9 @@ func TestVarXpathPostprocessor_Process(t *testing.T) {
 				Mapping: tc.mappings,
 			}
 
+			buf := bytes.NewBuffer(tc.body)
 			reqMap := make(map[string]interface{})
-			err := postprocessor.Process(reqMap, nil, tc.body)
+			err := postprocessor.Process(reqMap, nil, buf)
 
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expectedReqMap, reqMap)

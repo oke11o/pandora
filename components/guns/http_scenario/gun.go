@@ -263,25 +263,42 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 			return fmt.Errorf("%s g.Do %w", op, err)
 		}
 
-		var respBody []byte
+		var respBody *bytes.Reader
+		var respBodyBytes []byte
 		if g.Config.AnswLog.Enabled || g.DebugLog {
-			respBody, err = io.ReadAll(resp.Body)
-			if err != nil {
-				return fmt.Errorf("%s io.ReadAll %w", op, err)
+			respBodyBytes, err = io.ReadAll(resp.Body)
+			if err == nil {
+				respBody = bytes.NewReader(respBodyBytes)
 			}
+		} else {
+			_, err = io.Copy(io.Discard, resp.Body)
 		}
+		if err != nil {
+			return fmt.Errorf("%s io.Copy %w", op, err)
+		}
+		defer func() {
+			err = resp.Body.Close()
+			if err != nil {
+				g.GunDeps.Log.Error("resp.Body.Close", zap.Error(err))
+			}
+		}()
 
 		if g.DebugLog {
-			g.verboseLogging(resp, reqBytes, respBody)
+			g.verboseLogging(resp, reqBytes, respBodyBytes)
 		}
 		if g.Config.AnswLog.Enabled {
-			g.answReqRespLogging(reqBytes, resp, respBody, stepID.String())
+			g.answReqRespLogging(reqBytes, resp, respBodyBytes, stepID.String())
 			stepID.Reset()
 		}
 
 		reqMap := map[string]any{}
 		for _, postprocessor := range step.GetPostProcessors() {
 			err := postprocessor.Process(reqMap, resp, respBody)
+			if err != nil {
+				g.reportErr(sample, err)
+				return fmt.Errorf("%s postprocessor.Postprocess %w", op, err)
+			}
+			_, err = respBody.Seek(0, io.SeekStart)
 			if err != nil {
 				g.reportErr(sample, err)
 				return fmt.Errorf("%s postprocessor.Postprocess %w", op, err)
@@ -295,10 +312,6 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 			if err != nil {
 				return fmt.Errorf("%s io.Copy %w", op, err)
 			}
-		}
-		err = resp.Body.Close()
-		if err != nil {
-			return fmt.Errorf("%s resp.Body.Close %w", op, err)
 		}
 
 		requestVars[step.GetName()] = reqMap

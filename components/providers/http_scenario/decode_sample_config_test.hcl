@@ -43,6 +43,18 @@ EOF
       token = "$.auth_key"
     }
   }
+  postprocessor "assert/response" {
+    headers = {
+      "Content-Type" = "application/json"
+    }
+    body        = ["token"]
+    status_code = 200
+
+    size {
+      val = 10000
+      op  = ">"
+    }
+  }
 
   templater = "text"
 }

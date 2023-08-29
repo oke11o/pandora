@@ -3,6 +3,7 @@ package postprocessor
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	multierr "github.com/hashicorp/go-multierror"
@@ -28,9 +29,10 @@ func (p *VarJsonpathPostprocessor) ReturnedParams() []string {
 	return result
 }
 
-func (p *VarJsonpathPostprocessor) Process(reqMap map[string]any, _ *http.Response, body []byte) error {
+func (p *VarJsonpathPostprocessor) Process(reqMap map[string]any, _ *http.Response, body io.Reader) error {
 	var data any
-	err := json.Unmarshal(body, &data)
+	decoder := json.NewDecoder(body)
+	err := decoder.Decode(&data)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal json: %w", err)
 	}

@@ -1,6 +1,8 @@
 package postprocessor
 
 import (
+	"bytes"
+	"io"
 	"net/http"
 	"testing"
 
@@ -90,29 +92,36 @@ func TestVarJsonpathPostprocessor_Process(t *testing.T) {
 			},
 			expectErr: false,
 		},
-		// Add more test cases as needed
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Create a VarJsonpathPostprocessor instance with the mappings
 			p := &VarJsonpathPostprocessor{Mapping: tc.mappings}
+			buf := bytes.NewReader(tc.body)
 
-			// Initialize reqMap with some sample data for testing
 			reqMap := make(map[string]interface{})
 
-			// Call the Process method with the sample body
-			err := p.Process(reqMap, &http.Response{}, tc.body)
-
-			// Check if an error is expected and if it matches the actual result
+			err := p.Process(reqMap, &http.Response{}, buf)
 			if tc.expectErr {
 				assert.Error(t, err, "Expected an error, but got none")
+				return
 			} else {
 				assert.NoError(t, err, "Process should not return an error")
 			}
-
-			// Check if the reqMap is updated as expected
 			assert.Equal(t, tc.expected, reqMap, "Process result not as expected")
+
+			reqMap = make(map[string]interface{})
+			_, err = buf.Seek(0, io.SeekStart)
+
+			err = p.Process(reqMap, &http.Response{}, buf)
+			if tc.expectErr {
+				assert.Error(t, err, "Expected an error, but got none")
+				return
+			} else {
+				assert.NoError(t, err, "Process should not return an error")
+			}
+			assert.Equal(t, tc.expected, reqMap, "Process result not as expected")
+			buf.Size()
 		})
 	}
 }

@@ -52,7 +52,13 @@ request "auth_req" {
     headers = {
       Content-Type = "json"
     }
-    body = ["token", "auth"]
+    body        = ["token", "auth"]
+    status_code = 200
+
+    size {
+      val = 10000
+      op  = ">"
+    }
   }
 
   templater = "text"

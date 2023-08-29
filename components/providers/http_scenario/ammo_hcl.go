@@ -45,11 +45,18 @@ type ScenarioHCL struct {
 	Shoots         []string `hcl:"shoot"`
 }
 
+type AssertSizeHCL struct {
+	Val *int    `hcl:"val"`
+	Op  *string `hcl:"op"`
+}
+
 type PostprocessorHCL struct {
-	Type    string             `hcl:"type,label"`
-	Mapping *map[string]string `hcl:"mapping"`
-	Headers *map[string]string `hcl:"headers"`
-	Body    *[]string          `hcl:"body"`
+	Type       string             `hcl:"type,label"`
+	Mapping    *map[string]string `hcl:"mapping"`
+	Headers    *map[string]string `hcl:"headers"`
+	Body       *[]string          `hcl:"body"`
+	StatusCode *int               `hcl:"status_code"`
+	Size       *AssertSizeHCL     `hcl:"size,block"`
 }
 
 type PreprocessorHCL struct {
@@ -141,6 +148,18 @@ func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 						}
 						if p.Body != nil {
 							postp.Body = *p.Body
+						}
+						if p.StatusCode != nil {
+							postp.StatusCode = *p.StatusCode
+						}
+						if p.Size != nil {
+							postp.Size = &postprocessor.AssertSize{}
+							if p.Size.Val != nil {
+								postp.Size.Val = *p.Size.Val
+							}
+							if p.Size.Op != nil {
+								postp.Size.Op = *p.Size.Op
+							}
 						}
 						postprocessors[j] = postp
 					default:
@@ -256,9 +275,19 @@ func ConvertAmmoToHCL(ammo AmmoConfig) (AmmoHCL, error) {
 						}
 					case *postprocessor.AssertResponse:
 						postprocessors[j] = PostprocessorHCL{
-							Type:    "assert/response",
-							Headers: &val.Headers,
-							Body:    &val.Body,
+							Type:       "assert/response",
+							Headers:    &val.Headers,
+							Body:       &val.Body,
+							StatusCode: &val.StatusCode,
+						}
+						if val.Size != nil {
+							postprocessors[j].Size = &AssertSizeHCL{
+								Val: &val.Size.Val,
+								Op:  &val.Size.Op,
+							}
+						}
+						if e := val.Validate(); e != nil {
+							return AmmoHCL{}, fmt.Errorf("%s postprocessor assert/response validation failed: %w", op, e)
 						}
 					default:
 						return AmmoHCL{}, fmt.Errorf("%s postprocessor type %T not supported", op, val)

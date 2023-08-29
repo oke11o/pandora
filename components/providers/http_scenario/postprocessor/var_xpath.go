@@ -1,7 +1,7 @@
 package postprocessor
 
 import (
-	"bytes"
+	"io"
 	"net/http"
 
 	"github.com/antchfx/htmlquery"
@@ -27,8 +27,8 @@ func (p *VarXpathPostprocessor) ReturnedParams() []string {
 	return result
 }
 
-func (p *VarXpathPostprocessor) Process(reqMap map[string]any, _ *http.Response, body []byte) error {
-	doc, err := html.Parse(bytes.NewReader(body))
+func (p *VarXpathPostprocessor) Process(reqMap map[string]any, _ *http.Response, body io.Reader) error {
+	doc, err := html.Parse(body)
 	if err != nil {
 		return err
 	}

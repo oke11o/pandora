@@ -273,7 +273,7 @@ func (u unsupportedVariableSource) Init() error       { return nil }
 
 type unsupportedPostprocessor struct{}
 
-func (u unsupportedPostprocessor) Process(_ map[string]any, _ *http.Response, _ []byte) error {
+func (u unsupportedPostprocessor) Process(_ map[string]any, _ *http.Response, _ io.Reader) error {
 	return nil
 }
 

@@ -2,6 +2,7 @@ package postprocessor
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -27,7 +28,7 @@ func (p *VarHeaderPostprocessor) ReturnedParams() []string {
 	return result
 }
 
-func (p *VarHeaderPostprocessor) Process(reqMap map[string]any, resp *http.Response, _ []byte) error {
+func (p *VarHeaderPostprocessor) Process(reqMap map[string]any, resp *http.Response, _ io.Reader) error {
 	for k, v := range p.Mapping {
 		headerVal, modifier, err := p.parseValue(v)
 		if err != nil {
