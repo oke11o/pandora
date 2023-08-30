@@ -64,7 +64,7 @@ func TestVarXpathPostprocessor_Process(t *testing.T) {
 				"keyParagraph": "//p[@class='paragraph']",
 			},
 			expectedReqMap: map[string]interface{}{
-				"keyParagraph": []string{"This is a paragraph"},
+				"keyParagraph": "This is a paragraph",
 			},
 		},
 	}

@@ -38,12 +38,16 @@ func (p *VarXpathPostprocessor) Process(reqMap map[string]any, _ *http.Response,
 		if err != nil {
 			return err
 		}
-		reqMap[k] = values
+		if len(values) == 1 {
+			reqMap[k] = values[0]
+		} else {
+			reqMap[k] = values
+		}
 	}
 	return nil
 }
 
-func (p *VarXpathPostprocessor) getValuesFromDOM(doc *html.Node, xpathQuery string) (any, error) {
+func (p *VarXpathPostprocessor) getValuesFromDOM(doc *html.Node, xpathQuery string) ([]string, error) {
 	expr, err := xpath.Compile(xpathQuery)
 	if err != nil {
 		return nil, err

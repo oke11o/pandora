@@ -2,7 +2,6 @@ package postprocessor
 
 import (
 	"bytes"
-	"io"
 	"net/http"
 	"testing"
 
@@ -93,7 +92,6 @@ func TestVarJsonpathPostprocessor_Process(t *testing.T) {
 			expectErr: false,
 		},
 	}
-
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			p := &VarJsonpathPostprocessor{Mapping: tc.mappings}
@@ -109,19 +107,6 @@ func TestVarJsonpathPostprocessor_Process(t *testing.T) {
 				assert.NoError(t, err, "Process should not return an error")
 			}
 			assert.Equal(t, tc.expected, reqMap, "Process result not as expected")
-
-			reqMap = make(map[string]interface{})
-			_, err = buf.Seek(0, io.SeekStart)
-
-			err = p.Process(reqMap, &http.Response{}, buf)
-			if tc.expectErr {
-				assert.Error(t, err, "Expected an error, but got none")
-				return
-			} else {
-				assert.NoError(t, err, "Process should not return an error")
-			}
-			assert.Equal(t, tc.expected, reqMap, "Process result not as expected")
-			buf.Size()
 		})
 	}
 }

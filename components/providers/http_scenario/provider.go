@@ -44,7 +44,7 @@ func NewProvider(fs afero.Fs, conf Config) (core.Provider, error) {
 	case strings.HasSuffix(lowerName, ".hcl"):
 		ammoHcl, er := ParseHCLFile(file)
 		if er != nil {
-			return nil, fmt.Errorf("%s ParseHCLFile %w", op, err)
+			return nil, fmt.Errorf("%s ParseHCLFile %w", op, er)
 		}
 		ammoCfg, err = ConvertHCLToAmmo(ammoHcl, fs)
 	case strings.HasSuffix(lowerName, ".yaml") || strings.HasPrefix(lowerName, ".yml"):
