@@ -21,8 +21,8 @@ src:
   type: "file/csv"
   name: "users_src"
   file: "_files/users.csv"
-  skip_header: true
-  header_as_fields: true
+  ignore_first_line: true
+  delimiter: ";"
   fields: [ "user_id", "name" ]
 `
 
@@ -44,8 +44,7 @@ src:
 
 	vs, ok := out.Src.(*VariableSourceCsv)
 	require.True(t, ok)
-	require.True(t, vs.SkipHeader)
-	require.True(t, vs.HeaderAsFields)
+	require.True(t, vs.IgnoreFirstLine)
 	require.Equal(t, "users_src", vs.GetName())
 	require.Equal(t, "_files/users.csv", vs.File)
 	require.Equal(t, []string{"user_id", "name"}, vs.Fields)
@@ -78,67 +77,88 @@ func TestVariableSourceCsv_Init(t *testing.T) {
 			initFs:  initFs,
 			deferFs: deferFs,
 			vs: &VariableSourceCsv{
-				Name:           "users",
-				File:           "users.csv",
-				Fields:         []string{"user_id", "name"},
-				SkipHeader:     false,
-				HeaderAsFields: false,
+				Name:            "users",
+				File:            "users.csv",
+				Fields:          []string{"user_id", "name"},
+				IgnoreFirstLine: false,
+				Delimiter:       ",",
 			},
 			wantErr:   false,
 			wantStore: []map[string]string{{"name": "NAME", "user_id": "USER_ID"}, {"name": "John", "user_id": "1"}, {"name": "Jack", "user_id": "2"}, {"name": "Jim", "user_id": "3"}},
+		},
+		{
+			name:    "replace spaces in field names",
+			initFs:  initFs,
+			deferFs: deferFs,
+			vs: &VariableSourceCsv{
+				Name:            "users",
+				File:            "users.csv",
+				Fields:          []string{"user id", "name name"},
+				IgnoreFirstLine: false,
+				Delimiter:       ",",
+			},
+			wantErr:   false,
+			wantStore: []map[string]string{{"name_name": "NAME", "user_id": "USER_ID"}, {"name_name": "John", "user_id": "1"}, {"name_name": "Jack", "user_id": "2"}, {"name_name": "Jim", "user_id": "3"}},
 		},
 		{
 			name:    "skip header",
 			initFs:  initFs,
 			deferFs: deferFs,
 			vs: &VariableSourceCsv{
-				Name:           "users",
-				File:           "users.csv",
-				Fields:         []string{"user_id", "name"},
-				SkipHeader:     true,
-				HeaderAsFields: false,
+				Name:            "users",
+				File:            "users.csv",
+				Fields:          []string{"user_id", "name"},
+				IgnoreFirstLine: true,
+				Delimiter:       ",",
 			},
 			wantErr:   false,
 			wantStore: []map[string]string{{"name": "John", "user_id": "1"}, {"name": "Jack", "user_id": "2"}, {"name": "Jim", "user_id": "3"}},
-		},
-		{
-			name:    "header as fields and skip header",
-			initFs:  initFs,
-			deferFs: deferFs,
-			vs: &VariableSourceCsv{
-				Name:           "users",
-				File:           "users.csv",
-				Fields:         []string{"user_id", "name"},
-				SkipHeader:     true,
-				HeaderAsFields: true,
-			},
-			wantErr:   false,
-			wantStore: []map[string]string{{"NAME": "John", "USER_ID": "1"}, {"NAME": "Jack", "USER_ID": "2"}, {"NAME": "Jim", "USER_ID": "3"}},
 		},
 		{
 			name:    "empty fields and not skip header and not header as fields",
 			initFs:  initFs,
 			deferFs: deferFs,
 			vs: &VariableSourceCsv{
-				Name:           "users",
-				File:           "users.csv",
-				Fields:         nil,
-				SkipHeader:     false,
-				HeaderAsFields: false,
+				Name:            "users",
+				File:            "users.csv",
+				Fields:          nil,
+				IgnoreFirstLine: false,
+				Delimiter:       ",",
 			},
 			wantErr:   false,
 			wantStore: []map[string]string{{"NAME": "NAME", "USER_ID": "USER_ID"}, {"NAME": "John", "USER_ID": "1"}, {"NAME": "Jack", "USER_ID": "2"}, {"NAME": "Jim", "USER_ID": "3"}},
+		},
+		{
+			name: "replace spaces in field names in first line",
+			initFs: func(t *testing.T) afero.Fs {
+				fs := afero.NewMemMapFs()
+				file, err := fs.Create("users.csv")
+				require.NoError(t, err)
+				_, err = file.WriteString("USER ID,NAME NAME\n1,John\n2,Jack\n3,Jim\n")
+				require.NoError(t, err)
+				return fs
+			},
+			deferFs: deferFs,
+			vs: &VariableSourceCsv{
+				Name:            "users",
+				File:            "users.csv",
+				Fields:          nil,
+				IgnoreFirstLine: false,
+				Delimiter:       ",",
+			},
+			wantErr:   false,
+			wantStore: []map[string]string{{"NAME_NAME": "NAME NAME", "USER_ID": "USER ID"}, {"NAME_NAME": "John", "USER_ID": "1"}, {"NAME_NAME": "Jack", "USER_ID": "2"}, {"NAME_NAME": "Jim", "USER_ID": "3"}},
 		},
 		{
 			name:    "empty fields and skip header",
 			initFs:  initFs,
 			deferFs: deferFs,
 			vs: &VariableSourceCsv{
-				Name:           "users",
-				File:           "users.csv",
-				Fields:         nil,
-				SkipHeader:     true,
-				HeaderAsFields: false,
+				Name:            "users",
+				File:            "users.csv",
+				Fields:          nil,
+				IgnoreFirstLine: true,
+				Delimiter:       ",",
 			},
 			wantErr:   false,
 			wantStore: []map[string]string{{"NAME": "John", "USER_ID": "1"}, {"NAME": "Jack", "USER_ID": "2"}, {"NAME": "Jim", "USER_ID": "3"}},
@@ -155,11 +175,11 @@ func TestVariableSourceCsv_Init(t *testing.T) {
 			},
 			deferFs: deferFs,
 			vs: &VariableSourceCsv{
-				Name:           "users",
-				File:           "users.csv",
-				Fields:         nil,
-				SkipHeader:     true,
-				HeaderAsFields: false,
+				Name:            "users",
+				File:            "users.csv",
+				Fields:          nil,
+				IgnoreFirstLine: true,
+				Delimiter:       ",",
 			},
 			wantErr:   false,
 			wantStore: []map[string]string{{"NAME": "John", "0": "1"}, {"NAME": "Jack", "0": "2"}, {"NAME": "Jim", "0": "3"}},
@@ -169,11 +189,32 @@ func TestVariableSourceCsv_Init(t *testing.T) {
 			initFs:  initFs,
 			deferFs: deferFs,
 			vs: &VariableSourceCsv{
-				Name:           "users",
-				File:           "users.csv",
-				Fields:         []string{"", "name"},
-				SkipHeader:     true,
-				HeaderAsFields: false,
+				Name:            "users",
+				File:            "users.csv",
+				Fields:          []string{"", "name"},
+				IgnoreFirstLine: true,
+				Delimiter:       ",",
+			},
+			wantErr:   false,
+			wantStore: []map[string]string{{"name": "John", "0": "1"}, {"name": "Jack", "0": "2"}, {"name": "Jim", "0": "3"}},
+		},
+		{
+			name: "delimiter ;",
+			initFs: func(t *testing.T) afero.Fs {
+				fs := afero.NewMemMapFs()
+				file, err := fs.Create("users.csv")
+				require.NoError(t, err)
+				_, err = file.WriteString("USER_ID;NAME\n1;John\n2;Jack\n3;Jim\n")
+				require.NoError(t, err)
+				return fs
+			},
+			deferFs: deferFs,
+			vs: &VariableSourceCsv{
+				Name:            "users",
+				File:            "users.csv",
+				Fields:          []string{"", "name"},
+				IgnoreFirstLine: true,
+				Delimiter:       ";",
 			},
 			wantErr:   false,
 			wantStore: []map[string]string{{"name": "John", "0": "1"}, {"name": "Jack", "0": "2"}, {"name": "Jim", "0": "3"}},
@@ -193,11 +234,11 @@ func TestVariableSourceCsv_Init(t *testing.T) {
 				require.NoError(t, err)
 			},
 			vs: &VariableSourceCsv{
-				Name:           "users",
-				File:           "users2.csv",
-				Fields:         nil,
-				SkipHeader:     true,
-				HeaderAsFields: false,
+				Name:            "users",
+				File:            "users2.csv",
+				Fields:          nil,
+				IgnoreFirstLine: true,
+				Delimiter:       ",",
 			},
 			wantErr:   true,
 			wantStore: nil,
@@ -217,11 +258,11 @@ func TestVariableSourceCsv_Init(t *testing.T) {
 				require.NoError(t, err)
 			},
 			vs: &VariableSourceCsv{
-				Name:           "users",
-				File:           "users2.csv",
-				Fields:         nil,
-				SkipHeader:     true,
-				HeaderAsFields: false,
+				Name:            "users",
+				File:            "users2.csv",
+				Fields:          nil,
+				IgnoreFirstLine: true,
+				Delimiter:       ",",
 			},
 			wantErr:   true,
 			wantStore: nil,
