@@ -1,6 +1,3 @@
-variables = {
-  hostname = "localhost"
-}
 
 variable_source "users" "file/csv" {
   file              = "files/users.csv"
@@ -10,6 +7,8 @@ variable_source "users" "file/csv" {
 }
 variable_source "filter_src" "file/json" {
   file = "files/filter.json"
+}
+variable_source "variables" "variables" {
 }
 
 request "auth_req" {

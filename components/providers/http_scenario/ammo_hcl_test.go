@@ -47,19 +47,19 @@ func Test_convertingYamlToHCL(t *testing.T) {
 }
 
 func Example_encodeAmmoHCLVariablesSources() {
+	stringPointer := func(in string) *string { return &in }
 	app := AmmoHCL{
-		Variables: map[string]string{"host": "localhost"},
 		VariableSources: []SourceHCL{
 			{
 				Type:   "file/csv",
 				Name:   "user_srs",
-				File:   "users.json",
+				File:   stringPointer("users.json"),
 				Fields: &([]string{"id", "name", "email"}),
 			},
 			{
 				Type:   "file/json",
 				Name:   "data_srs",
-				File:   "datas.json",
+				File:   stringPointer("datas.json"),
 				Fields: &([]string{"id", "name", "email"}),
 			},
 		},
@@ -71,9 +71,6 @@ func Example_encodeAmmoHCLVariablesSources() {
 	fmt.Printf("%s", bytes)
 
 	// Output:
-	// variables = {
-	//   host = "localhost"
-	// }
 	//
 	// variable_source "user_srs" "file/csv" {
 	//   file   = "users.json"
@@ -102,6 +99,7 @@ func Test_decodeHCL(t *testing.T) {
 }
 
 func TestConvertHCLToAmmo(t *testing.T) {
+	stringPointer := func(in string) *string { return &in }
 	fs := afero.NewMemMapFs()
 	tests := []struct {
 		name    string
@@ -112,9 +110,8 @@ func TestConvertHCLToAmmo(t *testing.T) {
 		{
 			name: "BasicConversion",
 			ammo: AmmoHCL{
-				Variables: map[string]string{"var1": "value1"},
 				VariableSources: []SourceHCL{
-					{Name: "source1", Type: "file/json", File: "data.json"},
+					{Name: "source1", Type: "file/json", File: stringPointer("data.json")},
 				},
 				Requests: []RequestHCL{
 					{
@@ -133,7 +130,6 @@ func TestConvertHCLToAmmo(t *testing.T) {
 				},
 			},
 			want: AmmoConfig{
-				Variables: map[string]string{"var1": "value1"},
 				VariableSources: []VariableSource{
 					&VariableSourceJSON{Name: "source1", File: "data.json", fs: fs},
 				},
@@ -158,9 +154,8 @@ func TestConvertHCLToAmmo(t *testing.T) {
 		{
 			name: "UnsupportedVariableSourceType",
 			ammo: AmmoHCL{
-				Variables: map[string]string{"var1": "value1"},
 				VariableSources: []SourceHCL{
-					{Name: "source1", Type: "unknown", File: "data.csv"},
+					{Name: "source1", Type: "unknown", File: stringPointer("data.csv")},
 				},
 			},
 			want:    AmmoConfig{},
@@ -184,14 +179,12 @@ func TestConvertHCLToAmmo(t *testing.T) {
 		{
 			name: "MultipleVariableSources",
 			ammo: AmmoHCL{
-				Variables: map[string]string{"var1": "value1"},
 				VariableSources: []SourceHCL{
-					{Name: "source1", Type: "file/json", File: "data.json"},
-					{Name: "source2", Type: "file/csv", File: "data.csv"},
+					{Name: "source1", Type: "file/json", File: stringPointer("data.json")},
+					{Name: "source2", Type: "file/csv", File: stringPointer("data.csv")},
 				},
 			},
 			want: AmmoConfig{
-				Variables: map[string]string{"var1": "value1"},
 				VariableSources: []VariableSource{
 					&VariableSourceJSON{Name: "source1", File: "data.json", fs: fs},
 					&VariableSourceCsv{Name: "source2", File: "data.csv", fs: fs},
@@ -278,6 +271,7 @@ func (u unsupportedPostprocessor) Process(_ map[string]any, _ *http.Response, _ 
 }
 
 func TestConvertAmmoToHCL(t *testing.T) {
+	stringPointer := func(in string) *string { return &in }
 	False := false
 	True := true
 	delimiter := ","
@@ -302,7 +296,7 @@ func TestConvertAmmoToHCL(t *testing.T) {
 			},
 			want: AmmoHCL{
 				VariableSources: []SourceHCL{
-					{Name: "source1", Type: "file/json", File: "data.json"},
+					{Name: "source1", Type: "file/json", File: stringPointer("data.json")},
 				},
 				Requests: []RequestHCL{
 					{Name: "req1", Method: "GET", URI: "/api"},
@@ -348,8 +342,8 @@ func TestConvertAmmoToHCL(t *testing.T) {
 			},
 			want: AmmoHCL{
 				VariableSources: []SourceHCL{
-					{Name: "source1", Type: "file/json", File: "data.json"},
-					{Name: "source2", Type: "file/csv", File: "data.csv", IgnoreFirstLine: &False, Delimiter: &delimiter, Fields: nil},
+					{Name: "source1", Type: "file/json", File: stringPointer("data.json")},
+					{Name: "source2", Type: "file/csv", File: stringPointer("data.csv"), IgnoreFirstLine: &False, Delimiter: &delimiter, Fields: nil},
 				},
 			},
 			wantErr: false,
@@ -365,9 +359,9 @@ func TestConvertAmmoToHCL(t *testing.T) {
 			},
 			want: AmmoHCL{
 				VariableSources: []SourceHCL{
-					{Name: "source2", Type: "file/csv", File: "data.csv", IgnoreFirstLine: &True, Delimiter: &delimiter, Fields: &([]string{"field1", "field2"})},
-					{Name: "source2", Type: "file/csv", File: "data.csv", IgnoreFirstLine: &True, Delimiter: &delimiter, Fields: &([]string{"field3", "field4"})},
-					{Name: "source1", Type: "file/json", File: "data.json"},
+					{Name: "source2", Type: "file/csv", File: stringPointer("data.csv"), IgnoreFirstLine: &True, Delimiter: &delimiter, Fields: &([]string{"field1", "field2"})},
+					{Name: "source2", Type: "file/csv", File: stringPointer("data.csv"), IgnoreFirstLine: &True, Delimiter: &delimiter, Fields: &([]string{"field3", "field4"})},
+					{Name: "source1", Type: "file/json", File: stringPointer("data.json")},
 				},
 			},
 			wantErr: false,

@@ -1,6 +1,3 @@
-variables:
-  hostname: localhost
-
 variable_sources:
   - type: "file/csv"
     name: "users"
@@ -20,6 +17,12 @@ variable_sources:
   - type: "file/json"
     name: "filter_src2"
     file: "files/filter2.json"
+  - type: "variables"
+    name: "variables"
+    variables:
+      var1: var
+      var2: 2
+      var3: false
 
 requests:
   - name: "auth_req"

@@ -7,23 +7,25 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsimple"
 	"github.com/spf13/afero"
 
+	"github.com/yandex/pandora/lib/str"
+
 	"github.com/yandex/pandora/components/providers/http_scenario/postprocessor"
 )
 
 type AmmoHCL struct {
-	Variables       map[string]string `hcl:"variables"`
-	VariableSources []SourceHCL       `hcl:"variable_source,block"`
-	Requests        []RequestHCL      `hcl:"request,block"`
-	Scenarios       []ScenarioHCL     `hcl:"scenario,block"`
+	VariableSources []SourceHCL   `hcl:"variable_source,block"`
+	Requests        []RequestHCL  `hcl:"request,block"`
+	Scenarios       []ScenarioHCL `hcl:"scenario,block"`
 }
 
 type SourceHCL struct {
-	Name            string    `hcl:"name,label"`
-	Type            string    `hcl:"type,label"`
-	File            string    `hcl:"file"`
-	Fields          *[]string `hcl:"fields"`
-	IgnoreFirstLine *bool     `hcl:"ignore_first_line"`
-	Delimiter       *string   `hcl:"delimiter"`
+	Name            string             `hcl:"name,label"`
+	Type            string             `hcl:"type,label"`
+	File            *string            `hcl:"file"`
+	Fields          *[]string          `hcl:"fields"`
+	IgnoreFirstLine *bool              `hcl:"ignore_first_line"`
+	Delimiter       *string            `hcl:"delimiter"`
+	Variables       *map[string]string `hcl:"variables"`
 }
 
 type RequestHCL struct {
@@ -85,11 +87,15 @@ func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 	if len(ammo.VariableSources) > 0 {
 		sources = make([]VariableSource, len(ammo.VariableSources))
 		for i, s := range ammo.VariableSources {
+			file := ""
+			if s.File != nil {
+				file = *s.File
+			}
 			switch s.Type {
 			case "file/json":
 				sources[i] = &VariableSourceJSON{
 					Name: s.Name,
-					File: s.File,
+					File: file,
 					fs:   fs,
 				}
 			case "file/csv":
@@ -108,7 +114,7 @@ func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 				}
 				sources[i] = &VariableSourceCsv{
 					Name:            s.Name,
-					File:            s.File,
+					File:            file,
 					Fields:          fields,
 					IgnoreFirstLine: skipHeader,
 					Delimiter:       headerAsFields,
@@ -205,7 +211,6 @@ func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 	}
 
 	result := AmmoConfig{
-		Variables:       ammo.Variables,
 		VariableSources: sources,
 		Requests:        requests,
 		Scenarios:       scenarios,
@@ -222,11 +227,26 @@ func ConvertAmmoToHCL(ammo AmmoConfig) (AmmoHCL, error) {
 		sources = make([]SourceHCL, len(ammo.VariableSources))
 		for i, s := range ammo.VariableSources {
 			switch val := s.(type) {
+			case *VariableSourceVariables:
+				var variables map[string]string
+				if val.Variables != nil {
+					variables = make(map[string]string, len(val.Variables))
+					for k, va := range val.Variables {
+						variables[k] = str.FormatString(va)
+					}
+				}
+				v := SourceHCL{
+					Type:      "variables",
+					Name:      val.Name,
+					Variables: &variables,
+				}
+				sources[i] = v
 			case *VariableSourceJSON:
+				file := val.File
 				v := SourceHCL{
 					Type: "file/json",
 					Name: val.Name,
-					File: val.File,
+					File: &file,
 				}
 				sources[i] = v
 			case *VariableSourceCsv:
@@ -237,10 +257,11 @@ func ConvertAmmoToHCL(ammo AmmoConfig) (AmmoHCL, error) {
 				}
 				ignoreFirstLine := val.IgnoreFirstLine
 				delimiter := val.Delimiter
+				file := val.File
 				v := SourceHCL{
 					Type:            "file/csv",
 					Name:            val.Name,
-					File:            val.File,
+					File:            &file,
 					Fields:          fields,
 					IgnoreFirstLine: &ignoreFirstLine,
 					Delimiter:       &delimiter,
@@ -330,7 +351,6 @@ func ConvertAmmoToHCL(ammo AmmoConfig) (AmmoHCL, error) {
 	}
 
 	result := AmmoHCL{
-		Variables:       ammo.Variables,
 		VariableSources: sources,
 		Requests:        requests,
 		Scenarios:       scenarios,

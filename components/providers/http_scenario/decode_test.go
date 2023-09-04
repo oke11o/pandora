@@ -25,8 +25,7 @@ func Test_parseAmmoConfig(t *testing.T) {
 	cfg, err := ParseAmmoConfig(file)
 	require.NoError(t, err)
 
-	assert.Equal(t, map[string]string{"hostname": "localhost"}, cfg.Variables)
-	assert.Equal(t, 4, len(cfg.VariableSources))
+	assert.Equal(t, 5, len(cfg.VariableSources))
 	assert.Equal(t, "users", cfg.VariableSources[0].GetName())
 
 	assert.Equal(t, "users2", cfg.VariableSources[1].GetName())

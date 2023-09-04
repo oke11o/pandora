@@ -5,7 +5,6 @@ import (
 )
 
 type AmmoConfig struct {
-	Variables       map[string]string
 	VariableSources []VariableSource `config:"variable_sources"`
 	Requests        []RequestConfig
 	Scenarios       []ScenarioConfig
