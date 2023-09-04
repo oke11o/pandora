@@ -80,7 +80,11 @@ func (g *BaseGun) Shoot(ammo Ammo) {
 		}
 	}
 
-	err := g.shoot(ammo)
+	templateVars := map[string]any{
+		"source": ammo.Sources().Variables(),
+	}
+
+	err := g.shoot(ammo, templateVars)
 	if err != nil {
 		g.Log.Warn("Invalid ammo", zap.Uint64("request", ammo.ID()), zap.Error(err))
 		return
@@ -137,19 +141,14 @@ func (g *BaseGun) answLogging(bodyBytes []byte, resp *http.Response, respBytes [
 	g.AnswLog.Debug(msg)
 }
 
-func (g *BaseGun) shoot(ammo Ammo) error {
+func (g *BaseGun) shoot(ammo Ammo, templateVars map[string]any) error {
 	const op = "base_gun.shoot"
-
-	sourceVars := ammo.Sources().Variables()
+	if templateVars == nil {
+		templateVars = map[string]any{}
+	}
 
 	requestVars := map[string]any{}
-	preprocessorVars := map[string]any{}
-	templateVars := map[string]any{
-		"request":      requestVars,
-		"source":       sourceVars,
-		"variables":    map[string]any{},
-		"preprocessor": preprocessorVars,
-	}
+	templateVars["request"] = requestVars
 
 	startAt := time.Now()
 	stepID := strings.Builder{}
@@ -164,6 +163,8 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 			stepID.WriteByte('.')
 			stepID.WriteString(step.GetName())
 		}
+		stepVars := map[string]any{}
+		requestVars[step.GetName()] = stepVars
 
 		preProcessor := step.Preprocessor()
 		if preProcessor != nil {
@@ -171,7 +172,7 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 			if err != nil {
 				return fmt.Errorf("%s preProcessor %w", op, err)
 			}
-			preprocessorVars[step.GetName()] = preProcVars
+			stepVars["preprocessor"] = preProcVars
 		}
 
 		reqParts := requestParts{
@@ -292,12 +293,15 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 			stepID.Reset()
 		}
 
-		reqMap := map[string]any{}
+		postprocessorVars := map[string]any{}
 		for _, postprocessor := range processors {
-			err := postprocessor.Process(reqMap, resp, respBody)
+			vars, err := postprocessor.Process(resp, respBody)
 			if err != nil {
 				g.reportErr(sample, err)
 				return fmt.Errorf("%s postprocessor.Postprocess %w", op, err)
+			}
+			for k, v := range vars {
+				postprocessorVars[k] = v
 			}
 			_, err = respBody.Seek(0, io.SeekStart)
 			if err != nil {
@@ -308,7 +312,7 @@ func (g *BaseGun) shoot(ammo Ammo) error {
 		sample.SetProtoCode(resp.StatusCode)
 		g.Aggregator.Report(sample)
 
-		requestVars[step.GetName()] = reqMap
+		stepVars["response"] = postprocessorVars
 
 		if step.GetSleep() > 0 {
 			time.Sleep(step.GetSleep())

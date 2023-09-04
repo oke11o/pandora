@@ -19,7 +19,7 @@ type Preprocessor interface {
 }
 
 type Postprocessor interface {
-	Process(requestVars map[string]any, resp *http.Response, body io.Reader) error
+	Process(resp *http.Response, body io.Reader) (map[string]any, error)
 }
 
 type VariableStorage interface {

@@ -266,8 +266,8 @@ func (u unsupportedVariableSource) Init() error       { return nil }
 
 type unsupportedPostprocessor struct{}
 
-func (u unsupportedPostprocessor) Process(_ map[string]any, _ *http.Response, _ io.Reader) error {
-	return nil
+func (u unsupportedPostprocessor) Process(_ *http.Response, _ io.Reader) (map[string]any, error) {
+	return nil, nil
 }
 
 func TestConvertAmmoToHCL(t *testing.T) {

@@ -14,18 +14,30 @@ type MockPostprocessor struct {
 	mock.Mock
 }
 
-// Process provides a mock function with given fields: requestVars, resp, body
-func (_m *MockPostprocessor) Process(requestVars map[string]interface{}, resp *http.Response, body io.Reader) error {
-	ret := _m.Called(requestVars, resp, body)
+// Process provides a mock function with given fields: resp, body
+func (_m *MockPostprocessor) Process(resp *http.Response, body io.Reader) (map[string]interface{}, error) {
+	ret := _m.Called(resp, body)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(map[string]interface{}, *http.Response, io.Reader) error); ok {
-		r0 = rf(requestVars, resp, body)
+	var r0 map[string]interface{}
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*http.Response, io.Reader) (map[string]interface{}, error)); ok {
+		return rf(resp, body)
+	}
+	if rf, ok := ret.Get(0).(func(*http.Response, io.Reader) map[string]interface{}); ok {
+		r0 = rf(resp, body)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]interface{})
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(*http.Response, io.Reader) error); ok {
+		r1 = rf(resp, body)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 type mockConstructorTestingTNewMockPostprocessor interface {
