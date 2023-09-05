@@ -101,6 +101,7 @@ func Test_decodeHCL(t *testing.T) {
 func TestConvertHCLToAmmo(t *testing.T) {
 	stringPointer := func(in string) *string { return &in }
 	fs := afero.NewMemMapFs()
+	templater := "html"
 	tests := []struct {
 		name    string
 		ammo    AmmoHCL
@@ -143,6 +144,7 @@ func TestConvertHCLToAmmo(t *testing.T) {
 							&postprocessor.VarXpathPostprocessor{Mapping: map[string]string{"key": "var/xpath"}},
 							&postprocessor.VarJsonpathPostprocessor{Mapping: map[string]string{"key": "var/jsonpath"}},
 						},
+						Templater: NewTextTemplater(),
 					},
 				},
 				Scenarios: []ScenarioConfig{
@@ -197,13 +199,13 @@ func TestConvertHCLToAmmo(t *testing.T) {
 			ammo: AmmoHCL{
 				Requests: []RequestHCL{
 					{Name: "req1", Method: "GET", URI: "/api/1"},
-					{Name: "req2", Method: "POST", URI: "/api/2"},
+					{Name: "req2", Method: "POST", URI: "/api/2", Templater: &templater},
 				},
 			},
 			want: AmmoConfig{
 				Requests: []RequestConfig{
-					{Name: "req1", Method: "GET", URI: "/api/1"},
-					{Name: "req2", Method: "POST", URI: "/api/2"},
+					{Name: "req1", Method: "GET", URI: "/api/1", Templater: NewTextTemplater()},
+					{Name: "req2", Method: "POST", URI: "/api/2", Templater: NewHTMLTemplater()},
 				},
 			},
 			wantErr: false,
@@ -299,7 +301,7 @@ func TestConvertAmmoToHCL(t *testing.T) {
 					{Name: "source1", Type: "file/json", File: stringPointer("data.json")},
 				},
 				Requests: []RequestHCL{
-					{Name: "req1", Method: "GET", URI: "/api"},
+					{Name: "req1", Method: "GET", URI: "/api", Templater: stringPointer("text")},
 				},
 				Scenarios: []ScenarioHCL{
 					{Name: "scenario1", Weight: 1, MinWaitingTime: 1000, Shoots: []string{"shoot1"}},
@@ -371,13 +373,13 @@ func TestConvertAmmoToHCL(t *testing.T) {
 			ammo: AmmoConfig{
 				Requests: []RequestConfig{
 					{Name: "req1", Method: "GET", URI: "/api/1"},
-					{Name: "req2", Method: "POST", URI: "/api/2"},
+					{Name: "req2", Method: "POST", URI: "/api/2", Templater: NewHTMLTemplater()},
 				},
 			},
 			want: AmmoHCL{
 				Requests: []RequestHCL{
-					{Name: "req1", Method: "GET", URI: "/api/1"},
-					{Name: "req2", Method: "POST", URI: "/api/2"},
+					{Name: "req1", Method: "GET", URI: "/api/1", Templater: stringPointer("text")},
+					{Name: "req2", Method: "POST", URI: "/api/2", Templater: stringPointer("html")},
 				},
 			},
 			wantErr: false,

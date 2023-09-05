@@ -44,7 +44,6 @@ func NewClientGun(client Client, conf phttp.ClientGunConfig, answLog *zap.Logger
 		hostname:       getHostWithoutPort(conf.Target),
 		targetResolved: targetResolved,
 		client:         client,
-		templater:      nil,
 	}
 }
 

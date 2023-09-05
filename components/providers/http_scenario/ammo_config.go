@@ -26,5 +26,5 @@ type RequestConfig struct {
 	URI            string
 	Preprocessor   Preprocessor
 	Postprocessors []postprocessor.Postprocessor
-	Templater      string
+	Templater      Templater
 }

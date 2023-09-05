@@ -33,13 +33,13 @@ type Step interface {
 	GetBody() []byte
 	GetHeaders() map[string]string
 	GetTag() string
-	GetTemplater() string
+	GetTemplater() Templater
 	GetPostProcessors() []Postprocessor
 	Preprocessor() Preprocessor
 	GetSleep() time.Duration
 }
 
-type requestParts struct {
+type RequestParts struct {
 	URL     string
 	Method  string
 	Body    []byte

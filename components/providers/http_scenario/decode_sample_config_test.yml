@@ -36,7 +36,8 @@ requests:
       variables:
         user_id: source.users[0].user_id
     body: '{"user_id":  {{.preprocessor.user_id}}}'
-    templater: text
+    templater:
+      type: text
     postprocessors:
       - type: var/header
         mapping:
@@ -62,6 +63,8 @@ requests:
       Content-Type: "application/json"
       Authorization: "Bearer {{.request.auth_req.token}}"
     tag: list
+    templater:
+      type: html
     postprocessors:
       - type: var/jsonpath
         mapping:

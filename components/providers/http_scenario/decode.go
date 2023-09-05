@@ -7,13 +7,14 @@ import (
 	"strconv"
 	"time"
 
+	"go.uber.org/zap"
+	"gopkg.in/yaml.v2"
+
 	httpscenario "github.com/yandex/pandora/components/guns/http_scenario"
 	"github.com/yandex/pandora/core/config"
 	"github.com/yandex/pandora/lib/math"
 	"github.com/yandex/pandora/lib/mp"
 	"github.com/yandex/pandora/lib/str"
-	"go.uber.org/zap"
-	"gopkg.in/yaml.v2"
 )
 
 func ParseAmmoConfig(file io.Reader) (AmmoConfig, error) {
@@ -96,6 +97,10 @@ func convertConfigToRequest(req RequestConfig, iter mp.Iterator) Request {
 	postprocessors := make([]httpscenario.Postprocessor, len(req.Postprocessors))
 	for i := range req.Postprocessors {
 		postprocessors[i] = req.Postprocessors[i].(httpscenario.Postprocessor)
+	}
+	templater := req.Templater
+	if templater == nil {
+		templater = NewTextTemplater()
 	}
 	result := Request{
 		method:         req.Method,

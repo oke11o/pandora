@@ -34,10 +34,23 @@ func Import(fs afero.Fs) {
 		RegisterPostprocessor("var/xpath", postprocessor.NewVarXpathPostprocessor)
 		RegisterPostprocessor("var/header", postprocessor.NewVarHeaderPostprocessor)
 		RegisterPostprocessor("assert/response", postprocessor.NewAssertResponsePostprocessor)
+
+		RegisterTemplater("text", NewTextTemplater)
+		RegisterTemplater("html", NewHTMLTemplater)
 	})
 }
 
 func RegisterPostprocessor(name string, mwConstructor interface{}, defaultConfigOptional ...interface{}) {
 	var ptr *postprocessor.Postprocessor
+	register.RegisterPtr(ptr, name, mwConstructor, defaultConfigOptional...)
+}
+
+func RegisterVariableSource(name string, mwConstructor interface{}, defaultConfigOptional ...interface{}) {
+	var ptr *VariableSource
+	register.RegisterPtr(ptr, name, mwConstructor, defaultConfigOptional...)
+}
+
+func RegisterTemplater(name string, mwConstructor interface{}, defaultConfigOptional ...interface{}) {
+	var ptr *Templater
 	register.RegisterPtr(ptr, name, mwConstructor, defaultConfigOptional...)
 }

@@ -3,20 +3,18 @@ package httpscenario
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/stretchr/testify/assert"
+	httpscenario "github.com/yandex/pandora/components/guns/http_scenario"
 )
 
-func TestTextTemplater_Apply1(t *testing.T) {
-
-}
-func TestTextTemplater_Apply(t *testing.T) {
+func TestHTMLTemplater_Apply(t *testing.T) {
 	tests := []struct {
 		name            string
 		scenarioName    string
 		stepName        string
-		parts           *requestParts
+		parts           *httpscenario.RequestParts
 		vs              map[string]interface{}
 		expectedURL     string
 		expectedHeaders map[string]string
@@ -27,13 +25,13 @@ func TestTextTemplater_Apply(t *testing.T) {
 			name:         "Test Scenario 1",
 			scenarioName: "TestScenario",
 			stepName:     "TestStep",
-			parts: &requestParts{
+			parts: &httpscenario.RequestParts{
 				URL: "http://example.com/{{.endpoint}}",
 				Headers: map[string]string{
 					"Authorization": "Bearer {{.token}}",
 					"Content-Type":  "application/json",
 				},
-				Body: []byte(`{"name": "{{.name}}", "age": {{.age}}}`),
+				Body: []byte(`<div data-age="{{.age}}" >{{.name}}</div>`),
 			},
 			vs: map[string]interface{}{
 				"endpoint": "users",
@@ -46,14 +44,14 @@ func TestTextTemplater_Apply(t *testing.T) {
 				"Authorization": "Bearer abc123",
 				"Content-Type":  "application/json",
 			},
-			expectedBody: `{"name": "John", "age": 30}`,
+			expectedBody: `<div data-age="30" >John</div>`,
 			expectError:  false,
 		},
 		{
 			name:         "Test Scenario 2 (Invalid Template)",
 			scenarioName: "TestScenario",
 			stepName:     "TestStep",
-			parts: &requestParts{
+			parts: &httpscenario.RequestParts{
 				URL: "http://example.com/{{.endpoint",
 			},
 			vs: map[string]interface{}{
@@ -65,10 +63,10 @@ func TestTextTemplater_Apply(t *testing.T) {
 			expectError:     true,
 		},
 		{
-			name:            "Test Scenario 3 (Empty requestParts)",
+			name:            "Test Scenario 3 (Empty httpscenario.RequestParts)",
 			scenarioName:    "EmptyScenario",
 			stepName:        "EmptyStep",
-			parts:           &requestParts{},
+			parts:           &httpscenario.RequestParts{},
 			vs:              map[string]interface{}{},
 			expectedURL:     "",
 			expectedHeaders: nil,
@@ -79,26 +77,26 @@ func TestTextTemplater_Apply(t *testing.T) {
 			name:         "Test Scenario 4 (No Variables)",
 			scenarioName: "NoVarsScenario",
 			stepName:     "NoVarsStep",
-			parts: &requestParts{
+			parts: &httpscenario.RequestParts{
 				URL: "http://example.com",
 				Headers: map[string]string{
 					"Authorization": "Bearer abc123",
 				},
-				Body: []byte(`{"name": "John", "age": 30}`),
+				Body: []byte(`<div data-age="30" >John</div>`),
 			},
 			vs:          map[string]interface{}{},
 			expectedURL: "http://example.com",
 			expectedHeaders: map[string]string{
 				"Authorization": "Bearer abc123",
 			},
-			expectedBody: `{"name": "John", "age": 30}`,
+			expectedBody: `<div data-age="30" >John</div>`,
 			expectError:  false,
 		},
 		{
 			name:         "Test Scenario 5 (URL Only)",
 			scenarioName: "URLScenario",
 			stepName:     "URLStep",
-			parts: &requestParts{
+			parts: &httpscenario.RequestParts{
 				URL: "http://example.com/{{.endpoint}}",
 			},
 			vs: map[string]interface{}{
@@ -113,7 +111,7 @@ func TestTextTemplater_Apply(t *testing.T) {
 			name:         "Test Scenario 6 (Headers Only)",
 			scenarioName: "HeaderScenario",
 			stepName:     "HeaderStep",
-			parts: &requestParts{
+			parts: &httpscenario.RequestParts{
 				Headers: map[string]string{
 					"Authorization": "Bearer {{.token}}",
 					"Content-Type":  "application/json",
@@ -134,8 +132,8 @@ func TestTextTemplater_Apply(t *testing.T) {
 			name:         "Test Scenario 7 (Body Only)",
 			scenarioName: "BodyScenario",
 			stepName:     "BodyStep",
-			parts: &requestParts{
-				Body: []byte(`{"name": "{{.name}}", "age": {{.age}}}`),
+			parts: &httpscenario.RequestParts{
+				Body: []byte(`<div data-age="{{.age}}" >{{.name}}</div>`),
 			},
 			vs: map[string]interface{}{
 				"name": "Alice",
@@ -143,14 +141,14 @@ func TestTextTemplater_Apply(t *testing.T) {
 			},
 			expectedURL:     "",
 			expectedHeaders: nil,
-			expectedBody:    `{"name": "Alice", "age": 25}`,
+			expectedBody:    `<div data-age="25" >Alice</div>`,
 			expectError:     false,
 		},
 		{
 			name:         "Test Scenario 8 (Invalid Template in Headers)",
 			scenarioName: "InvalidHeaderScenario",
 			stepName:     "InvalidHeaderStep",
-			parts: &requestParts{
+			parts: &httpscenario.RequestParts{
 				Headers: map[string]string{
 					"Authorization": "Bearer {{.token",
 				},
@@ -165,7 +163,7 @@ func TestTextTemplater_Apply(t *testing.T) {
 			name:         "Test Scenario 9 (Invalid Template in URL)",
 			scenarioName: "InvalidURLScenario",
 			stepName:     "InvalidURLStep",
-			parts: &requestParts{
+			parts: &httpscenario.RequestParts{
 				URL: "http://example.com/{{.endpoint",
 			},
 			vs:              map[string]interface{}{},
@@ -178,7 +176,7 @@ func TestTextTemplater_Apply(t *testing.T) {
 			name:         "Test Scenario 10 (Invalid Template in Body)",
 			scenarioName: "InvalidBodyScenario",
 			stepName:     "InvalidBodyStep",
-			parts: &requestParts{
+			parts: &httpscenario.RequestParts{
 				Body: []byte(`{"name": "{{.name}"}`),
 			},
 			vs:              map[string]interface{}{},
@@ -191,7 +189,7 @@ func TestTextTemplater_Apply(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			templater := &TextTemplater{}
+			templater := &HTMLTemplater{}
 			err := templater.Apply(test.parts, test.vs, test.scenarioName, test.stepName)
 
 			if test.expectError {

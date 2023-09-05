@@ -5,6 +5,8 @@ import (
 	"html/template"
 	"strings"
 	"sync"
+
+	httpscenario "github.com/yandex/pandora/components/guns/http_scenario"
 )
 
 func NewHTMLTemplater() Templater {
@@ -15,7 +17,7 @@ type HTMLTemplater struct {
 	templatesCache sync.Map
 }
 
-func (t *HTMLTemplater) Apply(parts *requestParts, vs map[string]any, scenarioName, stepName string) error {
+func (t *HTMLTemplater) Apply(parts *httpscenario.RequestParts, vs map[string]any, scenarioName, stepName string) error {
 	const op = "scenario/TextTemplater.Apply"
 	tmpl, err := t.getTemplate(parts.URL, scenarioName, stepName, "url")
 	if err != nil {

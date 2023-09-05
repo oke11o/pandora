@@ -42,7 +42,6 @@ type BaseGun struct {
 	hostname       string
 	targetResolved string
 	client         Client
-	templater      Templater
 }
 
 var _ Gun = (*BaseGun)(nil)
@@ -154,6 +153,7 @@ func (g *BaseGun) shoot(ammo Ammo, templateVars map[string]any) error {
 	stepID := strings.Builder{}
 	rnd := rand.Int()
 	for _, step := range ammo.Steps() {
+		// 1. Построить stepID
 		if g.Config.AnswLog.Enabled {
 			stepID.WriteString(ammo.Name())
 			stepID.WriteByte('.')
@@ -163,9 +163,12 @@ func (g *BaseGun) shoot(ammo Ammo, templateVars map[string]any) error {
 			stepID.WriteByte('.')
 			stepID.WriteString(step.GetName())
 		}
+
+		// 2. Подготовить stepVars
 		stepVars := map[string]any{}
 		requestVars[step.GetName()] = stepVars
 
+		// 3. Выполнить preprocessor
 		preProcessor := step.Preprocessor()
 		if preProcessor != nil {
 			preProcVars, err := preProcessor.Process(templateVars)
@@ -173,34 +176,27 @@ func (g *BaseGun) shoot(ammo Ammo, templateVars map[string]any) error {
 				return fmt.Errorf("%s preProcessor %w", op, err)
 			}
 			stepVars["preprocessor"] = preProcVars
+			if g.DebugLog {
+				g.GunDeps.Log.Debug("Preprocessor variables", zap.Any(fmt.Sprintf(".resuest.%s.preprocessor", step.GetName()), preProcVars))
+			}
 		}
 
-		reqParts := requestParts{
+		reqParts := RequestParts{
 			URL:     step.GetURL(),
 			Method:  step.GetMethod(),
 			Body:    step.GetBody(),
 			Headers: step.GetHeaders(),
 		}
 		sample := netsample.Acquire(ammo.Name() + "." + step.GetTag())
-		templaterType := step.GetTemplater()
-		var (
-			templater Templater
-			err       error
-		)
-		if templaterType == "" {
-			templater = g.templater
-		} else {
-			templater, err = g.resolveTemplater(templaterType)
-			if err != nil {
-				g.reportErr(sample, err)
-				return fmt.Errorf("%s resolveTemplater %w", op, err)
-			}
-		}
+
+		// 4. Выполнить templater
+		templater := step.GetTemplater()
 		if err := templater.Apply(&reqParts, templateVars, ammo.Name(), step.GetName()); err != nil {
 			g.reportErr(sample, err)
 			return fmt.Errorf("%s templater.Apply %w", op, err)
 		}
 
+		// 5. Подготовить request
 		var reader io.Reader
 		if reqParts.Body != nil {
 			reader = bytes.NewReader(reqParts.Body)
@@ -228,37 +224,12 @@ func (g *BaseGun) shoot(ammo Ammo, templateVars map[string]any) error {
 			}
 		}
 
-		var timings *phttp.TraceTimings
-		if g.Config.HTTPTrace.TraceEnabled {
-			var clientTracer *httptrace.ClientTrace
-			clientTracer, timings = phttp.CreateHTTPTrace()
-			req = req.WithContext(httptrace.WithClientTrace(req.Context(), clientTracer))
-		}
-		if g.Config.HTTPTrace.DumpEnabled {
-			requestDump, err := httputil.DumpRequest(req, true)
-			if err != nil {
-				g.Log.Error("DumpRequest error", zap.Error(err))
-			} else {
-				sample.SetRequestBytes(len(requestDump))
-			}
-		}
+		timings, req := g.initTracing(req, sample)
+
 		resp, err := g.Do(req)
-		if g.Config.HTTPTrace.TraceEnabled && timings != nil {
-			sample.SetReceiveTime(timings.GetReceiveTime())
-		}
-		if g.Config.HTTPTrace.DumpEnabled && resp != nil {
-			responseDump, e := httputil.DumpResponse(resp, true)
-			if e != nil {
-				g.Log.Error("DumpResponse error", zap.Error(e))
-			} else {
-				sample.SetResponseBytes(len(responseDump))
-			}
-		}
-		if g.Config.HTTPTrace.TraceEnabled && timings != nil {
-			sample.SetConnectTime(timings.GetConnectTime())
-			sample.SetSendTime(timings.GetSendTime())
-			sample.SetLatency(timings.GetLatency())
-		}
+
+		g.saveTrace(timings, sample, resp)
+
 		if err != nil {
 			g.reportErr(sample, err)
 			return fmt.Errorf("%s g.Do %w", op, err)
@@ -309,10 +280,14 @@ func (g *BaseGun) shoot(ammo Ammo, templateVars map[string]any) error {
 				return fmt.Errorf("%s postprocessor.Postprocess %w", op, err)
 			}
 		}
+		stepVars["postprocessor"] = postprocessorVars
+
 		sample.SetProtoCode(resp.StatusCode)
 		g.Aggregator.Report(sample)
 
-		stepVars["response"] = postprocessorVars
+		if g.DebugLog {
+			g.GunDeps.Log.Debug("Postprocessor variables", zap.Any(fmt.Sprintf(".resuest.%s.postprocessor", step.GetName()), postprocessorVars))
+		}
 
 		if step.GetSleep() > 0 {
 			time.Sleep(step.GetSleep())
@@ -323,6 +298,43 @@ func (g *BaseGun) shoot(ammo Ammo, templateVars map[string]any) error {
 		time.Sleep(ammo.GetMinWaitingTime() - spent)
 	}
 	return nil
+}
+
+func (g *BaseGun) initTracing(req *http.Request, sample *netsample.Sample) (*phttp.TraceTimings, *http.Request) {
+	var timings *phttp.TraceTimings
+	if g.Config.HTTPTrace.TraceEnabled {
+		var clientTracer *httptrace.ClientTrace
+		clientTracer, timings = phttp.CreateHTTPTrace()
+		req = req.WithContext(httptrace.WithClientTrace(req.Context(), clientTracer))
+	}
+	if g.Config.HTTPTrace.DumpEnabled {
+		requestDump, err := httputil.DumpRequest(req, true)
+		if err != nil {
+			g.Log.Error("DumpRequest error", zap.Error(err))
+		} else {
+			sample.SetRequestBytes(len(requestDump))
+		}
+	}
+	return timings, req
+}
+
+func (g *BaseGun) saveTrace(timings *phttp.TraceTimings, sample *netsample.Sample, resp *http.Response) {
+	if g.Config.HTTPTrace.TraceEnabled && timings != nil {
+		sample.SetReceiveTime(timings.GetReceiveTime())
+	}
+	if g.Config.HTTPTrace.DumpEnabled && resp != nil {
+		responseDump, e := httputil.DumpResponse(resp, true)
+		if e != nil {
+			g.Log.Error("DumpResponse error", zap.Error(e))
+		} else {
+			sample.SetResponseBytes(len(responseDump))
+		}
+	}
+	if g.Config.HTTPTrace.TraceEnabled && timings != nil {
+		sample.SetConnectTime(timings.GetConnectTime())
+		sample.SetSendTime(timings.GetSendTime())
+		sample.SetLatency(timings.GetLatency())
+	}
 }
 
 func (g *BaseGun) answReqRespLogging(reqBytes []byte, resp *http.Response, respBytes []byte, stepName string) {
@@ -351,12 +363,12 @@ func (g *BaseGun) reportErr(sample *netsample.Sample, err error) {
 }
 
 func (g *BaseGun) resolveTemplater(templaterType string) (Templater, error) {
-	switch templaterType {
-	case "text":
-		return NewTextTempalter(), nil
-	case "html":
-		return NewHTMLTemplater(), nil
-	}
+	//switch templaterType {
+	//case "text":
+	//	return NewTextTempalter(), nil
+	//case "html":
+	//	return NewHTMLTemplater(), nil
+	//}
 	return nil, nil
 }
 

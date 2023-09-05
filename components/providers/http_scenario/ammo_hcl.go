@@ -176,9 +176,9 @@ func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 					}
 				}
 			}
-			templater := ""
-			if r.Templater != nil {
-				templater = *r.Templater
+			templater := NewTextTemplater()
+			if r.Templater != nil && *r.Templater == "html" {
+				templater = NewHTMLTemplater()
 			}
 			tag := ""
 			if r.Tag != nil {
@@ -334,10 +334,12 @@ func ConvertAmmoToHCL(ammo AmmoConfig) (AmmoHCL, error) {
 			if tag != "" {
 				req.Tag = &tag
 			}
-			templater := r.Templater
-			if templater != "" {
-				req.Templater = &templater
+			templater := "text"
+			_, ok := r.Templater.(*HTMLTemplater)
+			if ok {
+				templater = "html"
 			}
+			req.Templater = &templater
 
 			requests[i] = req
 		}

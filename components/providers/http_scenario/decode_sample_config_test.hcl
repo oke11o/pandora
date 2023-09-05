@@ -73,6 +73,8 @@ request "list_req" {
       items   = "$.items"
     }
   }
+
+  templater = "text"
 }
 request "item_req" {
   method  = "POST"
@@ -92,7 +94,8 @@ EOF
       item = "request.list_req.items[3]"
     }
   }
-  templater = ""
+
+  templater = "text"
 }
 
 scenario "scenario1" {

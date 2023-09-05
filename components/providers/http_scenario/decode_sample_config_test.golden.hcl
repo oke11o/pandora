@@ -83,6 +83,8 @@ request "list_req" {
       items   = "$.items"
     }
   }
+
+  templater = "html"
 }
 request "item_req" {
   method = "POST"
@@ -100,6 +102,7 @@ request "item_req" {
       item = "request.list_req.items[3]"
     }
   }
+  templater = "text"
 }
 
 scenario "scenario1" {
