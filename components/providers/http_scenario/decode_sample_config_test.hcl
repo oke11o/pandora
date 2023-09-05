@@ -20,7 +20,7 @@ request "auth_req" {
   tag = "auth"
 
   preprocessor {
-    variables = {
+    mapping = {
       user_id = "source.users[0].user_id"
     }
   }
@@ -90,7 +90,7 @@ EOF
   uri  = "/item"
 
   preprocessor {
-    variables = {
+    mapping = {
       item = "request.list_req.items[3]"
     }
   }

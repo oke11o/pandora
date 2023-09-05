@@ -33,7 +33,7 @@ requests:
       Content-Type: "application/json"
     tag: auth
     preprocessor:
-      variables:
+      mapping:
         user_id: source.users[0].user_id
     body: '{"user_id":  {{.preprocessor.user_id}}}'
     templater:
@@ -73,7 +73,7 @@ requests:
 
   - name: item_req
     preprocessor:
-      variables:
+      mapping:
         item: request.list_req.items[3]
     uri: '/item'
     tag: item_req

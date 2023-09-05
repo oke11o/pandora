@@ -62,7 +62,7 @@ type PostprocessorHCL struct {
 }
 
 type PreprocessorHCL struct {
-	Variables map[string]string `hcl:"variables"`
+	Mapping map[string]string `hcl:"mapping"`
 }
 
 func ParseHCLFile(file afero.File) (AmmoHCL, error) {
@@ -186,7 +186,7 @@ func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 			}
 			var variables map[string]string
 			if r.Preprocessor != nil {
-				variables = r.Preprocessor.Variables
+				variables = r.Preprocessor.Mapping
 			}
 			requests[i] = RequestConfig{
 				Name:           r.Name,
@@ -195,7 +195,7 @@ func ConvertHCLToAmmo(ammo AmmoHCL, fs afero.Fs) (AmmoConfig, error) {
 				Tag:            tag,
 				Body:           r.Body,
 				URI:            r.URI,
-				Preprocessor:   Preprocessor{Variables: variables},
+				Preprocessor:   Preprocessor{Mapping: variables},
 				Postprocessors: postprocessors,
 				Templater:      templater,
 			}
@@ -327,8 +327,8 @@ func ConvertAmmoToHCL(ammo AmmoConfig) (AmmoHCL, error) {
 				Body:           r.Body,
 				Postprocessors: postprocessors,
 			}
-			if r.Preprocessor.Variables != nil {
-				req.Preprocessor = &PreprocessorHCL{Variables: r.Preprocessor.Variables}
+			if r.Preprocessor.Mapping != nil {
+				req.Preprocessor = &PreprocessorHCL{Mapping: r.Preprocessor.Mapping}
 			}
 			tag := r.Tag
 			if tag != "" {

@@ -36,7 +36,7 @@ request "auth_req" {
   uri  = "/auth"
 
   preprocessor {
-    variables = {
+    mapping = {
       user_id = "source.users[0].user_id"
     }
   }
@@ -98,7 +98,7 @@ request "item_req" {
   uri  = "/item"
 
   preprocessor {
-    variables = {
+    mapping = {
       item = "request.list_req.items[3]"
     }
   }
