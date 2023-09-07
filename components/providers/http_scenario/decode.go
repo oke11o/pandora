@@ -111,7 +111,7 @@ func convertConfigToRequest(req RequestConfig, iter mp.Iterator) Request {
 		uri:            req.URI,
 		preprocessor:   req.Preprocessor,
 		postprocessors: postprocessors,
-		templater:      req.Templater,
+		templater:      templater,
 	}
 	result.preprocessor.iterator = iter
 
