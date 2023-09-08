@@ -346,14 +346,16 @@ func (g *BaseGun) answLogging(bodyBytes []byte, resp *http.Response, respBytes [
 	msg := fmt.Sprintf("REQUEST[%s]:\n%s\n", stepName, string(bodyBytes))
 	g.AnswLog.Debug(msg)
 
+	headers := ""
 	var writer bytes.Buffer
 	err := resp.Header.Write(&writer)
-	if err != nil {
+	if err == nil {
+		headers = writer.String()
+	} else {
 		g.AnswLog.Error("error writing header", zap.Error(err))
-		return
 	}
 
-	msg = fmt.Sprintf("RESPONSE[%s]:\n%s %s\n%s\n%s\n", stepName, resp.Proto, resp.Status, writer.String(), string(respBytes))
+	msg = fmt.Sprintf("RESPONSE[%s]:\n%s %s\n%s\n%s\n", stepName, resp.Proto, resp.Status, headers, string(respBytes))
 	g.AnswLog.Debug(msg)
 }
 
