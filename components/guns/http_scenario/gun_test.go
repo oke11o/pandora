@@ -76,7 +76,7 @@ func TestBaseGun_shoot(t *testing.T) {
 			},
 			ammoMock: func(t *testing.T, ammo *MockAmmo) {
 				ammo.On("ID").Return(uint64(0)).Times(2)
-				ammo.On("Name").Return("testAmmo").Times(4)
+				ammo.On("Name").Return("testAmmo").Times(6)
 				ammo.On("GetMinWaitingTime").Return(time.Duration(0))
 			},
 			clientMock: func(t *testing.T, client *MockClient) {
@@ -116,7 +116,7 @@ func TestBaseGun_shoot(t *testing.T) {
 			},
 			ammoMock: func(t *testing.T, ammo *MockAmmo) {
 				ammo.On("ID").Return(uint64(0)).Times(1)
-				ammo.On("Name").Return("testAmmo").Times(2)
+				ammo.On("Name").Return("testAmmo").Times(3)
 				ammo.On("GetMinWaitingTime").Return(time.Duration(0))
 			},
 			clientMock: func(t *testing.T, client *MockClient) {
@@ -161,7 +161,7 @@ func TestBaseGun_shoot(t *testing.T) {
 			},
 			ammoMock: func(t *testing.T, ammo *MockAmmo) {
 				ammo.On("ID").Return(uint64(0)).Times(1)
-				ammo.On("Name").Return("testAmmo").Times(2)
+				ammo.On("Name").Return("testAmmo").Times(3)
 				ammo.On("GetMinWaitingTime").Return(time.Duration(0))
 			},
 			clientMock: func(t *testing.T, client *MockClient) {

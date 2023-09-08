@@ -113,9 +113,11 @@ func (g *BaseGun) shoot(ammo Ammo, templateVars map[string]any) error {
 	rnd := strconv.Itoa(rand.Int())
 	for _, step := range ammo.Steps() {
 		g.buildLogID(idBuilder, ammo.Name(), ammo.ID(), rnd, step.GetName())
+		sample := netsample.Acquire(ammo.Name() + "." + step.GetTag())
 
-		err := g.shootStep(step, ammo.Name(), templateVars, requestVars, idBuilder.String())
+		err := g.shootStep(step, sample, ammo.Name(), templateVars, requestVars, idBuilder.String())
 		if err != nil {
+			g.reportErr(sample, err)
 			return err
 		}
 	}
@@ -126,16 +128,8 @@ func (g *BaseGun) shoot(ammo Ammo, templateVars map[string]any) error {
 	return nil
 }
 
-func (g *BaseGun) shootStep(step Step, ammoName string, templateVars map[string]any, requestVars map[string]any, stepLogID string) error {
+func (g *BaseGun) shootStep(step Step, sample *netsample.Sample, ammoName string, templateVars map[string]any, requestVars map[string]any, stepLogID string) error {
 	const op = "base_gun.shootStep"
-
-	sample := netsample.Acquire(ammoName + "." + step.GetTag())
-	var err error
-	defer func() {
-		if err != nil {
-			g.reportErr(sample, err)
-		}
-	}()
 
 	stepVars := map[string]any{}
 	requestVars[step.GetName()] = stepVars
@@ -143,8 +137,7 @@ func (g *BaseGun) shootStep(step Step, ammoName string, templateVars map[string]
 	// Preprocessor
 	preProcessor := step.Preprocessor()
 	if preProcessor != nil {
-		var preProcVars map[string]any
-		preProcVars, err = preProcessor.Process(templateVars)
+		preProcVars, err := preProcessor.Process(templateVars)
 		if err != nil {
 			return fmt.Errorf("%s preProcessor %w", op, err)
 		}
@@ -164,13 +157,12 @@ func (g *BaseGun) shootStep(step Step, ammoName string, templateVars map[string]
 
 	// Template
 	templater := step.GetTemplater()
-	if err = templater.Apply(&reqParts, templateVars, ammoName, step.GetName()); err != nil {
+	if err := templater.Apply(&reqParts, templateVars, ammoName, step.GetName()); err != nil {
 		return fmt.Errorf("%s templater.Apply %w", op, err)
 	}
 
 	// Prepare request
-	var req *http.Request
-	req, err = g.prepareRequest(reqParts, sample)
+	req, err := g.prepareRequest(reqParts)
 	if err != nil {
 		return fmt.Errorf("%s prepareRequest %w", op, err)
 	}
@@ -186,8 +178,7 @@ func (g *BaseGun) shootStep(step Step, ammoName string, templateVars map[string]
 
 	timings, req := g.initTracing(req, sample)
 
-	var resp *http.Response
-	resp, err = g.Do(req)
+	resp, err := g.Do(req)
 
 	g.saveTrace(timings, sample, resp)
 
@@ -266,7 +257,7 @@ func (g *BaseGun) buildLogID(idBuilder strings.Builder, ammoName string, ammoID 
 	idBuilder.WriteString(stepName)
 }
 
-func (g *BaseGun) prepareRequest(reqParts RequestParts, sample *netsample.Sample) (*http.Request, error) {
+func (g *BaseGun) prepareRequest(reqParts RequestParts) (*http.Request, error) {
 	const op = "base_gun.prepareRequest"
 
 	var reader io.Reader
