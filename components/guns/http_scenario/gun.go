@@ -109,11 +109,12 @@ func (g *BaseGun) shoot(ammo Ammo, templateVars map[string]any) error {
 	templateVars["request"] = requestVars
 
 	startAt := time.Now()
-	idBuilder := strings.Builder{}
+	var idBuilder strings.Builder
 	rnd := strconv.Itoa(rand.Int())
 	for _, step := range ammo.Steps() {
-		g.buildLogID(idBuilder, ammo.Name(), ammo.ID(), rnd, step.GetName())
-		sample := netsample.Acquire(ammo.Name() + "." + step.GetTag())
+		tag := ammo.Name() + "." + step.GetTag()
+		g.buildLogID(&idBuilder, tag, ammo.ID(), rnd)
+		sample := netsample.Acquire(tag)
 
 		err := g.shootStep(step, sample, ammo.Name(), templateVars, requestVars, idBuilder.String())
 		if err != nil {
@@ -246,15 +247,13 @@ func (g *BaseGun) shootStep(step Step, sample *netsample.Sample, ammoName string
 	return nil
 }
 
-func (g *BaseGun) buildLogID(idBuilder strings.Builder, ammoName string, ammoID uint64, rnd string, stepName string) {
+func (g *BaseGun) buildLogID(idBuilder *strings.Builder, tag string, ammoID uint64, rnd string) {
 	idBuilder.Reset()
-	idBuilder.WriteString(ammoName)
+	idBuilder.WriteString(tag)
 	idBuilder.WriteByte('.')
 	idBuilder.WriteString(rnd)
 	idBuilder.WriteByte('.')
 	idBuilder.WriteString(strconv.Itoa(int(ammoID)))
-	idBuilder.WriteByte('.')
-	idBuilder.WriteString(stepName)
 }
 
 func (g *BaseGun) prepareRequest(reqParts RequestParts) (*http.Request, error) {

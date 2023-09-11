@@ -76,7 +76,7 @@ func TestBaseGun_shoot(t *testing.T) {
 			},
 			ammoMock: func(t *testing.T, ammo *MockAmmo) {
 				ammo.On("ID").Return(uint64(0)).Times(2)
-				ammo.On("Name").Return("testAmmo").Times(6)
+				ammo.On("Name").Return("testAmmo").Times(4)
 				ammo.On("GetMinWaitingTime").Return(time.Duration(0))
 			},
 			clientMock: func(t *testing.T, client *MockClient) {
@@ -116,7 +116,7 @@ func TestBaseGun_shoot(t *testing.T) {
 			},
 			ammoMock: func(t *testing.T, ammo *MockAmmo) {
 				ammo.On("ID").Return(uint64(0)).Times(1)
-				ammo.On("Name").Return("testAmmo").Times(3)
+				ammo.On("Name").Return("testAmmo").Times(2)
 				ammo.On("GetMinWaitingTime").Return(time.Duration(0))
 			},
 			clientMock: func(t *testing.T, client *MockClient) {
@@ -161,7 +161,7 @@ func TestBaseGun_shoot(t *testing.T) {
 			},
 			ammoMock: func(t *testing.T, ammo *MockAmmo) {
 				ammo.On("ID").Return(uint64(0)).Times(1)
-				ammo.On("Name").Return("testAmmo").Times(3)
+				ammo.On("Name").Return("testAmmo").Times(2)
 				ammo.On("GetMinWaitingTime").Return(time.Duration(0))
 			},
 			clientMock: func(t *testing.T, client *MockClient) {
@@ -207,6 +207,6 @@ func commonStepMocks(t *testing.T, step *MockStep, name, tag, url, method string
 	step.On("GetHeaders").Return(headers).Times(1)
 	step.On("GetTag").Return(tag).Times(1)
 	step.On("GetTemplater").Return(tmpl).Times(1)
-	step.On("GetName").Return(name).Times(3)
+	step.On("GetName").Return(name).Times(2)
 	step.On("GetSleep").Return(time.Duration(0)).Times(1)
 }
