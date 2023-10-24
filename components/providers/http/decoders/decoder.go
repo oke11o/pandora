@@ -63,7 +63,7 @@ func (d *protoDecoder) LoadAmmo(ctx context.Context, scan func(ctx context.Conte
 	return result, err
 }
 
-func NewDecoder(conf config.Config, file io.ReadSeeker) (d Decoder, err error) {
+func NewDecoder(conf config.Config, file io.ReadSeeker) (d Decoder, forcePreload bool, err error) {
 	decodedConfigHeaders, err := util.DecodeHTTPConfigHeaders(conf.Headers)
 	if err != nil {
 		return
@@ -71,7 +71,7 @@ func NewDecoder(conf config.Config, file io.ReadSeeker) (d Decoder, err error) {
 
 	switch conf.Decoder {
 	case config.DecoderJSONLine:
-		d = newJsonlineDecoder(file, conf, decodedConfigHeaders)
+		d, forcePreload, err = newJsonlineDecoder(file, conf, decodedConfigHeaders)
 	case config.DecoderRaw:
 		d = newRawDecoder(file, conf, decodedConfigHeaders)
 	case config.DecoderURI:

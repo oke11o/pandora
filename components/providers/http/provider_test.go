@@ -24,9 +24,6 @@ func TestNewProvider_invalidDecoder(t *testing.T) {
 func TestNewProvider(t *testing.T) {
 	fs := afero.NewMemMapFs()
 
-	t.Run("InvalidDecoder", func(t *testing.T) {
-	})
-
 	tmpFile, err := fs.Create("ammo")
 	if err != nil {
 		t.Fatalf("failed to create temp file: %s", err)

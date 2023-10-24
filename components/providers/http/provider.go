@@ -35,9 +35,12 @@ func NewProvider(fs afero.Fs, conf config.Config) (core.Provider, error) {
 	if err != nil {
 		return nil, xerrors.Errorf("cant create ReadSeekCloser: %w", err)
 	}
-	decoder, err := decoders.NewDecoder(conf, readSeeker)
+	decoder, forcePreload, err := decoders.NewDecoder(conf, readSeeker)
 	if err != nil {
 		return nil, xerrors.Errorf("decoder init error: %w", err)
+	}
+	if forcePreload {
+		conf.Preload = true
 	}
 	return &provider.Provider{
 		ProviderBase: base.ProviderBase{
