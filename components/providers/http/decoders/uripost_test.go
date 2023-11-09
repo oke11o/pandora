@@ -94,7 +94,9 @@ func Benchmark_uripostDecoder_Scan(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := decoder.Scan(ctx)
+		a, err := decoder.Scan(ctx)
+		require.NoError(b, err)
+		_, err = a.BuildRequest()
 		require.NoError(b, err)
 	}
 }

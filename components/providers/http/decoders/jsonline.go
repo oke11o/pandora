@@ -34,16 +34,16 @@ func newJsonlineDecoder(file io.ReadSeeker, cfg config.Config, decodedConfigHead
 	}
 	isArray := false
 	for _, b := range buffer {
+		if isWhiteSpace(b) {
+			continue
+		}
 		if b == '[' {
 			isArray = true
-			break
 		}
-		if b == '{' {
-			break
-		}
+		break
 	}
 
-	return &jsonlineDecoder{
+	decoder := &jsonlineDecoder{
 		protoDecoder: protoDecoder{
 			file:                 file,
 			config:               cfg,
@@ -53,7 +53,19 @@ func newJsonlineDecoder(file io.ReadSeeker, cfg config.Config, decodedConfigHead
 		pool:    &sync.Pool{New: func() any { return &ammo.Ammo{} }},
 		decoder: json.NewDecoder(file),
 		isArray: isArray,
-	}, isArray, nil
+	}
+	if isArray {
+		ammos, err := decoder.readArray(context.Background())
+		if err != nil {
+			return decoder, false, fmt.Errorf("cant read json array: %w", err)
+		}
+		decoder.ammos = ammos
+	}
+	return decoder, isArray, nil
+}
+
+func isWhiteSpace(value byte) bool {
+	return value == 0 || value == ' ' || value == '\t' || value == '\n' || value == '\r'
 }
 
 type jsonlineDecoder struct {
@@ -63,6 +75,7 @@ type jsonlineDecoder struct {
 	pool    *sync.Pool
 	decoder *json.Decoder
 	isArray bool
+	ammos   []DecodedAmmo
 }
 
 func (d *jsonlineDecoder) Release(a core.Ammo) {
@@ -73,10 +86,7 @@ func (d *jsonlineDecoder) Release(a core.Ammo) {
 }
 
 func (d *jsonlineDecoder) LoadAmmo(ctx context.Context) ([]DecodedAmmo, error) {
-	if !d.isArray {
-		return d.protoDecoder.LoadAmmo(ctx, d.Scan)
-	}
-	return d.readArray(ctx)
+	return d.protoDecoder.LoadAmmo(ctx, d.Scan)
 }
 
 type entity struct {
@@ -97,13 +107,15 @@ func (d *jsonlineDecoder) Scan(ctx context.Context) (DecodedAmmo, error) {
 	if d.config.Limit != 0 && d.ammoNum >= d.config.Limit {
 		return nil, ErrAmmoLimit
 	}
+	if d.ammos != nil {
+		return d.scanAmmos(ctx)
+	}
 	for {
 		if d.config.Passes != 0 && d.passNum >= d.config.Passes {
 			return nil, ErrPassLimit
 		}
 		var da entity
 		err := d.decoder.Decode(&da)
-		//json.Unmarshal()
 		if err != nil {
 			if err != io.EOF {
 				return nil, xerrors.Errorf("failed to decode ammo at line: %v; with err: %w", d.line+1, err)
@@ -171,4 +183,21 @@ func (d *jsonlineDecoder) readArray(_ context.Context) ([]DecodedAmmo, error) {
 	}
 
 	return result, nil
+}
+
+func (d *jsonlineDecoder) scanAmmos(_ context.Context) (DecodedAmmo, error) {
+	length := len(d.ammos)
+	if length == 0 {
+		return nil, ErrNoAmmo
+	}
+	if d.config.Passes != 0 && d.passNum >= d.config.Passes {
+		return nil, ErrPassLimit
+	}
+	i := int(d.ammoNum) % length
+	a := d.ammos[i]
+	if d.ammoNum > 0 && i == length-1 {
+		d.passNum++
+	}
+	d.ammoNum++
+	return a, nil
 }
