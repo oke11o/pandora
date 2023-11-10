@@ -11,7 +11,7 @@ permissions:
 jobs:
   releases-matrix:
     name: Release Go Binary
-    runs-on: ubuntu-latest
+    runs-on: macOS-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -26,10 +26,18 @@ jobs:
         run: go test -race -covermode atomic ./...
 
       - name: Build Linux
-        run: GOOS=linux GOARCH=amd64 go build -o pandora_0.5.17_linux_amd64
+        run: |
+          export GOOS=linux
+          export GOARCH=amd64
+          tag_name=${{ github.event.release.tag_name }}
+          go build -o pandora_${tag_name}-linux-amd64
 
       - name: Build Darwin
-        run: GOOS=darwin GOARCH=amd64 go build -o pandora_0.5.17_darwin_amd64
+        run: |
+          export GOOS=darwin
+          export GOARCH=amd64
+          tag_name=${{ github.event.release.tag_name }}
+          go build -o pandora_${tag_name}-darwin-amd64
 
       - name: Upload Release Asset Linux
         uses: actions/upload-release-asset@v1
@@ -37,8 +45,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./pandora_0.5.17_linux_amd64
-          asset_name: pandora_0.5.17_linux_amd64
+          asset_path: ./pandora_${tag_name}-linux-amd64
+          asset_name: pandora_${tag_name}-linux-amd64
           asset_content_type: application/octet-stream
 
       - name: Upload Release Asset Darwin
@@ -47,6 +55,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./pandora_0.5.17_linux_amd64
-          asset_name: pandora_0.5.17_linux_amd64
+          asset_path: ./pandora_${tag_name}-darwin-amd64
+          asset_name: pandora_${tag_name}-darwin-amd64
           asset_content_type: application/octet-stream
