@@ -42,3 +42,6 @@ jobs:
           file: ./unit.txt
           flags: unit,${{ matrix.os }},go-${{ matrix.go-version }}
           name: unit
+
+      - name: Build
+        run: go build -o pandora-${{ matrix.os }}-${{ matrix.go-version }}

@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  releases-matrix:
+    name: Release Go Binary
+    concurrency:
+      group: unit-${{ github.ref }}-${{ matrix.os }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, macOS]
+    env:
+      OS: ${{ matrix.os }}-latest
+      GO: ${{ matrix.go-version }}
+    runs-on: ${{ matrix.os }}-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.20.x
+          cache: true
+
+      - name: Test
+        run: go test -race -covermode atomic ./...
+
+      - name: Build
+        run: go build -o pandora-${{ matrix.os }}
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./pandora-${{ matrix.os }}
+          asset_name: pandora-${{ matrix.os }}
+          asset_content_type: application/octet-stream
