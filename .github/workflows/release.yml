@@ -11,7 +11,7 @@ permissions:
 jobs:
   releases-matrix:
     name: Release Go Binary
-    runs-on: macOS-latest
+    runs-on: linux-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -29,12 +29,14 @@ jobs:
         run: |
           export GOOS=linux
           export GOARCH=amd64
+          export CGO_ENABLED=0
           go build -o pandora_${{ github.event.release.tag_name }}-linux-amd64
 
       - name: Build Darwin
         run: |
           export GOOS=darwin
           export GOARCH=amd64
+          export CGO_ENABLED=0
           go build -o pandora_${{ github.event.release.tag_name }}-darwin-amd64
 
       - name: Upload Release Asset Linux
