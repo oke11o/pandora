@@ -25,7 +25,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-const Version = "0.5.17.alpha"
+const Version = "0.5.17.alpha2"
 const defaultConfigFile = "load"
 const stdinConfigSelector = "-"
 
