@@ -46,12 +46,7 @@ jobs:
           echo $GOOS
           go build -o pandora_${{ github.event.release.tag_name }}-${GOOS}-${{ matrix.arch }}
 
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release
+        uses: softprops/action-gh-release@v1
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./pandora_${{ github.event.release.tag_name }}-${{ env.GOOS }}-${{ matrix.arch }}
-          asset_name: pandora_${{ github.event.release.tag_name }}-${{ env.GOOS }}-${{ matrix.arch }}
-          asset_content_type: application/octet-stream
+          files: pandora_${{ github.event.release.tag_name }}-${{ env.GOOS }}-${{ matrix.arch }}
