@@ -37,12 +37,14 @@ jobs:
           else
             echo "GOOS=darwin" >> $GITHUB_ENV
           fi
+          echo $GOOS
 
       - name: Build
         run: |
-          export GOARCH=${{ matrix.arc }}
+          export GOARCH=${{ matrix.arch }}
           export CGO_ENABLED=0
-          go build -o pandora_${{ github.event.release.tag_name }}-${GOOS}-${{ matrix.arc }}
+          echo $GOOS
+          go build -o pandora_${{ github.event.release.tag_name }}-${GOOS}-${{ matrix.arch }}
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
@@ -50,6 +52,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./pandora_${{ github.event.release.tag_name }}-${GOOS}-${{ matrix.arc }}
-          asset_name: pandora_${{ github.event.release.tag_name }}-${GOOS}-${{ matrix.arc }}
+          asset_path: ./pandora_${{ github.event.release.tag_name }}-${GOOS}-${{ matrix.arch }}
+          asset_name: pandora_${{ github.event.release.tag_name }}-${GOOS}-${{ matrix.arch }}
           asset_content_type: application/octet-stream
