@@ -11,7 +11,12 @@ permissions:
 jobs:
   releases-matrix:
     name: Release Go Binary
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+        arch: [amd64]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -25,36 +30,26 @@ jobs:
       - name: Test
         run: go test -race -covermode atomic ./...
 
-      - name: Build Linux
+      - name: Set GITHUB_ENV
         run: |
-          export GOOS=linux
-          export GOARCH=amd64
-          export CGO_ENABLED=0
-          go build -o pandora_${{ github.event.release.tag_name }}-linux-amd64
+          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+            echo "GOOS=linux" >> $GITHUB_ENV
+          else
+            echo "GOOS=darwin" >> $GITHUB_ENV
+          fi
 
-      - name: Build Darwin
+      - name: Build
         run: |
-          export GOOS=darwin
-          export GOARCH=amd64
+          export GOARCH=${{ matrix.arc }}
           export CGO_ENABLED=0
-          go build -o pandora_${{ github.event.release.tag_name }}-darwin-amd64
+          go build -o pandora_${{ github.event.release.tag_name }}-${GOOS}-${{ matrix.arc }}
 
-      - name: Upload Release Asset Linux
+      - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./pandora_${{ github.event.release.tag_name }}-linux-amd64
-          asset_name: pandora_${{ github.event.release.tag_name }}-linux-amd64
-          asset_content_type: application/octet-stream
-
-      - name: Upload Release Asset Darwin
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./pandora_${{ github.event.release.tag_name }}-darwin-amd64
-          asset_name: pandora_${{ github.event.release.tag_name }}-darwin-amd64
+          asset_path: ./pandora_${{ github.event.release.tag_name }}-${GOOS}-${{ matrix.arc }}
+          asset_name: pandora_${{ github.event.release.tag_name }}-${GOOS}-${{ matrix.arc }}
           asset_content_type: application/octet-stream
