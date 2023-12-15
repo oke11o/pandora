@@ -1,14 +1,15 @@
 package test
 
 import (
+	"gopkg.in/yaml.v2"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	_import "github.com/yandex/pandora/components/providers/scenario/import"
 	"github.com/yandex/pandora/components/providers/scenario/vs"
 	"github.com/yandex/pandora/core/config"
 	"github.com/yandex/pandora/core/plugin/pluginconfig"
-	"gopkg.in/yaml.v2"
 )
 
 func Test_decode_parseVariableSourceCsv(t *testing.T) {

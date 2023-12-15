@@ -1,10 +1,10 @@
-package http
+package grpc
 
 import (
 	"fmt"
 	"github.com/spf13/afero"
 
-	gun "github.com/yandex/pandora/components/guns/http_scenario"
+	gun "github.com/yandex/pandora/components/guns/grpc/scenario"
 	"github.com/yandex/pandora/components/providers/scenario"
 	"github.com/yandex/pandora/components/providers/scenario/config"
 	"github.com/yandex/pandora/core"
@@ -12,10 +12,18 @@ import (
 
 var _ core.Provider = (*scenario.Provider[*gun.Scenario])(nil)
 
+type ProviderConfig struct {
+	File            string
+	Limit           uint
+	Passes          uint
+	ContinueOnError bool
+	MaxAmmoSize     int
+}
+
 const defaultSinkSize = 100
 
 func NewProvider(fs afero.Fs, conf scenario.ProviderConfig) (core.Provider, error) {
-	const op = "scenario.NewProvider"
+	const op = "config.NewProvider"
 	ammoCfg, err := config.ReadAmmoConfig(fs, conf.File)
 	if err != nil {
 		return nil, fmt.Errorf("%s ReadAmmoConfig %w", op, err)

@@ -3,18 +3,25 @@ package preprocessor
 import (
 	"errors"
 	"fmt"
+	"github.com/yandex/pandora/components/guns/grpc/scenario"
+
 	"github.com/yandex/pandora/lib/mp"
 )
 
-type Preprocessor struct {
+type PreprocessorConfig struct {
+	Mapping map[string]string
+}
+
+type PreparePreprocessor struct {
 	Mapping  map[string]string
 	iterator mp.Iterator
 }
 
-func (p *Preprocessor) Process(templateVars map[string]any) (map[string]any, error) {
-	if p == nil {
-		return nil, nil
-	}
+func (p *PreparePreprocessor) InitIterator(iterator mp.Iterator) {
+	p.iterator = iterator
+}
+
+func (p *PreparePreprocessor) Process(_ *scenario.Call, templateVars map[string]any) (map[string]any, error) {
 	if templateVars == nil {
 		return nil, errors.New("templateVars must not be nil")
 	}
@@ -27,10 +34,4 @@ func (p *Preprocessor) Process(templateVars map[string]any) (map[string]any, err
 		result[k] = val
 	}
 	return result, nil
-}
-
-func (p *Preprocessor) InitIterator(iter mp.Iterator) {
-	if p != nil {
-		p.iterator = iter
-	}
 }
