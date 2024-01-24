@@ -16,6 +16,94 @@ func (e *ErrSegmentNotFound) Error() string {
 	return fmt.Sprintf("segment %s not found in path %s", e.segment, e.path)
 }
 
+func MergeRecursive(dst, src map[string]any) error {
+	for srcKey, srcVal := range src {
+		dstVal, ok := dst[srcKey]
+		if !ok {
+			dst[srcKey] = srcVal
+			continue
+		}
+		srcValueType := reflect.TypeOf(srcVal).Kind()
+		dstValueType := reflect.TypeOf(dstVal).Kind()
+
+		if srcValueType != dstValueType {
+			return fmt.Errorf("value of field `%v` should be same type but got %T and %T", srcKey, srcVal, dstVal)
+		}
+		switch srcValueType {
+		case reflect.Map:
+			if err := MergeRecursive(dstVal.(map[string]any), srcVal.(map[string]any)); err != nil {
+				return err
+			}
+		case reflect.Slice:
+			switch srcTypedVal := srcVal.(type) {
+			case []any:
+				dstTypedVal, ok := dstVal.([]any)
+				var dstLen int
+				if ok {
+					dstLen = len(dstTypedVal)
+				} else {
+					return fmt.Errorf("field `%s` should be map[string]any but is `%T`", srcKey, dstVal)
+				}
+				srcLen := len(srcTypedVal)
+				minLen := srcLen
+				if minLen > dstLen {
+					minLen = dstLen
+				}
+				for i := 0; i < minLen; i++ {
+					d, ok := dstTypedVal[i].(map[string]any)
+					if !ok {
+						return fmt.Errorf("field `%s` should be []any where any=map[string]any but is `%T`", srcKey, dstVal)
+					}
+					s, ok := srcTypedVal[i].(map[string]any)
+					if !ok {
+						return fmt.Errorf("field `%s` should be []any where any=map[string]any but is `%T`", srcKey, srcVal)
+					}
+					err := MergeRecursive(d, s)
+					if err != nil {
+						return err
+					}
+				}
+				if dstLen < srcLen {
+					for i := dstLen; i < srcLen; i++ {
+						dstTypedVal = append(dstTypedVal, srcTypedVal[i])
+					}
+					dst[srcKey] = dstTypedVal
+				}
+			case []map[string]any:
+				dstTypedVal, ok := dstVal.([]map[string]any)
+				var dstLen int
+				if ok {
+					dstLen = len(dstTypedVal)
+				} else {
+					return fmt.Errorf("field `%s` should be map[string]any but is `%T`", srcKey, dstVal)
+				}
+				srcLen := len(srcTypedVal)
+				minLen := srcLen
+				if minLen > dstLen {
+					minLen = dstLen
+				}
+				for i := 0; i < minLen; i++ {
+					err := MergeRecursive(dstTypedVal[i], srcTypedVal[i])
+					if err != nil {
+						return err
+					}
+				}
+				if dstLen < srcLen {
+					for i := dstLen; i < srcLen; i++ {
+						dstTypedVal = append(dstTypedVal, srcTypedVal[i])
+					}
+					dst[srcKey] = dstTypedVal
+				}
+			default:
+				dst[srcKey] = srcVal
+			}
+		default:
+			dst[srcKey] = srcVal
+		}
+	}
+	return nil
+}
+
 func GetMapValue(current map[string]any, path string, iter Iterator) (any, error) {
 	var curSegment strings.Builder
 	segments := strings.Split(path, ".")

@@ -476,3 +476,324 @@ func BenchmarkGetMapValue(b *testing.B) {
 		}
 	}
 }
+
+func TestMergeRecursive(t *testing.T) {
+	tests := []struct {
+		name    string
+		m1      map[string]any
+		m2      map[string]any
+		want    map[string]any
+		wantErr bool
+	}{
+		{
+			name: "value of field `key` should be same type",
+			m1: map[string]any{
+				"key": map[string]any{},
+			},
+			m2: map[string]any{
+				"key": "key",
+			},
+			wantErr: true,
+		},
+		{
+			name: "add key2",
+			m1: map[string]any{
+				"key": map[string]any{
+					"key1": map[string]any{
+						"val1": "val1",
+					},
+				},
+			},
+			m2: map[string]any{
+				"key": map[string]any{
+					"key2": map[string]any{
+						"val2": "val2",
+					},
+				},
+			},
+			want: map[string]any{
+				"key": map[string]any{
+					"key1": map[string]any{
+						"val1": "val1",
+					},
+					"key2": map[string]any{
+						"val2": "val2",
+					},
+				},
+			},
+		},
+		{
+			name: "",
+			m1: map[string]any{
+				"key": map[string]any{
+					"key1": map[string]any{
+						"val1": "val1",
+					},
+				},
+			},
+			m2: map[string]any{
+				"key": map[string]any{
+					"key1": map[string]any{
+						"val2": "val2",
+					},
+				},
+			},
+			want: map[string]any{
+				"key": map[string]any{
+					"key1": map[string]any{
+						"val1": "val1",
+						"val2": "val2",
+					},
+				},
+			},
+		},
+		{
+			name: "",
+			m1: map[string]any{
+				"key": map[string]any{
+					"key1": map[string]any{
+						"val1": "val1",
+					},
+				},
+			},
+			m2: map[string]any{
+				"key": map[string]any{
+					"key1": map[string]any{
+						"val1": "val2",
+					},
+				},
+			},
+			want: map[string]any{
+				"key": map[string]any{
+					"key1": map[string]any{
+						"val1": "val2",
+					},
+				},
+			},
+		},
+		{
+			name: "",
+			m1: map[string]any{
+				"key": map[string]any{
+					"key1": map[string]any{
+						"val1": "val1",
+					},
+				},
+				"kkk": 1,
+			},
+			m2: map[string]any{
+				"key": map[string]any{
+					"key1": map[string]any{
+						"val1": "val2",
+					},
+				},
+				"kkk": 2,
+			},
+			want: map[string]any{
+				"key": map[string]any{
+					"key1": map[string]any{
+						"val1": "val2",
+					},
+				},
+				"kkk": 2,
+			},
+		},
+		{
+			name: "[]map[string]any base",
+			m1: map[string]any{
+				"key": []map[string]any{
+					{
+						"key1": map[string]any{
+							"val1": "val1",
+						},
+					},
+				},
+				"kkk": 1,
+			},
+			m2: map[string]any{
+				"key": []map[string]any{
+					{
+						"key1": map[string]any{
+							"val1": "val2",
+						},
+					},
+				},
+				"kkk": 2,
+			},
+			want: map[string]any{
+				"key": []map[string]any{
+					{
+						"key1": map[string]any{
+							"val1": "val2",
+						},
+					},
+				},
+				"kkk": 2,
+			},
+		},
+		{
+			name: "[]map[string]any distination is greater then src",
+			m1: map[string]any{
+				"firstKey": []map[string]any{
+					{
+						"middleKey1": map[string]any{
+							"lastKey1": "val1",
+							"lastKey2": "val2",
+						},
+					},
+					{
+						"middleKey3": map[string]any{
+							"lastKey3": "val3",
+						},
+					},
+				},
+				"kkk": 1,
+			},
+			m2: map[string]any{
+				"firstKey": []map[string]any{
+					{
+						"middleKey1": map[string]any{
+							"lastKey1": "val1new",
+							"lastKey3": "val3",
+						},
+					},
+				},
+				"kkk": 2,
+			},
+			want: map[string]any{
+				"firstKey": []map[string]any{
+					{
+						"middleKey1": map[string]any{
+							"lastKey1": "val1new",
+							"lastKey2": "val2",
+							"lastKey3": "val3",
+						},
+					},
+					{
+						"middleKey3": map[string]any{
+							"lastKey3": "val3",
+						},
+					},
+				},
+				"kkk": 2,
+			},
+		},
+		{
+			name: "[]map[string]any distination is less then src",
+			m1: map[string]any{
+				"firstKey": []map[string]any{
+					{
+						"middleKey1": map[string]any{
+							"lastKey1": "val1",
+						},
+					},
+				},
+				"kkk": 1,
+			},
+			m2: map[string]any{
+				"firstKey": []map[string]any{
+					{
+						"middleKey1": map[string]any{
+							"lastKey1": "val2",
+						},
+					},
+					{
+						"middleKey3": map[string]any{
+							"lastKey3": "val3",
+						},
+					},
+				},
+				"kkk": 2,
+			},
+			want: map[string]any{
+				"firstKey": []map[string]any{
+					{
+						"middleKey1": map[string]any{
+							"lastKey1": "val2",
+						},
+					},
+					{
+						"middleKey3": map[string]any{
+							"lastKey3": "val3",
+						},
+					},
+				},
+				"kkk": 2,
+			},
+		},
+		{
+			name: "[]any as []map[string]any",
+			m1: map[string]any{
+				"firstKey": []any{
+					map[string]any{
+						"middleKey1": map[string]any{
+							"lastKey1": "val1",
+							"lastKey2": "val2",
+						},
+					},
+				},
+				"kkk": 1,
+			},
+			m2: map[string]any{
+				"firstKey": []any{
+					map[string]any{
+						"middleKey1": map[string]any{
+							"lastKey1": "val1new",
+							"lastKey3": "val3",
+						},
+					},
+					map[string]any{
+						"middleKey3": map[string]any{
+							"lastKey3": "val3",
+						},
+					},
+				},
+				"kkk": 2,
+			},
+			want: map[string]any{
+				"firstKey": []any{
+					map[string]any{
+						"middleKey1": map[string]any{
+							"lastKey1": "val1new",
+							"lastKey2": "val2",
+							"lastKey3": "val3",
+						},
+					},
+					map[string]any{
+						"middleKey3": map[string]any{
+							"lastKey3": "val3",
+						},
+					},
+				},
+				"kkk": 2,
+			},
+		},
+		{
+			name: "[]string",
+			m1: map[string]any{
+				"key": []string{"a", "a"},
+				"kkk": 1,
+			},
+			m2: map[string]any{
+				"key": []string{"b", "b"},
+				"kkk": 2,
+			},
+			want: map[string]any{
+				"key": []string{"b", "b"},
+				"kkk": 2,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			err := MergeRecursive(tt.m1, tt.m2)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equalf(t, tt.want, tt.m1, "%+v \n%+v", tt.want, tt.m1)
+		})
+	}
+}
