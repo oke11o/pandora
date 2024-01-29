@@ -31,8 +31,30 @@ func MergeRecursive(dst, src map[string]any) error {
 		}
 		switch srcValueType {
 		case reflect.Map:
-			if err := MergeRecursive(dstVal.(map[string]any), srcVal.(map[string]any)); err != nil {
-				return err
+			dstValM, okd := dstVal.(map[string]any)
+			srcValM, oks := srcVal.(map[string]any)
+			if okd && oks {
+				if err := MergeRecursive(dstValM, srcValM); err != nil {
+					return err
+				}
+			} else {
+				dstValAM, okd := dstVal.(map[any]any)
+				srcValAM, oks := srcVal.(map[any]any)
+				if !okd || !oks {
+					return fmt.Errorf("field `%s` should be support map[string]any or map[any]any; but is %T and %T", srcKey, dstVal, srcVal)
+				}
+				dstValM := make(map[string]any, len(dstValAM))
+				for d1k, d1v := range dstValAM {
+					dstValM[d1k.(string)] = d1v
+				}
+				srcValM := make(map[string]any, len(srcValAM))
+				for d1k, d1v := range srcValAM {
+					srcValM[d1k.(string)] = d1v
+				}
+				if err := MergeRecursive(dstValM, srcValM); err != nil {
+					return err
+				}
+				dst[srcKey] = dstValM
 			}
 		case reflect.Slice:
 			switch srcTypedVal := srcVal.(type) {
@@ -52,16 +74,35 @@ func MergeRecursive(dst, src map[string]any) error {
 				for i := 0; i < minLen; i++ {
 					d, ok := dstTypedVal[i].(map[string]any)
 					if !ok {
-						return fmt.Errorf("field `%s` should be []any where any=map[string]any but is `%T`", srcKey, dstVal)
+						d1, ok := dstTypedVal[i].(map[any]any)
+						if !ok {
+							return fmt.Errorf("field `%s` should be []any where any=map[string]any or any=map[any]any but is `%T`", srcKey, dstVal)
+						}
+						d = make(map[string]any, len(d1))
+						for d1k, d1v := range d1 {
+							d1kk, ok := d1k.(string)
+							_ = ok
+							d[d1kk] = d1v
+						}
 					}
 					s, ok := srcTypedVal[i].(map[string]any)
 					if !ok {
-						return fmt.Errorf("field `%s` should be []any where any=map[string]any but is `%T`", srcKey, srcVal)
+						s1, ok := srcTypedVal[i].(map[any]any)
+						if !ok {
+							return fmt.Errorf("field `%s` should be []any where any=map[string]any or any=map[any]any but is `%T`", srcKey, srcVal)
+						}
+						s = make(map[string]any, len(s1))
+						for s1k, s1v := range s1 {
+							s1kk, ok := s1k.(string)
+							_ = ok
+							s[s1kk] = s1v
+						}
 					}
 					err := MergeRecursive(d, s)
 					if err != nil {
 						return err
 					}
+					dstTypedVal[i] = d
 				}
 				if dstLen < srcLen {
 					for i := dstLen; i < srcLen; i++ {

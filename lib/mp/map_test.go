@@ -769,6 +769,53 @@ func TestMergeRecursive(t *testing.T) {
 			},
 		},
 		{
+			name: "[]map[any]any distination is greater then src",
+			m1: map[string]any{
+				"firstKey": []any{
+					map[any]any{
+						"middleKey1": map[any]any{
+							"lastKey1": "val1",
+							"lastKey2": "val2",
+						},
+					},
+					map[any]any{
+						"middleKey3": map[any]any{
+							"lastKey3": "val3",
+						},
+					},
+				},
+				"kkk": 1,
+			},
+			m2: map[string]any{
+				"firstKey": []any{
+					map[any]any{
+						"middleKey1": map[any]any{
+							"lastKey1": "val1new",
+							"lastKey3": "val3",
+						},
+					},
+				},
+				"kkk": 2,
+			},
+			want: map[string]any{
+				"firstKey": []any{
+					map[string]any{
+						"middleKey1": map[string]any{
+							"lastKey1": "val1new",
+							"lastKey2": "val2",
+							"lastKey3": "val3",
+						},
+					},
+					map[any]any{
+						"middleKey3": map[any]any{
+							"lastKey3": "val3",
+						},
+					},
+				},
+				"kkk": 2,
+			},
+		},
+		{
 			name: "[]string",
 			m1: map[string]any{
 				"key": []string{"a", "a"},
