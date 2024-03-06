@@ -66,8 +66,7 @@ type Gun struct {
 	Stub     grpcdynamic.Stub
 	Services map[string]desc.MethodDescriptor
 
-	AnswLog    *zap.Logger
-	ClientPool *clientpool.Pool
+	AnswLog *zap.Logger
 }
 
 func DefaultGunConfig() GunConfig {
@@ -101,8 +100,7 @@ func (g *Gun) createSharedDeps(opts *warmup.Options) (*SharedDeps, error) {
 }
 
 func (g *Gun) prepareMethodList(opts *warmup.Options) (map[string]desc.MethodDescriptor, error) {
-	target := replacePort(g.Conf.Target, g.Conf.ReflectPort)
-	conn, err := MakeGRPCConnect(target, g.Conf.TLS, g.Conf.DialOptions)
+	conn, err := g.makeReflectionConnect()
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to target: %w", err)
 	}
@@ -134,18 +132,20 @@ func (g *Gun) prepareMethodList(opts *warmup.Options) (map[string]desc.MethodDes
 	return services, nil
 }
 
-func (g *Gun) prepareClientPool() (*clientpool.Pool, error) {
+func (g *Gun) prepareClientPool() (*clientpool.Pool[grpcdynamic.Stub], error) {
 	if g.Conf.PoolSize <= 0 {
 		return nil, nil
 	}
-	clientPool := clientpool.New(g.Conf.PoolSize)
+	clientPool, err := clientpool.New[grpcdynamic.Stub](g.Conf.PoolSize)
+	if err != nil {
+		return nil, fmt.Errorf("create clientpool err: %w", err)
+	}
 	for i := 0; i < g.Conf.PoolSize; i++ {
-		conn, err := MakeGRPCConnect(g.Conf.Target, g.Conf.TLS, g.Conf.DialOptions)
+		conn, err := g.makeConnect()
 		if err != nil {
 			return nil, fmt.Errorf("makeGRPCConnect fail %w", err)
 		}
-		stub := grpcdynamic.NewStub(conn)
-		g.setStubToClientPool(clientPool, stub)
+		clientPool.Add(grpcdynamic.NewStub(conn))
 	}
 	return clientPool, nil
 }
@@ -160,19 +160,16 @@ func (g *Gun) Bind(aggr core.Aggregator, deps core.GunDeps) error {
 	if ok {
 		g.Services = sharedDeps.services
 		if sharedDeps.clientPool != nil {
-			g.ClientPool = sharedDeps.clientPool
-			stub, err := g.getStubFromClientPool(sharedDeps.clientPool)
-			if err != nil {
-				return err
-			}
-			g.Stub = stub
+			g.Stub = sharedDeps.clientPool.Next()
 		} else {
-			conn, err := MakeGRPCConnect(g.Conf.Target, g.Conf.TLS, g.Conf.DialOptions)
+			conn, err := g.makeConnect()
 			if err != nil {
 				return fmt.Errorf("makeGRPCConnect fail %w", err)
 			}
 			g.Stub = grpcdynamic.NewStub(conn)
 		}
+	} else {
+		return fmt.Errorf("grpc WarmUp result should be struct: *SharedDeps")
 	}
 
 	g.Aggr = aggr
@@ -258,16 +255,13 @@ func (g *Gun) AnswLogging(logger *zap.Logger, method *desc.MethodDescriptor, req
 	logger.Debug("Response:", zap.Stringer("resp", response), zap.Error(grpcErr))
 }
 
-func (g *Gun) setStubToClientPool(pool *clientpool.Pool, stub grpcdynamic.Stub) {
-	pool.Add(stub)
+func (g *Gun) makeConnect() (conn *grpc.ClientConn, err error) {
+	return MakeGRPCConnect(g.Conf.Target, g.Conf.TLS, g.Conf.DialOptions)
 }
 
-func (g *Gun) getStubFromClientPool(pool *clientpool.Pool) (grpcdynamic.Stub, error) {
-	s := pool.Next()
-	if sub, ok := s.(grpcdynamic.Stub); ok {
-		return sub, nil
-	}
-	return grpcdynamic.Stub{}, fmt.Errorf("client-pool must contains grpcdynamic.Stub, but contains %T", s)
+func (g *Gun) makeReflectionConnect() (conn *grpc.ClientConn, err error) {
+	target := replacePort(g.Conf.Target, g.Conf.ReflectPort)
+	return MakeGRPCConnect(target, g.Conf.TLS, g.Conf.DialOptions)
 }
 
 func MakeGRPCConnect(target string, isTLS bool, dialOptions GrpcDialOptions) (conn *grpc.ClientConn, err error) {
