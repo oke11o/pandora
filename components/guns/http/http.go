@@ -7,26 +7,30 @@ import (
 	"go.uber.org/zap"
 )
 
-type ClientGunConfig struct {
+type GunConfig struct {
 	Target string `validate:"endpoint,required"`
 	SSL    bool
 	Base   BaseGunConfig `config:",squash"`
 }
 
 type HTTPGunConfig struct {
-	Gun    ClientGunConfig `config:",squash"`
-	Client ClientConfig    `config:",squash"`
+	Gun    GunConfig    `config:",squash"`
+	Client ClientConfig `config:",squash"`
 }
 
 type HTTP2GunConfig struct {
-	Gun    ClientGunConfig `config:",squash"`
-	Client ClientConfig    `config:",squash"`
+	Gun    GunConfig    `config:",squash"`
+	Client ClientConfig `config:",squash"`
 }
 
 func NewHTTPGun(conf HTTPGunConfig, answLog *zap.Logger, targetResolved string) *HTTPGun {
-	transport := NewTransport(conf.Client.Transport, NewDialer(conf.Client.Dialer).DialContext, conf.Gun.Target)
-	client := newClient(transport, conf.Client.Redirect)
-	return NewClientGun(client, conf.Gun, answLog, targetResolved)
+	return NewClientGun(newHTTP1Client, conf.Client, conf.Gun, answLog, targetResolved)
+}
+
+func newHTTP1Client(clientConfig ClientConfig, target string) Client {
+	transport := NewTransport(clientConfig.Transport, NewDialer(clientConfig.Dialer).DialContext, target)
+	client := newClient(transport, clientConfig.Redirect)
+	return client
 }
 
 // NewHTTP2Gun return simple HTTP/2 gun that can shoot sequentially through one connection.
@@ -35,31 +39,40 @@ func NewHTTP2Gun(conf HTTP2GunConfig, answLog *zap.Logger, targetResolved string
 		// Open issue on github if you really need this feature.
 		return nil, errors.New("HTTP/2.0 over TCP is not supported. Please leave SSL option true by default.")
 	}
-	transport := NewHTTP2Transport(conf.Client.Transport, NewDialer(conf.Client.Dialer).DialContext, conf.Gun.Target)
-	client := newClient(transport, conf.Client.Redirect)
-	// Will panic and cancel shooting whet target doesn't support HTTP/2.
-	client = &panicOnHTTP1Client{client}
-	return NewClientGun(client, conf.Gun, answLog, targetResolved), nil
+	return NewClientGun(newHTTP2Client, conf.Client, conf.Gun, answLog, targetResolved), nil
 }
 
-func NewClientGun(client Client, conf ClientGunConfig, answLog *zap.Logger, targetResolved string) *HTTPGun {
+type clientConstructor func(clientConfig ClientConfig, target string) Client
+
+func newHTTP2Client(clientConfig ClientConfig, target string) Client {
+	transport := NewHTTP2Transport(clientConfig.Transport, NewDialer(clientConfig.Dialer).DialContext, target)
+	client := newClient(transport, clientConfig.Redirect)
+	// Will panic and cancel shooting whet target doesn't support HTTP/2.
+	return &panicOnHTTP1Client{Client: client}
+}
+
+func NewClientGun(clientConstructor clientConstructor, clientCfg ClientConfig, gunCfg GunConfig, answLog *zap.Logger, targetResolved string) *HTTPGun {
+	client := clientConstructor(clientCfg, gunCfg.Target)
 	scheme := "http"
-	if conf.SSL {
+	if gunCfg.SSL {
 		scheme = "https"
 	}
 	var g HTTPGun
 	g = HTTPGun{
 		BaseGun: BaseGun{
-			Config: conf.Base,
+			Config: gunCfg.Base,
 			Do:     g.Do,
 			OnClose: func() error {
 				client.CloseIdleConnections()
 				return nil
 			},
-			AnswLog: answLog,
+			AnswLog:           answLog,
+			Target:            gunCfg.Target,
+			ClientConfig:      clientCfg,
+			ClientConstructor: clientConstructor,
 		},
 		scheme:         scheme,
-		hostname:       getHostWithoutPort(conf.Target),
+		hostname:       getHostWithoutPort(gunCfg.Target),
 		targetResolved: targetResolved,
 		client:         client,
 	}
@@ -83,7 +96,11 @@ func (g *HTTPGun) Do(req *http.Request) (*http.Response, error) {
 
 	req.URL.Host = g.targetResolved
 	req.URL.Scheme = g.scheme
-	return g.client.Do(req)
+	client := g.client
+	if g.BaseGun.ClientPool != nil {
+		client = g.ClientPool.Next()
+	}
+	return client.Do(req)
 }
 
 func DefaultHTTPGunConfig() HTTPGunConfig {
@@ -102,8 +119,8 @@ func DefaultHTTP2GunConfig() HTTP2GunConfig {
 	return conf
 }
 
-func DefaultClientGunConfig() ClientGunConfig {
-	return ClientGunConfig{
+func DefaultClientGunConfig() GunConfig {
+	return GunConfig{
 		SSL:  false,
 		Base: DefaultBaseGunConfig(),
 	}

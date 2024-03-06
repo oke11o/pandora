@@ -13,6 +13,9 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
+
+	"github.com/yandex/pandora/examples/grpc/server"
 )
 
 const (
@@ -68,6 +71,20 @@ func (s *Server) checkAuthorization(r *http.Request) (int64, int, error) {
 }
 
 func (s *Server) authHandler(w http.ResponseWriter, r *http.Request) {
+	//user := struct {
+	//	UserID int64 `json:"user_id"`
+	//}{}
+	//err := json.NewDecoder(r.Body).Decode(&user)
+	//if err != nil {
+	//	s.stats.IncAuth500()
+	//	http.Error(w, "Incorrect body", http.StatusNotAcceptable)
+	//	return
+	//}
+	//
+	//s.grpcSrv.Auth(r.Context(), &server.AuthRequest{
+	//	Login: strconv.FormatInt(user.UserID, 10),
+	//	Pass:  strconv.FormatInt(user.UserID, 10),
+	//})
 	code, err := checkContentTypeAndMethod(r, []string{http.MethodPost})
 	if err != nil {
 		if code >= 500 {
@@ -237,9 +254,10 @@ func NewServer(addr string, log *slog.Logger, seed int64) *Server {
 		keys[randStringRunes(64)] = i
 	}
 
-	result := &Server{Log: log, stats: newStats(userCount), keys: keys}
+	result := &Server{Log: log, stats: newStats(userCount), keys: keys, grpcSrv: server.NewServer(log, time.Now().UnixNano())}
 	mux := http.NewServeMux()
 
+	// TODO: Обернуть все методы grpcServer'a
 	mux.Handle("/auth", http.HandlerFunc(result.authHandler))
 	mux.Handle("/list", http.HandlerFunc(result.listHandler))
 	mux.Handle("/order", http.HandlerFunc(result.orderHandler))
@@ -260,7 +278,8 @@ func NewServer(addr string, log *slog.Logger, seed int64) *Server {
 }
 
 type Server struct {
-	srv *http.Server
+	srv     *http.Server
+	grpcSrv *server.GRPCServer
 
 	Log   *slog.Logger
 	stats *Stats

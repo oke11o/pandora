@@ -67,12 +67,14 @@ func DefaultConnectGunConfig() ConnectGunConfig {
 }
 
 func newConnectClient(conf ConnectGunConfig) Client {
-	transport := NewTransport(conf.Client.Transport,
+	transport := NewTransport(
+		conf.Client.Transport,
 		newConnectDialFunc(
 			conf.Target,
 			conf.ConnectSSL,
 			NewDialer(conf.Client.Dialer),
-		), conf.Target)
+		),
+		conf.Target)
 	return newClient(transport, conf.Client.Redirect)
 }
 
