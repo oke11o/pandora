@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
 	"github.com/yandex/pandora/core"
 	coremock "github.com/yandex/pandora/core/mocks"
 	"github.com/yandex/pandora/core/schedule"
@@ -47,15 +48,13 @@ func Test_Instance(t *testing.T) {
 
 	var justBeforeEach = func() {
 		deps := instanceDeps{
-
-			newSchedule,
-			newGun,
-			instanceSharedDeps{
-				provider,
-				metrics,
-				nil,
-				aggregator,
-				false,
+			newSchedule: newSchedule,
+			newGun:      newGun,
+			instanceSharedDeps: instanceSharedDeps{
+				provider:        provider,
+				metrics:         metrics,
+				aggregator:      aggregator,
+				discardOverflow: false,
 			},
 		}
 		ins, insCreateErr = newInstance(ctx, newNopLogger(), "pool_0", 0, deps)

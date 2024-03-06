@@ -6,12 +6,13 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
+
 	"github.com/yandex/pandora/core"
 	"github.com/yandex/pandora/core/coreutil"
 	"github.com/yandex/pandora/core/warmup"
 	"github.com/yandex/pandora/lib/errutil"
 	"github.com/yandex/pandora/lib/monitoring"
-	"go.uber.org/zap"
 )
 
 type Config struct {
@@ -108,7 +109,7 @@ func (e *Engine) Wait() {
 
 func newPool(log *zap.Logger, m Metrics, onWaitDone func(), conf InstancePoolConfig) *instancePool {
 	log = log.With(zap.String("pool", conf.ID))
-	return &instancePool{log, m, onWaitDone, conf, nil}
+	return &instancePool{log: log, metrics: m, onWaitDone: onWaitDone, InstancePoolConfig: conf}
 }
 
 type instancePool struct {
@@ -116,7 +117,7 @@ type instancePool struct {
 	metrics    Metrics
 	onWaitDone func()
 	InstancePoolConfig
-	gunWarmUpResult interface{}
+	sharedGunDeps any
 }
 
 // Run start instance pool. Run blocks until fail happen, or all instances finish.
@@ -169,10 +170,7 @@ func (p *instancePool) warmUpGun(ctx context.Context) error {
 		return fmt.Errorf("can't initiate a gun: %w", err)
 	}
 	if gunWithWarmUp, ok := gun.(warmup.WarmedUp); ok {
-		p.gunWarmUpResult, err = gunWithWarmUp.WarmUp(&warmup.Options{
-			Log: p.log,
-			Ctx: ctx,
-		})
+		p.sharedGunDeps, err = gunWithWarmUp.WarmUp(&warmup.Options{Log: p.log, Ctx: ctx})
 		if err != nil {
 			return fmt.Errorf("gun warm up failed: %w", err)
 		}
@@ -362,7 +360,7 @@ func (p *instancePool) startInstances(
 		instanceSharedDeps: instanceSharedDeps{
 			provider:        p.Provider,
 			metrics:         p.metrics,
-			gunWarmUpResult: p.gunWarmUpResult,
+			gunDeps:         p.sharedGunDeps,
 			aggregator:      p.Aggregator,
 			discardOverflow: p.DiscardOverflow,
 		},

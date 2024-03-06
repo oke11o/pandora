@@ -17,6 +17,7 @@ import (
 	ammo "github.com/yandex/pandora/components/providers/grpc"
 	"github.com/yandex/pandora/core"
 	"github.com/yandex/pandora/core/aggregator/netsample"
+	"github.com/yandex/pandora/core/clientpool"
 	"github.com/yandex/pandora/core/warmup"
 	"github.com/yandex/pandora/lib/answlog"
 	"go.uber.org/zap"
@@ -47,6 +48,7 @@ type GunConfig struct {
 	TLS         bool            `config:"tls"`
 	DialOptions GrpcDialOptions `config:"dial_options"`
 	AnswLog     AnswLogConfig   `config:"answlog"`
+	PoolSize    int             `config:"pool-size"`
 }
 
 type AnswLogConfig struct {
@@ -57,7 +59,6 @@ type AnswLogConfig struct {
 
 type Gun struct {
 	DebugLog bool
-	Client   *grpc.ClientConn
 	Conf     GunConfig
 	Aggr     core.Aggregator
 	core.GunDeps
@@ -65,7 +66,8 @@ type Gun struct {
 	Stub     grpcdynamic.Stub
 	Services map[string]desc.MethodDescriptor
 
-	AnswLog *zap.Logger
+	AnswLog    *zap.Logger
+	ClientPool *clientpool.Pool
 }
 
 func DefaultGunConfig() GunConfig {
@@ -79,7 +81,26 @@ func DefaultGunConfig() GunConfig {
 	}
 }
 
-func (g *Gun) WarmUp(opts *warmup.Options) (interface{}, error) {
+func (g *Gun) WarmUp(opts *warmup.Options) (any, error) {
+	return g.createSharedDeps(opts)
+}
+
+func (g *Gun) createSharedDeps(opts *warmup.Options) (*SharedDeps, error) {
+	services, err := g.prepareMethodList(opts)
+	if err != nil {
+		return nil, err
+	}
+	clientPool, err := g.prepareClientPool()
+	if err != nil {
+		return nil, err
+	}
+	return &SharedDeps{
+		services:   services,
+		clientPool: clientPool,
+	}, nil
+}
+
+func (g *Gun) prepareMethodList(opts *warmup.Options) (map[string]desc.MethodDescriptor, error) {
 	target := replacePort(g.Conf.Target, g.Conf.ReflectPort)
 	conn, err := MakeGRPCConnect(target, g.Conf.TLS, g.Conf.DialOptions)
 	if err != nil {
@@ -113,13 +134,20 @@ func (g *Gun) WarmUp(opts *warmup.Options) (interface{}, error) {
 	return services, nil
 }
 
-func (g *Gun) AcceptWarmUpResult(i interface{}) error {
-	services, ok := i.(map[string]desc.MethodDescriptor)
-	if !ok {
-		return fmt.Errorf("grpc WarmUp result should be services: map[string]desc.MethodDescriptor")
+func (g *Gun) prepareClientPool() (*clientpool.Pool, error) {
+	if g.Conf.PoolSize <= 0 {
+		return nil, nil
 	}
-	g.Services = services
-	return nil
+	clientPool := clientpool.New(g.Conf.PoolSize)
+	for i := 0; i < g.Conf.PoolSize; i++ {
+		conn, err := MakeGRPCConnect(g.Conf.Target, g.Conf.TLS, g.Conf.DialOptions)
+		if err != nil {
+			return nil, fmt.Errorf("makeGRPCConnect fail %w", err)
+		}
+		stub := grpcdynamic.NewStub(conn)
+		g.setStubToClientPool(clientPool, stub)
+	}
+	return clientPool, nil
 }
 
 func NewGun(conf GunConfig) *Gun {
@@ -128,14 +156,27 @@ func NewGun(conf GunConfig) *Gun {
 }
 
 func (g *Gun) Bind(aggr core.Aggregator, deps core.GunDeps) error {
-	conn, err := MakeGRPCConnect(g.Conf.Target, g.Conf.TLS, g.Conf.DialOptions)
-	if err != nil {
-		return fmt.Errorf("makeGRPCConnect fail %w", err)
+	sharedDeps, ok := deps.Shared.(*SharedDeps)
+	if ok {
+		g.Services = sharedDeps.services
+		if sharedDeps.clientPool != nil {
+			g.ClientPool = sharedDeps.clientPool
+			stub, err := g.getStubFromClientPool(sharedDeps.clientPool)
+			if err != nil {
+				return err
+			}
+			g.Stub = stub
+		} else {
+			conn, err := MakeGRPCConnect(g.Conf.Target, g.Conf.TLS, g.Conf.DialOptions)
+			if err != nil {
+				return fmt.Errorf("makeGRPCConnect fail %w", err)
+			}
+			g.Stub = grpcdynamic.NewStub(conn)
+		}
 	}
-	g.Client = conn
+
 	g.Aggr = aggr
 	g.GunDeps = deps
-	g.Stub = grpcdynamic.NewStub(conn)
 
 	if ent := deps.Log.Check(zap.DebugLevel, "Gun bind"); ent != nil {
 		deps.Log.Warn("Deprecation Warning: log level: debug doesn't produce request/response logs anymore. Please use AnswLog option instead:\nanswlog:\n  enabled: true\n  filter: all|warning|error\n  path: answ.log")
@@ -215,6 +256,18 @@ func (g *Gun) shoot(ammo *ammo.Ammo) {
 func (g *Gun) AnswLogging(logger *zap.Logger, method *desc.MethodDescriptor, request proto.Message, response proto.Message, grpcErr error) {
 	logger.Debug("Request:", zap.Stringer("method", method), zap.Stringer("message", request))
 	logger.Debug("Response:", zap.Stringer("resp", response), zap.Error(grpcErr))
+}
+
+func (g *Gun) setStubToClientPool(pool *clientpool.Pool, stub grpcdynamic.Stub) {
+	pool.Add(stub)
+}
+
+func (g *Gun) getStubFromClientPool(pool *clientpool.Pool) (grpcdynamic.Stub, error) {
+	s := pool.Next()
+	if sub, ok := s.(grpcdynamic.Stub); ok {
+		return sub, nil
+	}
+	return grpcdynamic.Stub{}, fmt.Errorf("client-pool must contains grpcdynamic.Stub, but contains %T", s)
 }
 
 func MakeGRPCConnect(target string, isTLS bool, dialOptions GrpcDialOptions) (conn *grpc.ClientConn, err error) {

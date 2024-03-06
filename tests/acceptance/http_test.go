@@ -9,13 +9,15 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/atomic"
+	"go.uber.org/zap"
+	"golang.org/x/net/http2"
+
 	grpc "github.com/yandex/pandora/components/grpc/import"
 	phttpimport "github.com/yandex/pandora/components/phttp/import"
 	"github.com/yandex/pandora/core/engine"
 	coreimport "github.com/yandex/pandora/core/import"
-	"go.uber.org/atomic"
-	"go.uber.org/zap"
-	"golang.org/x/net/http2"
+	"github.com/yandex/pandora/lib/testutil"
 )
 
 var testOnce = &sync.Once{}
@@ -39,8 +41,7 @@ func (s *PandoraSuite) SetupSuite() {
 		grpc.Import(s.fs)
 	})
 
-	s.log = newNullLogger()
-	// s.log = newLogger()
+	s.log = testutil.NewNullLogger()
 	s.metrics = newEngineMetrics("http_suite")
 }
 
