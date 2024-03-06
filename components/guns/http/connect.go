@@ -16,7 +16,6 @@ import (
 
 type ConnectGunConfig struct {
 	Target        string       `validate:"endpoint,required"`
-	ConnectSSL    bool         `config:"connect-ssl"` // Defines if tunnel encrypted.
 	SSL           bool         // As in HTTP gun, defines scheme for http requests.
 	Client        ClientConfig `config:",squash"`
 	BaseGunConfig `config:",squash"`
@@ -27,7 +26,7 @@ func NewConnectGun(conf ConnectGunConfig, answLog *zap.Logger) *ConnectGun {
 	if conf.SSL {
 		scheme = "https"
 	}
-	client := newConnectClient(conf)
+	client := newConnectClient(conf.Client, conf.Target)
 	var g ConnectGun
 	g = ConnectGun{
 		BaseGun: BaseGun{
@@ -37,7 +36,8 @@ func NewConnectGun(conf ConnectGunConfig, answLog *zap.Logger) *ConnectGun {
 				client.CloseIdleConnections()
 				return nil
 			},
-			AnswLog: answLog,
+			AnswLog:           answLog,
+			ClientConstructor: newConnectClient,
 		},
 		scheme: scheme,
 		client: client,
@@ -60,22 +60,21 @@ func (g *ConnectGun) Do(req *http.Request) (*http.Response, error) {
 
 func DefaultConnectGunConfig() ConnectGunConfig {
 	return ConnectGunConfig{
-		SSL:        false,
-		ConnectSSL: false,
-		Client:     DefaultClientConfig(),
+		SSL:    false,
+		Client: DefaultClientConfig(),
 	}
 }
 
-func newConnectClient(conf ConnectGunConfig) Client {
+func newConnectClient(conf ClientConfig, target string) Client {
 	transport := NewTransport(
-		conf.Client.Transport,
+		conf.Transport,
 		newConnectDialFunc(
-			conf.Target,
+			target,
 			conf.ConnectSSL,
-			NewDialer(conf.Client.Dialer),
+			NewDialer(conf.Dialer),
 		),
-		conf.Target)
-	return newClient(transport, conf.Client.Redirect)
+		target)
+	return newClient(transport, conf.Redirect)
 }
 
 func newConnectDialFunc(target string, connectSSL bool, dialer netutil.Dialer) netutil.DialerFunc {

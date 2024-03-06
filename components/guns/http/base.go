@@ -81,6 +81,7 @@ type BaseGun struct {
 	ClientConfig      ClientConfig
 	ClientConstructor clientConstructor
 	ClientPool        *clientpool.Pool[Client]
+
 	core.GunDeps
 }
 
