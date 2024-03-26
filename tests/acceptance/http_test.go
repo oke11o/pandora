@@ -9,14 +9,15 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/atomic"
+	"go.uber.org/zap"
+	"golang.org/x/net/http2"
+
 	grpc "github.com/yandex/pandora/components/grpc/import"
 	phttpimport "github.com/yandex/pandora/components/phttp/import"
 	"github.com/yandex/pandora/core/engine"
 	coreimport "github.com/yandex/pandora/core/import"
 	"github.com/yandex/pandora/lib/testutil"
-	"go.uber.org/atomic"
-	"go.uber.org/zap"
-	"golang.org/x/net/http2"
 )
 
 var testOnce = &sync.Once{}

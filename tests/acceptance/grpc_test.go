@@ -11,6 +11,11 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+	"gopkg.in/yaml.v2"
+
 	"github.com/yandex/pandora/cli"
 	grpcimport "github.com/yandex/pandora/components/grpc/import"
 	phttpimport "github.com/yandex/pandora/components/phttp/import"
@@ -19,10 +24,6 @@ import (
 	"github.com/yandex/pandora/examples/grpc/server"
 	"github.com/yandex/pandora/lib/pointer"
 	"github.com/yandex/pandora/lib/testutil"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
-	"gopkg.in/yaml.v2"
 )
 
 func TestCheckGRPCReflectServer(t *testing.T) {

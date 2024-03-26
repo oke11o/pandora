@@ -15,12 +15,6 @@ import (
 	"github.com/jhump/protoreflect/dynamic"
 	"github.com/jhump/protoreflect/dynamic/grpcdynamic"
 	"github.com/jhump/protoreflect/grpcreflect"
-	ammo "github.com/yandex/pandora/components/providers/grpc"
-	"github.com/yandex/pandora/core"
-	"github.com/yandex/pandora/core/aggregator/netsample"
-	"github.com/yandex/pandora/core/clientpool"
-	"github.com/yandex/pandora/core/warmup"
-	"github.com/yandex/pandora/lib/answlog"
 	"go.uber.org/zap"
 	"golang.org/x/exp/maps"
 	"google.golang.org/grpc"
@@ -28,6 +22,13 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+
+	ammo "github.com/yandex/pandora/components/providers/grpc"
+	"github.com/yandex/pandora/core"
+	"github.com/yandex/pandora/core/aggregator/netsample"
+	"github.com/yandex/pandora/core/clientpool"
+	"github.com/yandex/pandora/core/warmup"
+	"github.com/yandex/pandora/lib/answlog"
 )
 
 const defaultTimeout = time.Second * 15
