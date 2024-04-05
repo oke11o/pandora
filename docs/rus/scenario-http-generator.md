@@ -15,6 +15,7 @@
     - [Запросы](#запросы)
         - [Шаблонизатор](#шаблонизатор)
             - [Имена переменных в шаблонрах](#имена-переменных-в-шаблонах)
+            - [Функции в шаблонах](#функции-в-шаблонах)
         - [Preprocessors](#preprocessors)
         - [Postprocessors](#postprocessors)
             - [var/jsonpath](#varjsonpath)
@@ -214,6 +215,18 @@ scenarios:
 Переменная `item` из препроцессора запроса `list_req` - `{% raw %}{{.request.list_req.preprocessor.item}}{% endraw %}`
 
 Переменная `token` из постпроцессора запроса `list_req` - `{% raw %}{{.request.list_req.postprocessor.token}}{% endraw %}`
+
+#### Функции в шаблонах
+
+Так как используется стандартные шаблонизатор Го в нем можно использовать встроенные функции
+https://pkg.go.dev/text/template#hdr-Functions
+
+А так же некоторые функции 
+
+- randInt
+- randString
+- randStringFrom
+- uuid
 
 #### Preprocessors
 

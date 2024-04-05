@@ -51,6 +51,33 @@ func TestPreprocessor_Process(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Random Functions",
+			prep: Preprocessor{
+				Mapping: map[string]string{
+					"var4": "randInt(.request.auth.min, 201)",
+					"var5": "randString(source.items[last].id, .request.get.letters)",
+				},
+			},
+			templVars: map[string]any{
+				"request": map[string]any{
+					"auth": map[string]any{"min": 200},
+					"get":  map[string]any{"letters": "a"},
+				},
+				"source": map[string]any{
+					"items": []map[string]any{
+						{"id": "1"},
+						{"id": "2"},
+						{"id": "10"},
+					},
+				},
+			},
+			wantMap: map[string]any{
+				"var4": "200",
+				"var5": "aaaaaaaaaa",
+			},
+			wantErr: false,
+		},
 	}
 
 	for _, tt := range tests {
