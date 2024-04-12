@@ -111,7 +111,7 @@ func RandString(args ...any) string {
 func randString(cnt any, letters string) string {
 	n, err := numbers.ParseInt(cnt)
 	if err != nil || n == 0 {
-		n = defaultMaxRandValue
+		n = 1
 	}
 	return str.RandStringRunes(n, letters)
 }
