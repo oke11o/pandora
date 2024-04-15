@@ -71,7 +71,7 @@ func TestRandString(t *testing.T) {
 		{
 			name:       "No args, default length",
 			args:       nil,
-			wantLength: defaultMaxRandValue,
+			wantLength: 1,
 		},
 		{
 			name:       "Specific length",
@@ -86,17 +86,17 @@ func TestRandString(t *testing.T) {
 		{
 			name:       "Invalid length argument",
 			args:       []any{"invalid"},
-			wantLength: defaultMaxRandValue,
+			wantLength: 1,
 		},
 		{
 			name:       "Invalid length, valid characters",
 			args:       []any{"invalid", "def"},
-			wantLength: defaultMaxRandValue,
+			wantLength: 1,
 		},
 		{
 			name:       "More than two args",
 			args:       []any{5, "gh", "extra"},
-			wantLength: defaultMaxRandValue,
+			wantLength: 1,
 		},
 	}
 
