@@ -214,7 +214,7 @@ func TestTextTemplater_Apply_WithRandFunct(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name:  "randInt",
+			name:  "randInt with vars",
 			parts: &gun.RequestParts{Body: []byte(`{{ randInt .from .to }}`)},
 			vs: map[string]interface{}{
 				"from": int64(10),
@@ -228,7 +228,7 @@ func TestTextTemplater_Apply_WithRandFunct(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:  "randInt",
+			name:  "randInt with literals",
 			parts: &gun.RequestParts{Body: []byte(`{{ randInt 10 30 }}`)},
 			vs:    map[string]interface{}{},
 			assertBody: func(t *testing.T, body string) {
@@ -239,7 +239,34 @@ func TestTextTemplater_Apply_WithRandFunct(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:  "randString",
+			name:  "randInt with literals",
+			parts: &gun.RequestParts{Body: []byte(`{{ randInt -10 }}`)},
+			vs:    map[string]interface{}{},
+			assertBody: func(t *testing.T, body string) {
+				v, err := strconv.ParseInt(body, 10, 64)
+				require.NoError(t, err)
+				require.InDelta(t, -5, v, 5)
+			},
+			expectError: false,
+		},
+		{
+			name:        "randInt with invalid args",
+			parts:       &gun.RequestParts{Body: []byte(`{{ randInt 10 "asdf" }}`)},
+			vs:          map[string]interface{}{},
+			assertBody:  nil,
+			expectError: true,
+		},
+		{
+			name:  "randString with 2 arg",
+			parts: &gun.RequestParts{Body: []byte(`{{ randString 10 "asdfgzxcv" }}`)},
+			vs:    map[string]interface{}{},
+			assertBody: func(t *testing.T, body string) {
+				require.Len(t, body, 10)
+			},
+			expectError: false,
+		},
+		{
+			name:  "randString with 1 arg",
 			parts: &gun.RequestParts{Body: []byte(`{{ randString 10 }}`)},
 			vs:    map[string]interface{}{},
 			assertBody: func(t *testing.T, body string) {
@@ -248,13 +275,20 @@ func TestTextTemplater_Apply_WithRandFunct(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:  "randString",
-			parts: &gun.RequestParts{Body: []byte(`{{ randString 10 "asdfgzxcv" }}`)},
+			name:  "randString with 0 arg",
+			parts: &gun.RequestParts{Body: []byte(`{{ randString }}`)},
 			vs:    map[string]interface{}{},
 			assertBody: func(t *testing.T, body string) {
-				require.Len(t, body, 10)
+				require.Len(t, body, 1)
 			},
 			expectError: false,
+		},
+		{
+			name:        "randString with invalid arg",
+			parts:       &gun.RequestParts{Body: []byte(`{{ randString "asdf" }}`)},
+			vs:          map[string]interface{}{},
+			assertBody:  nil,
+			expectError: true,
 		},
 		{
 			name:  "uuid",

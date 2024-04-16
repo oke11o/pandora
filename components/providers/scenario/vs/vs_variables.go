@@ -48,7 +48,7 @@ func (v *VariableSourceVariables) execTemplateFunc(in string) string {
 	if fun == nil {
 		return in
 	}
-	value, err := templater.ExecTemplateFunc(fun, args, nil, nil)
+	value, err := templater.ExecTemplateFunc(fun, args)
 	if err != nil {
 		return in
 	}

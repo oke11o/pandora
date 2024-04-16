@@ -19,28 +19,24 @@ func ExecTemplateFuncWithVariables(fun any, args []string, templateVars map[stri
 		}
 	}
 	switch exec := fun.(type) {
-	case func() string:
-		ans := exec()
-		return ans, nil
-	case func(args ...any) string:
-		ans := exec(a...)
-		return ans, nil
+	case func() (string, error):
+		return exec()
+	case func(args ...any) (string, error):
+		return exec(a...)
 	}
 	return "", ErrUnsupportedFunctionType
 }
 
-func ExecTemplateFunc(fun any, args []string, templateVars map[string]any, iter mp.Iterator) (string, error) {
+func ExecTemplateFunc(fun any, args []string) (string, error) {
 	a := make([]any, len(args))
 	for i := range args {
 		a[i] = args[i]
 	}
 	switch exec := fun.(type) {
-	case func() string:
-		ans := exec()
-		return ans, nil
-	case func(args ...any) string:
-		ans := exec(a...)
-		return ans, nil
+	case func() (string, error):
+		return exec()
+	case func(args ...any) (string, error):
+		return exec(a...)
 	}
 	return "", ErrUnsupportedFunctionType
 }

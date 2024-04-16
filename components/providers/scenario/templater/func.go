@@ -1,6 +1,7 @@
 package templater
 
 import (
+	"fmt"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -19,7 +20,7 @@ func init() {
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 }
 
-type templateFunc func(args ...any) string
+type templateFunc func(args ...any) (string, error)
 
 var _ = []templateFunc{
 	RandInt,
@@ -61,41 +62,47 @@ func GetFuncs() template.FuncMap {
 	}
 }
 
-func RandInt(args ...any) string {
+func RandInt(args ...any) (string, error) {
 	switch len(args) {
 	case 0:
 		return randInt(0, 0)
 	case 1:
-		f, _ := numbers.ParseInt(args[0])
+		f, err := numbers.ParseInt(args[0])
+		if err != nil {
+			return "", err
+		}
 		return randInt(f, 0)
 	case 2:
-		f, _ := numbers.ParseInt(args[0])
-		t, _ := numbers.ParseInt(args[1])
+		f, err := numbers.ParseInt(args[0])
+		if err != nil {
+			return "", err
+		}
+		t, err := numbers.ParseInt(args[1])
+		if err != nil {
+			return "", err
+		}
 		return randInt(f, t)
 	default:
-		return randInt(0, 0)
+		return "", fmt.Errorf("maximum 2 arguments expected but got %d", len(args))
 	}
 }
 
-func randInt(f, t int64) string {
-	if f < 0 {
-		f = 0
-	}
-	if t == 0 {
-		t = defaultMaxRandValue
-	}
+func randInt(f, t int64) (string, error) {
 	if t < f {
 		t, f = f, t
+	}
+	if f == 0 && t == 0 {
+		t = defaultMaxRandValue
 	}
 	if t == f {
 		f = t + defaultMaxRandValue
 	}
 	n := rand.Int63n(t - f)
 	n += f
-	return strconv.FormatInt(n, 10)
+	return strconv.FormatInt(n, 10), nil
 }
 
-func RandString(args ...any) string {
+func RandString(args ...any) (string, error) {
 	switch len(args) {
 	case 0:
 		return randString(0, "")
@@ -104,22 +111,25 @@ func RandString(args ...any) string {
 	case 2:
 		return randString(args[0], str.FormatString(args[1]))
 	default:
-		return randString(0, "")
+		return "", fmt.Errorf("maximum 2 arguments expected but got %d", len(args))
 	}
 }
 
-func randString(cnt any, letters string) string {
+func randString(cnt any, letters string) (string, error) {
 	n, err := numbers.ParseInt(cnt)
-	if err != nil || n == 0 {
+	if err != nil {
+		return "", err
+	}
+	if n == 0 {
 		n = 1
 	}
-	return str.RandStringRunes(n, letters)
+	return str.RandStringRunes(n, letters), nil
 }
 
-func UUID(args ...any) string {
+func UUID(args ...any) (string, error) {
 	v, err := uuid.NewV4()
 	if err != nil {
-		return ""
+		return "", err
 	}
-	return v.String()
+	return v.String(), nil
 }
