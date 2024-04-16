@@ -218,9 +218,6 @@ scenarios:
 
 ##### Функции в шаблонах
 
-Подробнее про функции рандомизаци см в [функции в препроцессоре](scenario/functions.md#в-препроцессорах)
-
-
 Так как используется стандартные шаблонизатор Го в нем можно использовать встроенные функции
 https://pkg.go.dev/text/template#hdr-Functions
 
@@ -229,6 +226,8 @@ https://pkg.go.dev/text/template#hdr-Functions
 - randInt
 - randString
 - uuid
+
+Подробнее про функции рандомизации см в [документации](scenario/functions.md)
 
 #### Preprocessors
 
@@ -270,7 +269,7 @@ request "req_name" {
 - randString()
 - uuid()
 
-Подробнее про функции рандомизаци см в [функции в препроцессоре](scenario/functions.md#в-препроцессорах)
+Подробнее про функции рандомизации см в [документации](scenario/functions.md)
 
 #### Postprocessors
 
