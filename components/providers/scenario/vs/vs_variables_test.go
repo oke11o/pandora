@@ -35,6 +35,26 @@ func TestVariableSourceVariables_Init(t *testing.T) {
 			},
 			wantErr: assert.NoError,
 		},
+		{
+			name: "invalid func name return string",
+			variables: map[string]any{
+				"random": "randInteger(0,1)",
+			},
+			want: map[string]any{
+				"random": "randInteger(0,1)",
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "invalid func arg",
+			variables: map[string]any{
+				"random": "randInt(asdf)",
+			},
+			want: map[string]any{
+				"random": "",
+			},
+			wantErr: assert.Error,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

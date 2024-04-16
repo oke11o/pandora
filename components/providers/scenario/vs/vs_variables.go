@@ -1,6 +1,8 @@
 package vs
 
 import (
+	"fmt"
+
 	"github.com/yandex/pandora/components/providers/scenario/templater"
 )
 
@@ -18,39 +20,52 @@ func (v *VariableSourceVariables) GetVariables() any {
 }
 
 func (v *VariableSourceVariables) Init() error {
-	v.recursiveCompute(v.Variables)
-	return nil
+	return v.recursiveCompute(v.Variables)
 }
 
-func (v *VariableSourceVariables) recursiveCompute(input map[string]any) {
+func (v *VariableSourceVariables) recursiveCompute(input map[string]any) error {
+	var err error
 	for key, val := range input {
 		switch value := val.(type) {
 		case string:
-			input[key] = v.execTemplateFunc(value)
+			input[key], err = v.execTemplateFunc(value)
+			if err != nil {
+				return fmt.Errorf("recursiveCompute for %s err: %w", key, err)
+			}
 		case map[string]any:
-			v.recursiveCompute(value)
+			err := v.recursiveCompute(value)
+			if err != nil {
+				return fmt.Errorf("recursiveCompute for %s err: %w", key, err)
+			}
 		case map[string]string:
 			for k, vv := range value {
-				value[k] = v.execTemplateFunc(vv)
+				value[k], err = v.execTemplateFunc(vv)
+				if err != nil {
+					return fmt.Errorf("recursiveCompute for %s err: %w", key, err)
+				}
 			}
 			input[key] = value
 		case []string:
 			for i, vv := range value {
-				value[i] = v.execTemplateFunc(vv)
+				value[i], err = v.execTemplateFunc(vv)
+				if err != nil {
+					return fmt.Errorf("recursiveCompute for %s err: %w", key, err)
+				}
 			}
 			input[key] = value
 		}
 	}
+	return nil
 }
 
-func (v *VariableSourceVariables) execTemplateFunc(in string) string {
+func (v *VariableSourceVariables) execTemplateFunc(in string) (string, error) {
 	fun, args := templater.ParseFunc(in)
 	if fun == nil {
-		return in
+		return in, nil
 	}
 	value, err := templater.ExecTemplateFunc(fun, args)
 	if err != nil {
-		return in
+		return "", err
 	}
-	return value
+	return value, nil
 }

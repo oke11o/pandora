@@ -15,7 +15,7 @@ func TestPreprocessor_Process(t *testing.T) {
 		wantErr   bool
 	}{
 		{
-			name: "Nil templateVars",
+			name: "nil templateVars",
 			prep: PreparePreprocessor{
 				Mapping: map[string]string{
 					"var1": "source.items[0].id",
@@ -25,7 +25,7 @@ func TestPreprocessor_Process(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Simple Processing",
+			name: "simple processing",
 			prep: PreparePreprocessor{
 				Mapping: map[string]string{
 					"var1": "source.items[0].id",
@@ -52,7 +52,7 @@ func TestPreprocessor_Process(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Random Functions",
+			name: "template funcs",
 			prep: PreparePreprocessor{
 				Mapping: map[string]string{
 					"var4": "randInt(.request.auth.min, 201)",
