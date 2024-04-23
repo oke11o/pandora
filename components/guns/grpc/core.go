@@ -258,7 +258,11 @@ func (g *Gun) shoot(ammo *ammo.Ammo) {
 
 func (g *Gun) AnswLogging(logger *zap.Logger, method *desc.MethodDescriptor, request proto.Message, response proto.Message, grpcErr error) {
 	logger.Debug("Request:", zap.Stringer("method", method), zap.Stringer("message", request))
-	logger.Debug("Response:", zap.Stringer("resp", response), zap.Error(grpcErr))
+	if response != nil {
+		logger.Debug("Response:", zap.Stringer("resp", response), zap.Error(grpcErr))
+	} else {
+		logger.Debug("Response:", zap.String("resp", "empty"), zap.Error(grpcErr))
+	}
 }
 
 func (g *Gun) makeConnect() (conn *grpc.ClientConn, err error) {

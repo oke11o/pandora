@@ -218,6 +218,7 @@ func readConfig(args []string) *CliConfig {
 		}
 	}
 
+	log.Info("Pandora version", zap.String("version", Version))
 	if useStdinConfig {
 		v.SetConfigType("yaml")
 		configBuffer, err := ioutil.ReadAll(bufio.NewReader(os.Stdin))
