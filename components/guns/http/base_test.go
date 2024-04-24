@@ -14,6 +14,9 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
 	ammomock "github.com/yandex/pandora/components/guns/http/mocks"
 	"github.com/yandex/pandora/core"
 	"github.com/yandex/pandora/core/aggregator/netsample"
@@ -21,8 +24,6 @@ import (
 	"github.com/yandex/pandora/core/engine"
 	"github.com/yandex/pandora/lib/monitoring"
 	"github.com/yandex/pandora/lib/testutil"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 func newLogger() *zap.Logger {
@@ -63,7 +64,7 @@ func (s *BaseGunSuite) SetupSuite() {
 }
 
 func (s *BaseGunSuite) SetupTest() {
-	s.base = BaseGun{Config: DefaultBaseGunConfig()}
+	s.base = BaseGun{Config: DefaultHTTPGunConfig()}
 }
 
 func (s *BaseGunSuite) Test_BindResultTo_Panics() {
@@ -335,8 +336,9 @@ func Test_Autotag(t *testing.T) {
 }
 
 func Test_ConfigDecode(t *testing.T) {
-	var conf BaseGunConfig
+	var conf GunConfig
 	coretest.DecodeAndValidateT(t, `
+target: localhost:80
 auto-tag:
   enabled: true
   uri-elements: 3

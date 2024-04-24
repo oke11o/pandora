@@ -11,16 +11,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+
 	phttp "github.com/yandex/pandora/components/guns/http"
 	"github.com/yandex/pandora/core"
 	"github.com/yandex/pandora/core/aggregator/netsample"
-	"go.uber.org/zap"
 )
 
 func TestBaseGun_shoot(t *testing.T) {
 	type fields struct {
 		DebugLog       bool
-		Config         phttp.BaseGunConfig
+		Config         phttp.GunConfig
 		Connect        func(ctx context.Context) error
 		OnClose        func() error
 		Aggregator     netsample.Aggregator

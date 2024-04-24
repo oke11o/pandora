@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
+	"net"
 	"net/http"
 	"net/http/httptrace"
 	"net/http/httputil"
@@ -12,11 +13,12 @@ import (
 	"strings"
 	"time"
 
+	"go.uber.org/zap"
+
 	phttp "github.com/yandex/pandora/components/guns/http"
 	"github.com/yandex/pandora/core"
 	"github.com/yandex/pandora/core/aggregator/netsample"
 	"github.com/yandex/pandora/core/warmup"
-	"go.uber.org/zap"
 )
 
 type Gun interface {
@@ -249,6 +251,16 @@ func (g *ScenarioGun) prepareRequest(reqParts RequestParts) (*http.Request, erro
 		req.Header.Set(k, v)
 	}
 
+	if g.base.Config.SSL {
+		req.URL.Scheme = "https"
+	} else {
+		req.URL.Scheme = "http"
+	}
+	if req.Host == "" {
+		req.Host = getHostWithoutPort(g.base.Config.Target)
+	}
+	req.URL.Host = g.base.Config.TargetResolved
+
 	return req, err
 }
 
@@ -353,4 +365,12 @@ func (g *ScenarioGun) reportErr(sample *netsample.Sample, err error) {
 	sample.SetProtoCode(0)
 	sample.SetErr(err)
 	g.base.Aggregator.Report(sample)
+}
+
+func getHostWithoutPort(target string) string {
+	host, _, err := net.SplitHostPort(target)
+	if err != nil {
+		host = target
+	}
+	return host
 }
