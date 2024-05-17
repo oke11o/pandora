@@ -15,12 +15,6 @@ import (
 	"github.com/jhump/protoreflect/dynamic"
 	"github.com/jhump/protoreflect/dynamic/grpcdynamic"
 	"github.com/jhump/protoreflect/grpcreflect"
-	ammo "github.com/yandex/pandora/components/providers/grpc"
-	"github.com/yandex/pandora/core"
-	"github.com/yandex/pandora/core/aggregator/netsample"
-	"github.com/yandex/pandora/core/clientpool"
-	"github.com/yandex/pandora/core/warmup"
-	"github.com/yandex/pandora/lib/answlog"
 	"go.uber.org/zap"
 	"golang.org/x/exp/maps"
 	"google.golang.org/grpc"
@@ -28,6 +22,13 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+
+	ammo "github.com/yandex/pandora/components/providers/grpc"
+	"github.com/yandex/pandora/core"
+	"github.com/yandex/pandora/core/aggregator/netsample"
+	"github.com/yandex/pandora/core/clientpool"
+	"github.com/yandex/pandora/core/warmup"
+	"github.com/yandex/pandora/lib/answlog"
 )
 
 const defaultTimeout = time.Second * 15
@@ -43,13 +44,13 @@ type GrpcDialOptions struct {
 }
 
 type GunConfig struct {
-	Target          string          `validate:"required"`
-	ReflectPort     int64           `config:"reflect_port"`
-	ReflectMetadata metadata.MD     `config:"reflect_metadata"`
-	Timeout         time.Duration   `config:"timeout"` // grpc request timeout
-	TLS             bool            `config:"tls"`
-	DialOptions     GrpcDialOptions `config:"dial_options"`
-	AnswLog         AnswLogConfig   `config:"answlog"`
+	Target          string            `validate:"required"`
+	ReflectPort     int64             `config:"reflect_port"`
+	ReflectMetadata map[string]string `config:"reflect_metadata"`
+	Timeout         time.Duration     `config:"timeout"` // grpc request timeout
+	TLS             bool              `config:"tls"`
+	DialOptions     GrpcDialOptions   `config:"dial_options"`
+	AnswLog         AnswLogConfig     `config:"answlog"`
 	SharedClient    struct {
 		ClientNumber int  `config:"client-number,omitempty"`
 		Enabled      bool `config:"enabled"`
@@ -111,7 +112,7 @@ func (g *Gun) prepareMethodList(opts *warmup.Options) (map[string]desc.MethodDes
 	}
 	defer conn.Close()
 
-	refCtx := metadata.NewOutgoingContext(context.Background(), g.Conf.ReflectMetadata)
+	refCtx := metadata.NewOutgoingContext(context.Background(), metadata.New(g.Conf.ReflectMetadata))
 	refClient := grpcreflect.NewClientAuto(refCtx, conn)
 	listServices, err := refClient.ListServices()
 	if err != nil {

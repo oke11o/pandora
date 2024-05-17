@@ -8,26 +8,27 @@ import (
 	"time"
 
 	"github.com/jhump/protoreflect/dynamic"
+	"go.uber.org/zap"
+	"golang.org/x/exp/maps"
+	"google.golang.org/grpc/metadata"
+
 	grpcgun "github.com/yandex/pandora/components/guns/grpc"
 	"github.com/yandex/pandora/core"
 	"github.com/yandex/pandora/core/aggregator/netsample"
 	"github.com/yandex/pandora/core/warmup"
 	"github.com/yandex/pandora/lib/answlog"
-	"go.uber.org/zap"
-	"golang.org/x/exp/maps"
-	"google.golang.org/grpc/metadata"
 )
 
 const defaultTimeout = time.Second * 15
 
 type GunConfig struct {
-	Target          string          `validate:"required"`
-	ReflectPort     int64           `config:"reflect_port"`
-	ReflectMetadata metadata.MD     `config:"reflect_metadata"`
-	Timeout         time.Duration   `config:"timeout"` // grpc request timeout
-	TLS             bool            `config:"tls"`
-	DialOptions     GrpcDialOptions `config:"dial_options"`
-	AnswLog         AnswLogConfig   `config:"answlog"`
+	Target          string            `validate:"required"`
+	ReflectPort     int64             `config:"reflect_port"`
+	ReflectMetadata map[string]string `config:"reflect_metadata"`
+	Timeout         time.Duration     `config:"timeout"` // grpc request timeout
+	TLS             bool              `config:"tls"`
+	DialOptions     GrpcDialOptions   `config:"dial_options"`
+	AnswLog         AnswLogConfig     `config:"answlog"`
 }
 
 type GrpcDialOptions struct {
