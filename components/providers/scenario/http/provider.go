@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/afero"
+
 	gun "github.com/yandex/pandora/components/guns/http_scenario"
 	"github.com/yandex/pandora/components/providers/scenario"
 	"github.com/yandex/pandora/components/providers/scenario/config"
@@ -15,7 +16,7 @@ var _ core.Provider = (*scenario.Provider[*gun.Scenario])(nil)
 const defaultSinkSize = 100
 
 func NewProvider(fs afero.Fs, conf scenario.ProviderConfig) (core.Provider, error) {
-	const op = "scenario.NewProvider"
+	const op = "scenario_http.NewProvider"
 	ammoCfg, err := config.ReadAmmoConfig(fs, conf.File)
 	if err != nil {
 		return nil, fmt.Errorf("%s ReadAmmoConfig %w", op, err)

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
+
 	grpcgun "github.com/yandex/pandora/components/guns/grpc/scenario"
 	httpscenario "github.com/yandex/pandora/components/guns/http_scenario"
 	"github.com/yandex/pandora/components/providers/scenario/http/preprocessor"
@@ -13,6 +14,7 @@ import (
 
 // AmmoConfig is a config for dynamic converting from map[string]interface{}
 type AmmoConfig struct {
+	Locals          map[string]any
 	VariableSources []vs.VariableSource `config:"variable_sources"`
 	Requests        []RequestConfig
 	Calls           []CallConfig
