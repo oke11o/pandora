@@ -10,7 +10,7 @@ import (
 // Waiter goroutine unsafe wrapper for efficient waiting schedule.
 type Waiter struct {
 	sched         core.Schedule
-	slowDownItems int
+	slowDownItems time.Duration
 
 	// Lazy initialized.
 	timer   *time.Timer
@@ -39,14 +39,16 @@ func (w *Waiter) Wait(ctx context.Context) (ok bool) {
 	}
 	// Get current time lazily.
 	// For once schedule, for example, we need to get it only once.
-	if next.Before(w.lastNow) {
-		w.slowDownItems++
+	waitFor := next.Sub(w.lastNow)
+	//if next.Before(w.lastNow)
+	if waitFor <= 0 {
+		w.slowDownItems = 0 - waitFor
 		return true
 	}
 	w.lastNow = time.Now()
-	waitFor := next.Sub(w.lastNow)
+	waitFor = next.Sub(w.lastNow)
 	if waitFor <= 0 {
-		w.slowDownItems++
+		w.slowDownItems = 0 - waitFor
 		return true
 	}
 	w.slowDownItems = 0
@@ -70,7 +72,7 @@ func (w *Waiter) IsSlowDown(ctx context.Context) (ok bool) {
 	case <-ctx.Done():
 		return false
 	default:
-		return w.slowDownItems >= 2
+		return w.slowDownItems >= 2*time.Second
 	}
 }
 
