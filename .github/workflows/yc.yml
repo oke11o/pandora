@@ -1,6 +1,8 @@
 name: performance-tests
 run-name: performance-tests
-on: [ push ]
+on:
+  release:
+    types: [ created ]
 env:
   YC_LT_FOLDER_ID: b1gacohsvc2kc4d76tu5
   YC_LT_AUTHORIZED_KEY_JSON: ${{ secrets.YC_LOADTESTING_CI_AUTHORIZED_KEY_JSON }}
