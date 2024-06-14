@@ -20,6 +20,8 @@ jobs:
         with:
           go-version: 1.21.x
           cache: true
+      - name: Test
+        run: go test -race -covermode atomic ./...
       - name: Build
         run: |
           export GOOS=linux
@@ -29,7 +31,7 @@ jobs:
         run: |
           source performance-test/automation/_functions.sh && source performance-test/automation/_variables.sh; yc_s3_upload ./pandora_perf_2 pandora-perf pandora-perf
 
-  test-300inst-sleep0ms:
+  test-pandora-perf:
     needs: [ build-and-upload ]
     runs-on: ubuntu-latest
     concurrency: { group: loadtesting }
@@ -40,59 +42,29 @@ jobs:
         run: |
           stripped_tag="v0.5.26.alpha4"
           STRIPPED_TAG=${stripped_tag:1}
-          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/300inst-sleep0ms
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-300inst-sleep0ms
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: 300inst-sleep0ms
+          name: pandora-perf-300inst-sleep0ms
           path: ${{ env.YC_LT_OUTPUT_DIR }}
       - name: Run Test 2
         run: |
           stripped_tag="v0.5.26.alpha4"
           STRIPPED_TAG=${stripped_tag:1}
-          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/2000inst-sleep0ms
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-2000inst-sleep0ms
       - name: Upload Artifacts 2
         uses: actions/upload-artifact@v4
         with:
-          name: 2000inst-sleep0ms
+          name: pandora-perf-2000inst-sleep0ms
           path: ${{ env.YC_LT_OUTPUT_DIR }}
       - name: Run Test 3
         run: |
           stripped_tag="v0.5.26.alpha4"
           STRIPPED_TAG=${stripped_tag:1}
-          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/2000inst-sleep50ms
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-2000inst-sleep50ms
       - name: Upload Artifacts 3
         uses: actions/upload-artifact@v4
         with:
-          name: 2000inst-sleep50ms
+          name: pandora-perf-2000inst-sleep50ms
           path: ${{ env.YC_LT_OUTPUT_DIR }}
-
-#  test-2000inst-sleep0ms:
-#    needs: [ build-and-upload ]
-#    runs-on: ubuntu-latest
-#    concurrency: { group: loadtesting }
-#    steps:
-#      - uses: actions/checkout@v4
-#      - uses: ./.github/actions/setup-yc
-#      - name: Run Test
-#        run: ./performance-test/automation/test.sh ./performance-test/test-config/2000inst-sleep0ms
-#      - name: Upload Artifacts
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: 2000inst-sleep0ms
-#          path: ${{ env.YC_LT_OUTPUT_DIR }}
-#
-#  test-2000inst-sleep50ms:
-#    needs: [ build-and-upload ]
-#    runs-on: ubuntu-latest
-#    concurrency: { group: loadtesting }
-#    steps:
-#      - uses: actions/checkout@v4
-#      - uses: ./.github/actions/setup-yc
-#      - name: Run Test
-#        run: ./performance-test/automation/test.sh ./performance-test/test-config/2000inst-sleep50ms
-#      - name: Upload Artifacts
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: 2000inst-sleep50ms
-#          path: ${{ env.YC_LT_OUTPUT_DIR }}
