@@ -39,39 +39,42 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-yc
       - name: Run Test
-        run: ./performance-test/automation/test.sh ./performance-test/test-config/300inst-sleep0ms
+        run: |
+          stripped_tag="v0.5.26.alpha4"
+          STRIPPED_TAG=${stripped_tag:1}
+          YC_LT_TEST_EXTRA_LABELS="tag=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/300inst-sleep0ms
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: 300inst-sleep0ms
           path: ${{ env.YC_LT_OUTPUT_DIR }}
 
-  test-2000inst-sleep0ms:
-    needs: [ build-and-upload ]
-    runs-on: ubuntu-latest
-    concurrency: { group: loadtesting }
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-yc
-      - name: Run Test
-        run: ./performance-test/automation/test.sh ./performance-test/test-config/2000inst-sleep0ms
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: 2000inst-sleep0ms
-          path: ${{ env.YC_LT_OUTPUT_DIR }}
-
-  test-2000inst-sleep50ms:
-    needs: [ build-and-upload ]
-    runs-on: ubuntu-latest
-    concurrency: { group: loadtesting }
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-yc
-      - name: Run Test
-        run: ./performance-test/automation/test.sh ./performance-test/test-config/2000inst-sleep50ms
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: 2000inst-sleep50ms
-          path: ${{ env.YC_LT_OUTPUT_DIR }}
+#  test-2000inst-sleep0ms:
+#    needs: [ build-and-upload ]
+#    runs-on: ubuntu-latest
+#    concurrency: { group: loadtesting }
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: ./.github/actions/setup-yc
+#      - name: Run Test
+#        run: ./performance-test/automation/test.sh ./performance-test/test-config/2000inst-sleep0ms
+#      - name: Upload Artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: 2000inst-sleep0ms
+#          path: ${{ env.YC_LT_OUTPUT_DIR }}
+#
+#  test-2000inst-sleep50ms:
+#    needs: [ build-and-upload ]
+#    runs-on: ubuntu-latest
+#    concurrency: { group: loadtesting }
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: ./.github/actions/setup-yc
+#      - name: Run Test
+#        run: ./performance-test/automation/test.sh ./performance-test/test-config/2000inst-sleep50ms
+#      - name: Upload Artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: 2000inst-sleep50ms
+#          path: ${{ env.YC_LT_OUTPUT_DIR }}

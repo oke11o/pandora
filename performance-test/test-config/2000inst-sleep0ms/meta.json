@@ -1,6 +1,7 @@
 {
     "labels": {
-        "app": "pandora",
+        "type": "pandora-perf",
+        "generator": "pandora",
         "target": "local-mock"
     },
     "external_data": [
