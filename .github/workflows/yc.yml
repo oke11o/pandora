@@ -15,7 +15,7 @@ jobs:
     concurrency: { group: loadtesting }
     steps:
       - uses: actions/checkout@v4
-      - uses: .github/actions/setup-yc
+      - uses: ./.github/actions/setup-yc
       - name: Run Test
         run: ./performance-test/automation/test.sh ./performance-test/test-config/300inst-sleep0ms
       - name: Upload Artifacts
@@ -29,7 +29,7 @@ jobs:
     concurrency: { group: loadtesting }
     steps:
       - uses: actions/checkout@v4
-      - uses: .github/actions/setup-yc
+      - uses: ./.github/actions/setup-yc
       - name: Run Test
         run: ./performance-test/automation/test.sh ./performance-test/test-config/2000inst-sleep0ms
       - name: Upload Artifacts
@@ -43,7 +43,7 @@ jobs:
     concurrency: { group: loadtesting }
     steps:
       - uses: actions/checkout@v4
-      - uses: .github/actions/setup-yc
+      - uses: ./.github/actions/setup-yc
       - name: Run Test
         run: ./performance-test/automation/test.sh ./performance-test/test-config/2000inst-sleep50ms
       - name: Upload Artifacts
