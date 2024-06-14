@@ -40,7 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-yc
-      - name: Run Test
+      - name: Run Test 300inst-sleep0ms
         run: |
           stripped_tag="${{ github.event.release.tag_name }}"
           STRIPPED_TAG=${stripped_tag:1}
@@ -50,7 +50,7 @@ jobs:
         with:
           name: pandora-perf-300inst-sleep0ms
           path: ${{ env.YC_LT_OUTPUT_DIR }}
-      - name: Run Test 2
+      - name: Run Test 2000inst-sleep0ms
         run: |
           stripped_tag="${{ github.event.release.tag_name }}"
           STRIPPED_TAG=${stripped_tag:1}
@@ -60,7 +60,7 @@ jobs:
         with:
           name: pandora-perf-2000inst-sleep0ms
           path: ${{ env.YC_LT_OUTPUT_DIR }}
-      - name: Run Test 3
+      - name: Run Test 2000inst-sleep50ms
         run: |
           stripped_tag="${{ github.event.release.tag_name }}"
           STRIPPED_TAG=${stripped_tag:1}
