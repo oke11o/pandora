@@ -33,4 +33,5 @@ jobs:
 
       - name: Upload
         run: |
-          source performance-test/automation/_s3_upload.sh ./pandora_perf_2 pandora-perf pandora-perf
+          source performance-test/automation/_functions.sh && source performance-test/automation/_variables.sh; yc_s3_upload ./pandora_perf_2 pandora-perf pandora-perf
+#          source performance-test/automation/s3_upload.sh ./pandora_perf_2 pandora-perf pandora-perf
