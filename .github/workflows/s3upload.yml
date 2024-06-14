@@ -30,3 +30,7 @@ jobs:
           export GOOS=linux
           export CGO_ENABLED=0
           go build -o pandora_perf_2
+
+      - name: Upload
+        run: |
+          source performance-test/automation/_functions.sh && source performance-test/automation/_variables.sh; s3_upload ./pandora_perf_2 pandora-perf pandora-perf
