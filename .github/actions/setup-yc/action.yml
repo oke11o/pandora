@@ -4,9 +4,11 @@ runs:
   using: "composite"
   steps:
     - name: Check secret is set
+      shell: bash
       run: |
         if [[ -z "$YC_LT_AUTHORIZED_KEY_JSON" ]]; then echo "YC_LT_AUTHORIZED_KEY_JSON is empty" && exit 1; else echo "YC_LT_AUTHORIZED_KEY_JSON is set"; fi
     - name: install utilities
+      shell: bash
       run: |
         sudo DEBIAN_FRONTEND=noninteractive apt update
         sudo DEBIAN_FRONTEND=noninteractive apt install -y curl jq
@@ -14,6 +16,7 @@ runs:
         sudo bash install.sh -i /usr/local/yandex-cloud -n
         sudo ln -sf /usr/local/yandex-cloud/bin/yc /usr/local/bin/yc
     - name: configure yc cli
+      shell: bash
       run: |
         echo "$YC_LT_AUTHORIZED_KEY_JSON" > key.json
         yc config profile create sa-profile
