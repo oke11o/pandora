@@ -1,0 +1,73 @@
+name: yc-load-testing-ci
+run-name: yc-load-testing-ci
+on: [ push ]
+env:
+  YC_LT_FOLDER_ID: b1g5mqk0rkb81u1kf2d4
+  YC_LT_AUTHORIZED_KEY_JSON: ${{ secrets.YC_LOADTESTING_CI_AUTHORIZED_KEY_JSON }}
+  YC_LT_AGENT_SA_ID: ${{ secrets.SERVICE_ACCOUNT_ID }}
+  YC_LT_AGENT_ZONE: ru-central1-b
+  YC_LT_AGENT_SUBNET_ID: ${{ secrets.SUBNET_ID }}
+  YC_LT_AGENT_SECURITY_GROUP_IDS: ${{ secrets.SECURITY_GROUP_IDS }}
+  YC_LT_TARGET: ${{ secrets.YC_LT_TARGET }}
+  YC_LT_DATA_BUCKET: ${{ secrets.YC_LT_DATA_BUCKET }}
+  YC_LT_SKIP_TEST_CHECK: "0"
+  YC_LT_TEST_AGENT_FILTER: "labels.workflow = '${{github.run_id}}'"
+  YC_LT_TEST_EXTRA_DESCRIPTION: "GitHub Actions workflow - ${{github.run_id}}"
+  WORKFLOW_ID: ${{github.run_id}}
+jobs:
+  create-agents:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./action-create-agent
+
+  run-test-const:
+    needs: [ create-agents ]
+    concurrency:
+      group: loadtesting
+    runs-on: ubuntu-latest
+    outputs:
+      output_tests_results: ${{ steps.run.outputs.tests_results }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: run
+        uses: ./action-run-test
+        with:
+          test_names: "sample-tests/root-const"
+
+  check-const:
+    needs: [ run-test-const ]
+    runs-on: ubuntu-latest
+    outputs:
+      output_check_results: ${{ steps.check.outputs.check_results }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        uses: ./action-check-test
+        with:
+          test_names: "sample-root-const"
+
+        env:
+          RUN_TESTS_RESULTS:
+            ${{needs.run-test-const.outputs.output_tests_results}}
+
+  publish-results:
+    needs: [ check-const ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: get-results
+        env:
+          CHECK_RESULTS: ${{needs.check-const.outputs.output_check_results}}
+        run: |
+          echo $CHECK_RESULTS_DECODED > "results.json"
+
+  delete-agents:
+    needs: [ check-const ]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./action-delete-agents
+
+

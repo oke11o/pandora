@@ -1,0 +1,55 @@
+uploader:
+  enabled: true
+  package: yandextank.plugins.DataUploader
+  job_name: pandora-perf-lineto40k-2kinst-60sec-sleep0ms
+  job_dsc: ''
+  ver: ''
+  api_address: loadtesting.api.cloud.yandex.net:443
+pandora:
+  enabled: true
+  package: yandextank.plugins.Pandora
+  pandora_cmd: ./pandora_perf
+  config_content:
+    pools:
+      - id: HTTP
+        gun:
+          type: http
+          target: localhost:8092
+          ssl: false
+        ammo:
+          type: uri
+          uris:
+            - /hello?sleep=0ms hellotag
+        result:
+          type: phout
+          destination: ./phout.log
+        startup:
+          type: once
+          times: 2000
+        rps:
+          - type: line
+            from: 1
+            to: 40000
+            duration: 60s
+        discard_overflow: false
+    log:
+      level: error
+    monitoring:
+      expvar:
+        enabled: true
+        port: 1234
+telegraf:
+  enabled: true
+  package: yandextank.plugins.Telegraf
+  config:
+    hosts:
+      localhost: null
+    metrics:
+      cpu: null
+      mem: null
+      diskio: null
+      net: null
+      netstat: null
+      system: null
+      kernel: null
+core: {}
