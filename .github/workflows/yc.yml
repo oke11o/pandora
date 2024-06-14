@@ -10,27 +10,6 @@ env:
   YC_LT_OUTPUT_DIR: ${{github.workspace}}/performance-test/output
 
 jobs:
-  build-and-upload:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Install Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.21.x
-          cache: true
-
-      - name: Test
-        run: go test -race -covermode atomic ./...
-
-      - name: Build
-        run: |
-          export GOARCH=linux
-          export CGO_ENABLED=0
-          go build -o pandora_perf_2
-
   test-300inst-sleep0ms:
     needs: [ build-and-upload ]
     runs-on: ubuntu-latest
