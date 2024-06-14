@@ -8,7 +8,7 @@ uploader:
 pandora:
   enabled: true
   package: yandextank.plugins.Pandora
-  pandora_cmd: ./pandora_perf
+  pandora_cmd: ./pandora-perf
   config_content:
     pools:
       - id: HTTP

@@ -4,16 +4,11 @@ on: [ push ]
 env:
   YC_LT_FOLDER_ID: b1g5mqk0rkb81u1kf2d4
   YC_LT_AUTHORIZED_KEY_JSON: ${{ secrets.YC_LOADTESTING_CI_AUTHORIZED_KEY_JSON }}
-  YC_LT_AGENT_SA_ID: ${{ secrets.SERVICE_ACCOUNT_ID }}
-  YC_LT_AGENT_ZONE: ru-central1-b
-  YC_LT_AGENT_SUBNET_ID: ${{ secrets.SUBNET_ID }}
-  YC_LT_AGENT_SECURITY_GROUP_IDS: ${{ secrets.SECURITY_GROUP_IDS }}
-  YC_LT_TARGET: ${{ secrets.YC_LT_TARGET }}
-  YC_LT_DATA_BUCKET: ${{ secrets.YC_LT_DATA_BUCKET }}
-  YC_LT_SKIP_TEST_CHECK: "0"
-  YC_LT_TEST_AGENT_FILTER: "labels.workflow = '${{github.run_id}}'"
+  YC_LT_TEST_AGENT_FILTER: "name = 'agent-pandora-perf-medium'"
   YC_LT_TEST_EXTRA_DESCRIPTION: "GitHub Actions workflow - ${{github.run_id}}"
-  WORKFLOW_ID: ${{github.run_id}}
+  YC_LT_SKIP_TEST_CHECK: "1"
+  YC_LT_OUTPUT_DIR: ${{github.workspace}}/performance-test/output
+
 jobs:
   build-and-upload:
     runs-on: ubuntu-latest
@@ -36,54 +31,44 @@ jobs:
           export CGO_ENABLED=0
           go build -o pandora_perf_2
 
-
-  run-test-const:
-    needs: [ create-agents ]
-    concurrency:
-      group: loadtesting
+  test-300inst-sleep0ms:
+    needs: [ build-and-upload ]
     runs-on: ubuntu-latest
-    outputs:
-      output_tests_results: ${{ steps.run.outputs.tests_results }}
+    concurrency: { group: loadtesting }
     steps:
       - uses: actions/checkout@v4
-      - id: run
-        uses: ./action-run-test
+      - name: Run Test
+        run: ./performance-test/automation/test.sh ./performance-test/test-config/300inst-sleep0ms
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          test_names: "sample-tests/root-const"
+          name: 300inst-sleep0ms
+          path: ${{ env.YC_LT_OUTPUT_DIR }}
 
-  check-const:
-    needs: [ run-test-const ]
+  test-2000inst-sleep0ms:
+    needs: [ build-and-upload ]
     runs-on: ubuntu-latest
-    outputs:
-      output_check_results: ${{ steps.check.outputs.check_results }}
+    concurrency: { group: loadtesting }
     steps:
       - uses: actions/checkout@v4
-      - id: check
-        uses: ./action-check-test
+      - name: Run Test
+        run: ./performance-test/automation/test.sh ./performance-test/test-config/2000inst-sleep0ms
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          test_names: "sample-root-const"
+          name: 2000inst-sleep0ms
+          path: ${{ env.YC_LT_OUTPUT_DIR }}
 
-        env:
-          RUN_TESTS_RESULTS:
-            ${{needs.run-test-const.outputs.output_tests_results}}
-
-  publish-results:
-    needs: [ check-const ]
+  test-2000inst-sleep50ms:
+    needs: [ build-and-upload ]
     runs-on: ubuntu-latest
+    concurrency: { group: loadtesting }
     steps:
       - uses: actions/checkout@v4
-      - id: get-results
-        env:
-          CHECK_RESULTS: ${{needs.check-const.outputs.output_check_results}}
-        run: |
-          echo $CHECK_RESULTS_DECODED > "results.json"
-
-  delete-agents:
-    needs: [ check-const ]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./action-delete-agents
-
-
+      - name: Run Test
+        run: ./performance-test/automation/test.sh ./performance-test/test-config/2000inst-sleep50ms
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: 2000inst-sleep50ms
+          path: ${{ env.YC_LT_OUTPUT_DIR }}
