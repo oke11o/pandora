@@ -144,7 +144,7 @@ if [[ -n ${_extra_labels} ]]; then
     fi
 fi
 
-if [[ -n ${_extra_agen_filter} ]]; then
+if [[ -n ${_extra_agent_filter} ]]; then
     if [[ -n ${_agent_filter} ]]; then
         _agent_filter="$_agent_filter and $_extra_agent_filter"
     else
