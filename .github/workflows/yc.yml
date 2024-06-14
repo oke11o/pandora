@@ -11,11 +11,11 @@ env:
 
 jobs:
   test-300inst-sleep0ms:
-    needs: [ build-and-upload ]
     runs-on: ubuntu-latest
     concurrency: { group: loadtesting }
     steps:
       - uses: actions/checkout@v4
+      - uses: .github/actions/setup-yc
       - name: Run Test
         run: ./performance-test/automation/test.sh ./performance-test/test-config/300inst-sleep0ms
       - name: Upload Artifacts
@@ -25,11 +25,11 @@ jobs:
           path: ${{ env.YC_LT_OUTPUT_DIR }}
 
   test-2000inst-sleep0ms:
-    needs: [ build-and-upload ]
     runs-on: ubuntu-latest
     concurrency: { group: loadtesting }
     steps:
       - uses: actions/checkout@v4
+      - uses: .github/actions/setup-yc
       - name: Run Test
         run: ./performance-test/automation/test.sh ./performance-test/test-config/2000inst-sleep0ms
       - name: Upload Artifacts
@@ -39,11 +39,11 @@ jobs:
           path: ${{ env.YC_LT_OUTPUT_DIR }}
 
   test-2000inst-sleep50ms:
-    needs: [ build-and-upload ]
     runs-on: ubuntu-latest
     concurrency: { group: loadtesting }
     steps:
       - uses: actions/checkout@v4
+      - uses: .github/actions/setup-yc
       - name: Run Test
         run: ./performance-test/automation/test.sh ./performance-test/test-config/2000inst-sleep50ms
       - name: Upload Artifacts
