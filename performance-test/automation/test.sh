@@ -92,11 +92,14 @@ for _test_dir in "${_DIRS[@]}"; do
         continue
     fi
 
+    _out_dir="$VAR_OUTPUT_DIR/$_test_id"
+    mkdir -p "$_out_dir"
+    yc_lt test get "$_test_id" >"$_out_dir/summary.json"
+    yc_lt test get-report-table "$_test_id" >"$_out_dir/report.json"
+
     _log_stage "[CHECK]"
     if [[ "${VAR_SKIP_TEST_CHECK:-0}" == 0 ]]; then
-        _out_dir="$VAR_OUTPUT_DIR/$_test_id"
         _resfile="$_out_dir/check_result.txt"
-        mkdir -p "$_out_dir"
 
         _log "Performing checks..."
         if run_script "$_SCRIPT_DIR/_test_check.sh" --id "$_test_id" --dir "$_test_dir" -o "$_out_dir"  >"$_resfile"; then
