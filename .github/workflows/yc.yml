@@ -40,7 +40,7 @@ jobs:
       - uses: ./.github/actions/setup-yc
       - name: Run Test
         run: |
-          stripped_tag="v0.5.26.alpha4"
+          stripped_tag="${{ github.event.release.tag_name }}"
           STRIPPED_TAG=${stripped_tag:1}
           YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-300inst-sleep0ms
       - name: Upload Artifacts
@@ -50,7 +50,7 @@ jobs:
           path: ${{ env.YC_LT_OUTPUT_DIR }}
       - name: Run Test 2
         run: |
-          stripped_tag="v0.5.26.alpha4"
+          stripped_tag="${{ github.event.release.tag_name }}"
           STRIPPED_TAG=${stripped_tag:1}
           YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-2000inst-sleep0ms
       - name: Upload Artifacts 2
@@ -60,7 +60,7 @@ jobs:
           path: ${{ env.YC_LT_OUTPUT_DIR }}
       - name: Run Test 3
         run: |
-          stripped_tag="v0.5.26.alpha4"
+          stripped_tag="${{ github.event.release.tag_name }}"
           STRIPPED_TAG=${stripped_tag:1}
           YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-2000inst-sleep50ms
       - name: Upload Artifacts 3
