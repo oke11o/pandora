@@ -10,6 +10,27 @@ env:
   YC_LT_OUTPUT_DIR: ${{github.workspace}}/performance-test/output
 
 jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yc
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.21.x
+          cache: true
+      - name: Test
+        run: go test -race -covermode atomic ./...
+      - name: Build
+        run: |
+          export GOOS=linux
+          export CGO_ENABLED=0
+          go build -o pandora_perf_2
+      - name: Upload
+        run: |
+          source performance-test/automation/_functions.sh && source performance-test/automation/_variables.sh; yc_s3_upload ./pandora_perf_2 pandora-perf pandora-perf
+
   test-300inst-sleep0ms:
     runs-on: ubuntu-latest
     concurrency: { group: loadtesting }
