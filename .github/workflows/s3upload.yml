@@ -27,6 +27,6 @@ jobs:
 
       - name: Build
         run: |
-          export GOARCH=linux
+          export GOOS=linux
           export CGO_ENABLED=0
           go build -o pandora_perf_2
