@@ -32,6 +32,7 @@ jobs:
           source performance-test/automation/_functions.sh && source performance-test/automation/_variables.sh; yc_s3_upload ./pandora_perf_2 pandora-perf pandora-perf
 
   test-300inst-sleep0ms:
+    needs: [ build-and-upload ]
     runs-on: ubuntu-latest
     concurrency: { group: loadtesting }
     steps:
@@ -46,6 +47,7 @@ jobs:
           path: ${{ env.YC_LT_OUTPUT_DIR }}
 
   test-2000inst-sleep0ms:
+    needs: [ build-and-upload ]
     runs-on: ubuntu-latest
     concurrency: { group: loadtesting }
     steps:
@@ -60,6 +62,7 @@ jobs:
           path: ${{ env.YC_LT_OUTPUT_DIR }}
 
   test-2000inst-sleep50ms:
+    needs: [ build-and-upload ]
     runs-on: ubuntu-latest
     concurrency: { group: loadtesting }
     steps:
