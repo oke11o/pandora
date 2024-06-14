@@ -65,7 +65,7 @@ while [[ $# -gt 0 ]]; do
     --network-interface)
         VAR_AGENT_SUBNET_ID=
         VAR_AGENT_SECURITY_GROUP_IDS=
-        _ARGS+=(--network-interface "$2"",ipv4-address=auto,nat-ip-version=ipv4")
+        _ARGS+=(--network-interface "$2")
         shift
         shift
         ;;
@@ -152,7 +152,7 @@ _log_stage "[WAIT]"
 _log "Waiting for agent to be ready..."
 
 _TICK="5"
-_TIMEOUT="720"
+_TIMEOUT="600"
 
 _ts_start=$(date +%s)
 _ts_timeout=$((_ts_start + _TIMEOUT))

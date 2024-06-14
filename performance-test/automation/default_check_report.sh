@@ -11,10 +11,10 @@ check_json_val \
 
 rc=$((rc | $?))
 
-#check_json_val \
-#    'has successfully sent requests' \
-#    '.overall.net_codes."0" // "-1" | tonumber' \
-#    '> 0'
+check_json_val \
+    'has successfully sent requests' \
+    '.overall.net_codes."0" // "-1" | tonumber' \
+    '> 0'
 
 rc=$((rc | $?))
 
