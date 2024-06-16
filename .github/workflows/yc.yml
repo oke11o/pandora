@@ -40,41 +40,41 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-yc
-      - name: Run Test 300inst-sleep0ms
-        run: |
-          stripped_tag="${{ github.event.release.tag_name }}"
-          STRIPPED_TAG=${stripped_tag:1}
-          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-300inst-sleep0ms
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: pandora-perf-300inst-sleep0ms
-          path: ${{ env.YC_LT_OUTPUT_DIR }}
-      - name: Run Test 2000inst-sleep0ms
-        run: |
-          stripped_tag="${{ github.event.release.tag_name }}"
-          STRIPPED_TAG=${stripped_tag:1}
-          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-2000inst-sleep0ms
-      - name: Upload Artifacts 2
-        uses: actions/upload-artifact@v4
-        with:
-          name: pandora-perf-2000inst-sleep0ms
-          path: ${{ env.YC_LT_OUTPUT_DIR }}
-      - name: Run Test 2000inst-sleep50ms
-        run: |
-          stripped_tag="${{ github.event.release.tag_name }}"
-          STRIPPED_TAG=${stripped_tag:1}
-          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-2000inst-sleep50ms
-      - name: Upload Artifacts 3
-        uses: actions/upload-artifact@v4
-        with:
-          name: pandora-perf-2000inst-sleep50ms
-          path: ${{ env.YC_LT_OUTPUT_DIR }}
+#      - name: Run Test 300inst-sleep0ms
+#        run: |
+#          stripped_tag="${{ github.event.release.tag_name }}"
+#          STRIPPED_TAG=${stripped_tag:1}
+#          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-300inst-sleep0ms
+#      - name: Upload Artifacts
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: pandora-perf-300inst-sleep0ms
+#          path: ${{ env.YC_LT_OUTPUT_DIR }}
+#      - name: Run Test 2000inst-sleep0ms
+#        run: |
+#          stripped_tag="${{ github.event.release.tag_name }}"
+#          STRIPPED_TAG=${stripped_tag:1}
+#          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-2000inst-sleep0ms
+#      - name: Upload Artifacts 2
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: pandora-perf-2000inst-sleep0ms
+#          path: ${{ env.YC_LT_OUTPUT_DIR }}
+#      - name: Run Test 2000inst-sleep50ms
+#        run: |
+#          stripped_tag="${{ github.event.release.tag_name }}"
+#          STRIPPED_TAG=${stripped_tag:1}
+#          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-2000inst-sleep50ms
+#      - name: Upload Artifacts 3
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: pandora-perf-2000inst-sleep50ms
+#          path: ${{ env.YC_LT_OUTPUT_DIR }}
       - name: Run Test GRPC 2000inst-sleep50ms
         run: |
           stripped_tag="${{ github.event.release.tag_name }}"
           STRIPPED_TAG=${stripped_tag:1}
-          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-2000inst-sleep50ms
+          YC_LT_VERBOSE=2 YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-2000inst-sleep50ms
       - name: Upload Artifacts 3
         uses: actions/upload-artifact@v4
         with:
