@@ -1,0 +1,11 @@
+{
+    "labels": {
+        "type": "pandora-perf",
+        "generator": "pandora",
+        "target": "local-mock",
+        "pandora_generator": "grps"
+    },
+    "external_data": [
+        {"name": "pandora-perf", "s3bucket": "pandora-perf", "s3file": "pandora-perf"}
+    ]
+}
