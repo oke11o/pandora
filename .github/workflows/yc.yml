@@ -9,6 +9,7 @@ env:
   YC_LT_TEST_AGENT_FILTER: "name = 'agent-pandora-perf-medium'"
   YC_LT_TEST_EXTRA_DESCRIPTION: "GitHub Actions workflow - ${{github.run_id}}"
   YC_LT_SKIP_TEST_CHECK: "1"
+  YC_LT_DATA_BUCKET: ${{ secrets.YC_LT_DATA_BUCKET }}
   YC_LT_OUTPUT_DIR: ${{github.workspace}}/performance-test/output
 
 jobs:
@@ -31,7 +32,7 @@ jobs:
           go build -o pandora_perf_2
       - name: Upload
         run: |
-          source performance-test/automation/_functions.sh && source performance-test/automation/_variables.sh; yc_s3_upload ./pandora_perf_2 pandora-perf pandora-perf
+          source performance-test/automation/_functions.sh && source performance-test/automation/_variables.sh; yc_s3_upload ./pandora_perf_2 pandora-perf ${YC_LT_DATA_BUCKET}
 
   test-pandora-perf:
     needs: [ build-and-upload ]
