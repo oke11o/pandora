@@ -11,14 +11,14 @@ pandora:
   pandora_cmd: ./pandora-perf
   config_content:
     pools:
-      - id: HTTP
+      - id: gRPC
         gun:
           type: grpc
           target: '127.0.0.1:8091'
           tls: false
         ammo:
           type: grpc/json
-          file: payload.json
+          file: ./payload.json
         result:
           type: phout
           destination: ./phout.log
