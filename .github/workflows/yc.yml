@@ -1,5 +1,5 @@
 name: performance-tests
-run-name: performance-tests
+
 on:
   release:
     types: [ created ]
@@ -69,4 +69,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pandora-perf-2000inst-sleep50ms
+          path: ${{ env.YC_LT_OUTPUT_DIR }}
+      - name: Run Test GRPC 2000inst-sleep50ms
+        run: |
+          stripped_tag="${{ github.event.release.tag_name }}"
+          STRIPPED_TAG=${stripped_tag:1}
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-2000inst-sleep50ms
+      - name: Upload Artifacts 3
+        uses: actions/upload-artifact@v4
+        with:
+          name: pandora-perf-grpc-2000inst-sleep50ms
           path: ${{ env.YC_LT_OUTPUT_DIR }}
