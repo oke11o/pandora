@@ -1,1 +1,1 @@
-{"tag": "hello1", "call": "target.TargetService.Hello", "payload": {"name": "sweet tester","sleep":"0ms"}}
+{"tag": "hello", "call": "target.TargetService.Hello", "payload": {"name": "sweet tester","sleep":"50ms"}}

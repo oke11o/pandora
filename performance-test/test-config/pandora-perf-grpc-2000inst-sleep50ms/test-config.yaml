@@ -1,7 +1,7 @@
 uploader:
   enabled: true
   package: yandextank.plugins.DataUploader
-  job_name: pandora-perf-lineto40k-300inst-60sec-sleep0ms
+  job_name: pandora-perf-grpc-2000inst-sleep50ms
   job_dsc: ''
   ver: ''
   api_address: loadtesting.api.cloud.yandex.net:443
@@ -24,7 +24,7 @@ pandora:
           destination: ./phout.log
         startup:
           type: once
-          times: 300
+          times: 2000
         rps:
           - type: line
             from: 1
