@@ -26,7 +26,7 @@ import (
 	"github.com/yandex/pandora/lib/zaputil"
 )
 
-const Version = "0.5.27.alpha2"
+const Version = "0.5.27.alpha3"
 const defaultConfigFile = "load"
 const stdinConfigSelector = "-"
 
