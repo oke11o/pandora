@@ -76,12 +76,6 @@ jobs:
         with:
           name: pandora-perf-grpc-300inst-sleep0ms
           path: ${{ env.YC_LT_OUTPUT_DIR }}
-      - name: Parse to Release
-        run: |
-          find "$YC_LT_OUTPUT_DIR" \ 
-          -name 'summary.json' \
-          -exec jq -r '"\(.details.name): \(.summary.imbalance_point.rps // "0" | tonumber)"' {} \; > imbalance.txt
-          cat imbalance.txt
       - name: Comment on Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -92,3 +86,12 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.release.id }}/comments \
             -d '{"body":"Release published!!!"}'
+      - name: Parse to Release
+        run: |
+          echo $YC_LT_OUTPUT_DIR
+          pwd
+          ls -lah
+          find . \ 
+          -name 'summary.json' \
+          -exec jq -r '"\(.details.name): \(.summary.imbalance_point.rps // "0" | tonumber)"' {} \; > imbalance.txt
+          cat imbalance.txt
