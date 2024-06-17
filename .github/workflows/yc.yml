@@ -45,7 +45,10 @@ jobs:
         run: |
           stripped_tag="${{ github.event.release.tag_name }}"
           STRIPPED_TAG=${stripped_tag:1}
-          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-http-uri-300inst-sleep0ms
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-http-uri-300inst-sleep0ms \
+            > test.json
+          imbalance_rps=$(jq -r '.summary.imbalance_point.rps // "0" | tonumber' < test.json)
+          echo "Imbalance rps: $imbalance_rps"
       - name: Run Test HTTP-2000inst-sleep0ms
         run: |
           stripped_tag="${{ github.event.release.tag_name }}"
