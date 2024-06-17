@@ -3,7 +3,7 @@
         "type": "pandora-perf",
         "generator": "pandora",
         "target": "local-mock",
-        "pandora_generator": "grps"
+        "pandora_generator": "grpc"
     },
     "external_data": [
         {"name": "pandora-perf", "s3bucket": "pandora-perf", "s3file": "pandora-perf"}

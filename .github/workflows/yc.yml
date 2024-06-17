@@ -45,57 +45,32 @@ jobs:
         run: |
           stripped_tag="${{ github.event.release.tag_name }}"
           STRIPPED_TAG=${stripped_tag:1}
-          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-300inst-sleep0ms
-      - name: Upload Artifacts HTTP-300inst-sleep0ms
-        uses: actions/upload-artifact@v4
-        with:
-          name: pandora-perf-http-300inst-sleep0ms
-          path: ${{ env.YC_LT_OUTPUT_DIR }}
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-http-uri-300inst-sleep0ms
       - name: Run Test HTTP-2000inst-sleep0ms
         run: |
           stripped_tag="${{ github.event.release.tag_name }}"
           STRIPPED_TAG=${stripped_tag:1}
-          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-2000inst-sleep0ms
-      - name: Upload Artifacts HTTP-2000inst-sleep0ms
-        uses: actions/upload-artifact@v4
-        with:
-          name: pandora-perf-http-2000inst-sleep0ms
-          path: ${{ env.YC_LT_OUTPUT_DIR }}
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-http-uri-2000inst-sleep0ms
       - name: Run Test HTTP-2000inst-sleep50ms
         run: |
           stripped_tag="${{ github.event.release.tag_name }}"
           STRIPPED_TAG=${stripped_tag:1}
-          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-2000inst-sleep50ms
-      - name: Upload Artifacts HTTP-2000inst-sleep50ms
-        uses: actions/upload-artifact@v4
-        with:
-          name: pandora-perf-http-2000inst-sleep50ms
-          path: ${{ env.YC_LT_OUTPUT_DIR }}
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-http-uri-2000inst-sleep50ms
       - name: Run Test GRPC-2000inst-sleep50ms
         run: |
           stripped_tag="${{ github.event.release.tag_name }}"
           STRIPPED_TAG=${stripped_tag:1}
-          YC_LT_VERBOSE=2 YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-2000inst-sleep0ms
-      - name: Upload Artifacts GRPC-2000inst-sleep0ms
-        uses: actions/upload-artifact@v4
-        with:
-          name: pandora-perf-grpc-2000inst-sleep0ms
-          path: ${{ env.YC_LT_OUTPUT_DIR }}
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-2000inst-sleep0ms
       - name: Run Test GRPC-2000inst-sleep50ms
         run: |
           stripped_tag="${{ github.event.release.tag_name }}"
           STRIPPED_TAG=${stripped_tag:1}
-          YC_LT_VERBOSE=2 YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-2000inst-sleep50ms
-      - name: Upload Artifacts GRPC-2000inst-sleep50ms
-        uses: actions/upload-artifact@v4
-        with:
-          name: pandora-perf-grpc-2000inst-sleep50ms
-          path: ${{ env.YC_LT_OUTPUT_DIR }}
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-2000inst-sleep50ms
       - name: Run Test GRPC-300inst-sleep0ms
         run: |
           stripped_tag="${{ github.event.release.tag_name }}"
           STRIPPED_TAG=${stripped_tag:1}
-          YC_LT_VERBOSE=2 YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-300inst-sleep0ms
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-300inst-sleep0ms
       - name: Upload Artifacts GRPC 300inst-sleep0ms
         uses: actions/upload-artifact@v4
         with:
