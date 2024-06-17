@@ -10,6 +10,15 @@ on:
       - master
       - dev
 
+env:
+  YC_LT_FOLDER_ID: b1gacohsvc2kc4d76tu5
+  YC_LT_AUTHORIZED_KEY_JSON: ${{ secrets.YC_LOADTESTING_CI_AUTHORIZED_KEY_JSON }}
+  YC_LT_TEST_AGENT_FILTER: "name = 'agent-pandora-perf-medium'"
+  YC_LT_TEST_EXTRA_DESCRIPTION: "GitHub Actions workflow - ${{github.run_id}}"
+  YC_LT_SKIP_TEST_CHECK: "1"
+  YC_LT_DATA_BUCKET: ${{ secrets.YC_LT_DATA_BUCKET }}
+  YC_LT_OUTPUT_DIR: ${{github.workspace}}/performance-test/output
+
 jobs:
   run-unit-tests:
     name: Unit Tests
