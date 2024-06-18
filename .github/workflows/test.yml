@@ -42,46 +42,23 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_ID: 161082234
         run: |
-          set -x
-          curl -L \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID > release.json
-
           cat <<EOF > imbalance.txt
-          pandora-perf-grpc-300inst-sleep0ms: 12344
-          pandora-perf-grpc-3000inst-sleep0ms: 15555
+          ## Performance tests
+          - pandora-perf-grpc-300inst-sleep0ms: 12344
+          - pandora-perf-grpc-3000inst-sleep0ms: 15555
           EOF
           
-          IMBALANCE_PT=$(sed G imbalance.txt)
+          sed G imbalance.txt > imbalance.md
 
-          jq '{body: .body}' release.json > body.json
-          jq --arg report "$IMBALANCE_PT" '.body = .body + "\n" + $report' body.json > _body.json
-          
-          curl -L \
-            -X PATCH \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID \
-            -d @_body.json
-
-      - name: Install Go
-        uses: actions/setup-go@v3
+      - name: update release
+        id: update_release
+        uses: tubone24/update_release@v1.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TAG_NAME: v0.5.27.alpha13
         with:
-          go-version: 1.21.x
-          cache: true
-
-      - name: Test
-        run: go test -race -coverprofile unit.txt -covermode atomic ./...
-
-      - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./unit.txt
-          flags: unit,${{ matrix.os }},go-${{ matrix.go-version }}
-          name: unit
+          body_path: ./imbalance.md
+          is_append_body: true
 
 #  build-and-upload:
 #    runs-on: ubuntu-latest
