@@ -50,11 +50,11 @@ jobs:
           
           sed G imbalance.txt > imbalance.md
 
-      - name: update release
+      - name: Update release
         id: update_release
         uses: tubone24/update_release@v1.0
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG_NAME: v0.5.27.alpha13
         with:
           body_path: ./imbalance.md
