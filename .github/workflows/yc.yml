@@ -56,21 +56,21 @@ jobs:
           stripped_tag="${{ github.event.release.tag_name }}"
           STRIPPED_TAG=${stripped_tag:1}
           YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-http-uri-2000inst-sleep50ms
-#      - name: Run Test GRPC-2000inst-sleep50ms
-#        run: |
-#          stripped_tag="${{ github.event.release.tag_name }}"
-#          STRIPPED_TAG=${stripped_tag:1}
-#          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-2000inst-sleep0ms
-#      - name: Run Test GRPC-2000inst-sleep50ms
-#        run: |
-#          stripped_tag="${{ github.event.release.tag_name }}"
-#          STRIPPED_TAG=${stripped_tag:1}
-#          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-2000inst-sleep50ms
-#      - name: Run Test GRPC-300inst-sleep0ms
-#        run: |
-#          stripped_tag="${{ github.event.release.tag_name }}"
-#          STRIPPED_TAG=${stripped_tag:1}
-#          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-300inst-sleep0ms
+      - name: Run Test GRPC-2000inst-sleep50ms
+        run: |
+          stripped_tag="${{ github.event.release.tag_name }}"
+          STRIPPED_TAG=${stripped_tag:1}
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-2000inst-sleep0ms
+      - name: Run Test GRPC-2000inst-sleep50ms
+        run: |
+          stripped_tag="${{ github.event.release.tag_name }}"
+          STRIPPED_TAG=${stripped_tag:1}
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-2000inst-sleep50ms
+      - name: Run Test GRPC-300inst-sleep0ms
+        run: |
+          stripped_tag="${{ github.event.release.tag_name }}"
+          STRIPPED_TAG=${stripped_tag:1}
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-300inst-sleep0ms
       - name: Upload Artifacts GRPC 300inst-sleep0ms
         uses: actions/upload-artifact@v4
         with:
@@ -88,7 +88,7 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID > release.json
 
-          find $YC_LT_OUTPUT_DIR -name 'summary.json' -exec jq -r '"\(.details.name): \(.summary.imbalance_point.rps // "0" | tonumber)"' {} \; > imbalance.txt
+          find $YC_LT_OUTPUT_DIR -name 'summary.json' -exec jq -r '"- \(.details.name): **\(.summary.imbalance_point.rps // "0" | tonumber)**"' {} \; > imbalance.txt
           IMBALANCE_PT=$(sed G imbalance.txt)
 
           jq '{body: .body}' release.json > body.json
@@ -101,6 +101,3 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID \
             -d @_body.json
-          
-          IMBALANCE_PT=$(sed G imbalance.txt)
-            -d @body.json
