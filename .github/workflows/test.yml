@@ -37,6 +37,42 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Parse to Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ID: 161066614
+        run: |
+          curl -L \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID | jq -r ".body" > body.txt
+          
+          echo '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-='
+          OLD_DESC=$(cat body.txt)
+          echo OLD_DESC
+          echo $OLD_DESC
+          echo '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-='
+          
+          echo "pandora-perf-grpc-300inst-sleep0ms: 12344\npandora-perf-grpc-3000inst-sleep0ms: 15555\n" > imbalance.txt
+
+          IMBALANCE_PT=$(sed G imbalance.txt)
+          
+          
+          echo '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-='
+          echo "{\"body\":\"${OLD_DESC}\n\n\n\n${IMBALANCE_PTR}\"}" > body.json
+          echo body.json
+          cat body.json
+          echo '-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-='
+          
+          curl -L \
+            -X PATCH \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID \
+            -d @body.json
+
       - name: Install Go
         uses: actions/setup-go@v3
         with:
