@@ -82,6 +82,11 @@ jobs:
           RELEASE_ID: ${{ github.event.release.id }}
         run: |
           curl -L \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}
+          curl -L \
             -X PATCH \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
@@ -90,6 +95,7 @@ jobs:
             -d '{"body":"Description of the release"}'
       - name: Parse to Release
         run: |
+          ls -lah $YC_LT_OUTPUT_DIR
           find $YC_LT_OUTPUT_DIR \ 
           -name 'summary.json' \
           -exec jq -r '"\(.details.name): \(.summary.imbalance_point.rps // "0" | tonumber)"' {} \; > imbalance.txt
