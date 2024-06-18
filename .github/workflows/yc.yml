@@ -76,43 +76,20 @@ jobs:
         with:
           name: pandora-perf-grpc-300inst-sleep0ms
           path: ${{ env.YC_LT_OUTPUT_DIR }}
-#      - name: Comment on Release
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#          RELEASE_ID: ${{ github.event.release.id }}
-#        run: |
-#          DESCR=$(curl -L \
-#            -H "Accept: application/vnd.github+json" \
-#            -H "Authorization: Bearer $GITHUB_TOKEN" \
-#            -H "X-GitHub-Api-Version: 2022-11-28" \
-#            https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }} | jq -r ".body")
-#          echo $DESCR
-#          curl -L \
-#            -X PATCH \
-#            -H "Accept: application/vnd.github+json" \
-#            -H "Authorization: Bearer $GITHUB_TOKEN" \
-#            -H "X-GitHub-Api-Version: 2022-11-28" \
-#            https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }} \
-#            -d '{"body":"Description of the release"}'
       - name: Parse to Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_ID: ${{ github.event.release.id }}
         run: |
-          ls -lah $YC_LT_OUTPUT_DIR
-          find $YC_LT_OUTPUT_DIR -name 'summary.json' 
           find $YC_LT_OUTPUT_DIR -name 'summary.json' \
           -exec jq -r '"\(.details.name): \(.summary.imbalance_point.rps // "0" | tonumber)"' {} \; > imbalance.txt
-          cat imbalance.txt
-          MY_VAR=$(cat imbalance.txt)
+          IMBALANCE_PTR=$(sed G imbalance.txt)
           DESCR=$(curl -L \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }} | jq -r ".body")
-          echo "{\"body\":\"${DESCR}\n\n\n${MY_VAR}\nDescription of the release\"}" > body.json
-          cat body.json
-          echo "----------------==========="
+          echo "{\"body\":\"${DESCR}\n\n\n\n${IMBALANCE_PTR}\"}" > body.json
           curl -L \
             -X PATCH \
             -H "Accept: application/vnd.github+json" \

@@ -1,8 +1,8 @@
 autostop:
   enabled: true
   autostop:
-    - quantile (50,4ms,10s)
-    - instances(300,10s)
+    - quantile (50,16ms,10s)
+    - instances(2000,10s)
   package: yandextank.plugins.Autostop
   report_file: autostop_report.txt
 uploader:
