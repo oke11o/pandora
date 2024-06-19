@@ -1,3 +1,4 @@
+autostop:
   enabled: true
   autostop:
     - quantile (50,4ms,10s)
