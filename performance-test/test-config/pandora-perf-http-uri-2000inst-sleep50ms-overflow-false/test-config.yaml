@@ -1,14 +1,14 @@
 autostop:
   enabled: true
   autostop:
-    - quantile (50,4ms,10s)
-    - instances(300,10s)
+    - quantile (50,60ms,10s)
+    - instances(2000,10s)
   package: yandextank.plugins.Autostop
   report_file: autostop_report.txt
 uploader:
   enabled: true
   package: yandextank.plugins.DataUploader
-  job_name: pandora-perf-300inst-sleep0ms
+  job_name: pandora-perf-http-uri-2000inst-sleep50ms-overflow-false
   job_dsc: ''
   ver: ''
   api_address: loadtesting.api.cloud.yandex.net:443
@@ -26,13 +26,13 @@ pandora:
         ammo:
           type: uri
           uris:
-            - /hello?sleep=0ms hellotag
+            - /hello?sleep=50ms hellotag
         result:
           type: phout
           destination: ./phout.log
         startup:
           type: once
-          times: 300
+          times: 2000
         rps:
           - type: line
             from: 1

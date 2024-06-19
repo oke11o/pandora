@@ -41,21 +41,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-yc
-      - name: Run Test HTTP-300inst-sleep0ms
+      - name: Run Test HTTP-300inst-sleep0ms-overflow-false
+        run: |
+          stripped_tag="${{ github.event.release.tag_name }}"
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-http-uri-300inst-sleep0ms-overflow-false
+      - name: Run Test HTTP-2000inst-sleep0ms-overflow-false
         run: |
           stripped_tag="${{ github.event.release.tag_name }}"
           STRIPPED_TAG=${stripped_tag:1}
-          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-http-uri-300inst-sleep0ms
-#      - name: Run Test HTTP-2000inst-sleep0ms
-#        run: |
-#          stripped_tag="${{ github.event.release.tag_name }}"
-#          STRIPPED_TAG=${stripped_tag:1}
-#          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-http-uri-2000inst-sleep0ms
-#      - name: Run Test HTTP-2000inst-sleep50ms
-#        run: |
-#          stripped_tag="${{ github.event.release.tag_name }}"
-#          STRIPPED_TAG=${stripped_tag:1}
-#          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-http-uri-2000inst-sleep50ms
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-http-uri-2000inst-sleep0ms-overflow-false
+      - name: Run Test HTTP-2000inst-sleep50ms-overflow-false
+        run: |
+          stripped_tag="${{ github.event.release.tag_name }}"
+          STRIPPED_TAG=${stripped_tag:1}
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-http-uri-2000inst-sleep50ms-overflow-false
+      - name: Run Test HTTP-300inst-sleep0ms-overflow-true
+        run: |
+          stripped_tag="${{ github.event.release.tag_name }}"
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-http-uri-300inst-sleep0ms-overflow-true
+      - name: Run Test HTTP-2000inst-sleep0ms-overflow-true
+        run: |
+          stripped_tag="${{ github.event.release.tag_name }}"
+          STRIPPED_TAG=${stripped_tag:1}
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-http-uri-2000inst-sleep0ms-overflow-true
+      - name: Run Test HTTP-2000inst-sleep50ms-overflow-true
+        run: |
+          stripped_tag="${{ github.event.release.tag_name }}"
+          STRIPPED_TAG=${stripped_tag:1}
+          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-http-uri-2000inst-sleep50ms-overflow-true
 #      - name: Run Test GRPC-2000inst-sleep50ms
 #        run: |
 #          stripped_tag="${{ github.event.release.tag_name }}"
