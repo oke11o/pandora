@@ -115,7 +115,7 @@ jobs:
           ## Performance tests
           
           EOF
-          find $YC_LT_OUTPUT_DIR -name 'summary.json' -exec jq -r '"- \(.details.name): **\(.summary.imbalance_point.rps // "0" | tonumber)**"' {} \; >> imbalance.md
+          find $YC_LT_OUTPUT_DIR -name 'summary.json' -exec jq -r '"- \(.details.name): **\(.summary.imbalance_point.rps // "0" | tonumber)**"' {} \; | sort >> imbalance.md
 
       - name: Update release
         id: update_release
