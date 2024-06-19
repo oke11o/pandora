@@ -8,7 +8,7 @@ autostop:
 uploader:
   enabled: true
   package: yandextank.plugins.DataUploader
-  job_name: pandora-perf-grpc-300inst-sleep0ms
+  job_name: pandora-perf-grpc-300inst-sleep0ms-overflow-false
   job_dsc: ''
   ver: ''
   api_address: loadtesting.api.cloud.yandex.net:443

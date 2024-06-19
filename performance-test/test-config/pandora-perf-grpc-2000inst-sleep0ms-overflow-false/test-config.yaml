@@ -1,13 +1,13 @@
 autostop:
   enabled: true
   autostop:
-    - quantile (50,120ms,10s)
+    - quantile (50,85ms,10s)
   package: yandextank.plugins.Autostop
   report_file: autostop_report.txt
 uploader:
   enabled: true
   package: yandextank.plugins.DataUploader
-  job_name: pandora-perf-grpc-2000inst-sleep50ms
+  job_name: pandora-perf-grpc-2000inst-sleep0ms-overflow-false
   job_dsc: ''
   ver: ''
   api_address: loadtesting.api.cloud.yandex.net:443

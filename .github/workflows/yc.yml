@@ -73,17 +73,17 @@ jobs:
 #        run: |
 #          stripped_tag="${{ github.event.release.tag_name }}"
 #          STRIPPED_TAG=${stripped_tag:1}
-#          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-2000inst-sleep0ms
+#          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-2000inst-sleep0ms-overflow-false
 #      - name: Run Test GRPC-2000inst-sleep50ms
 #        run: |
 #          stripped_tag="${{ github.event.release.tag_name }}"
 #          STRIPPED_TAG=${stripped_tag:1}
-#          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-2000inst-sleep50ms
+#          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-2000inst-sleep50ms-overflow-false
 #      - name: Run Test GRPC-300inst-sleep0ms
 #        run: |
 #          stripped_tag="${{ github.event.release.tag_name }}"
 #          STRIPPED_TAG=${stripped_tag:1}
-#          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-300inst-sleep0ms
+#          YC_LT_TEST_EXTRA_LABELS="version=${STRIPPED_TAG}" ./performance-test/automation/test.sh ./performance-test/test-config/pandora-perf-grpc-300inst-sleep0ms-overflow-false
       - name: Upload Artifacts GRPC 300inst-sleep0ms
         uses: actions/upload-artifact@v4
         with:
