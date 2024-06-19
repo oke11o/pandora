@@ -1,3 +1,9 @@
+autostop:
+  enabled: true
+  autostop:
+    - quantile (50,85ms,10s)
+  package: yandextank.plugins.Autostop
+  report_file: autostop_report.txt
 uploader:
   enabled: true
   package: yandextank.plugins.DataUploader
@@ -14,7 +20,7 @@ pandora:
       - id: gRPC
         gun:
           type: grpc
-          target: '127.0.0.1:8091'
+          target: 127.0.0.1:8091
           tls: false
         ammo:
           type: grpc/json
@@ -28,8 +34,8 @@ pandora:
         rps:
           - type: line
             from: 1
-            to: 40000
-            duration: 60s
+            to: 20000
+            duration: 70s
         discard_overflow: false
     log:
       level: error
