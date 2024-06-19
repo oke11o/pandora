@@ -36,8 +36,8 @@ pandora:
         rps:
           - type: line
             from: 1
-            to: 40000
-            duration: 60s
+            to: 50000
+            duration: 70s
         discard_overflow: false
     log:
       level: error
