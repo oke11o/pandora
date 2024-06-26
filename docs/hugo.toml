@@ -1,0 +1,8 @@
+baseURL = 'https://example.org/'
+languageCode = 'en-us'
+title = 'My New Hugo Site'
+theme = ["github.com/theNewDynamic/gohugo-theme-ananke"]
+
+[module]
+[[module.imports]]
+path = 'github.com/theNewDynamic/gohugo-theme-ananke'
