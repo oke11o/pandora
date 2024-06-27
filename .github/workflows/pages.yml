@@ -1,7 +1,6 @@
 name: Deploy Hugo site to Pages
 
 on:
-  # Runs on pushes targeting the default branch
   push:
     branches:
       - master
@@ -21,13 +20,11 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
-# Default to bash
 defaults:
   run:
     shell: bash
 
 jobs:
-  # Build job
   build:
     runs-on: ubuntu-latest
     env:
@@ -48,8 +45,14 @@ jobs:
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
       - name: Install Node.js dependencies
-        run: "[[ -f package-lock.json || -f npm-shrinkwrap.json ]] && npm ci || true"
+        run: |
+          npm install postcss postcss-cli autoprefixer
+          [[ -f package-lock.json || -f npm-shrinkwrap.json ]] && npm ci || true
       - name: Build with Hugo
         env:
           # For maximum backward compatibility with Hugo modules
@@ -68,7 +71,6 @@ jobs:
         with:
           path: ./docs/public
 
-  # Deployment job
   deploy:
     environment:
       name: github-pages
