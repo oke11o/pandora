@@ -1,3 +1,7 @@
+locals:
+  global-headers: &global-headers
+    Content-Type: application/json
+    Useragent: Yandex
 variable_sources:
   - name: users
     type: file/csv
@@ -21,8 +25,7 @@ requests:
     method: POST
     uri: /auth
     headers:
-      Content-Type: application/json
-      Useragent: Yandex
+      <<: *global-headers
     tag: auth
     body: |
       {"user_id":  {{.request.auth_req.preprocessor.user_id}}}
@@ -53,10 +56,9 @@ requests:
   - name: list_req
     method: GET
     uri: /list
-    headers:
+    headers: &auth-headers
+      <<: *global-headers
       Authorization: Bearer {{.request.auth_req.postprocessor.token}}
-      Content-Type: application/json
-      Useragent: Yandex
     tag: list
     postprocessors:
       - type: var/jsonpath
@@ -67,9 +69,7 @@ requests:
     method: POST
     uri: /order
     headers:
-      Authorization: Bearer {{.request.auth_req.postprocessor.token}}
-      Content-Type: application/json
-      Useragent: Yandex
+      <<: *auth-headers
     tag: order_req
     body: |
       {"item_id": {{.request.order_req.preprocessor.item}}}
