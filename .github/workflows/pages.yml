@@ -61,6 +61,7 @@ jobs:
           TZ: America/Los_Angeles
         run: |
           echo ${{ steps.pages.outputs.base_url }}
+          npx postcss --version
           hugo \
             --gc \
             --minify \
