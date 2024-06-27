@@ -51,7 +51,7 @@ jobs:
           node-version: '20'
       - name: Install Node.js dependencies
         run: |
-          npm install postcss postcss-cli autoprefixer
+          npm install -g postcss postcss-cli autoprefixer
           [[ -f package-lock.json || -f npm-shrinkwrap.json ]] && npm ci || true
       - name: Build with Hugo
         env:
