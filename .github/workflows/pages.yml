@@ -60,11 +60,11 @@ jobs:
           HUGO_ENV: production
           TZ: America/Los_Angeles
         run: |
+          echo "<<<<<<<<<<<<<<<<<<<"
           echo ${{ steps.pages.outputs.base_url }}
           npx postcss --version
+          echo ">>>>>>>>>>>>>>>>>>>"
           hugo \
-            --gc \
-            --minify \
             --baseURL "${{ steps.pages.outputs.base_url }}/" \
             --source docs
       - name: Upload artifact
