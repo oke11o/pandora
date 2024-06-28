@@ -1,13 +1,10 @@
 ---
-title: TechOS-Dokumentasjon
-linkTitle: Dokumentasjon
+title: Документация Yandex Pandora
+linkTitle: Документация
 menu:
   main:
     weight: 20
 ---
 
-Dette er landingssiden til en seksjon på øverste nivå.
-
-* Oppsummer
-* Seksjonen din
-* Her
+Pandora - это высокопроизводительный генератор нагрузки на языке Go. Он имеет встроенную поддержку HTTP(S) и HTTP/2, 
+и вы можете писать собственные сценарии нагрузки на языке Go, компилируя их непосредственно перед тестированием.
