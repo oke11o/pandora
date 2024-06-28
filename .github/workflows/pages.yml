@@ -52,6 +52,7 @@ jobs:
       - name: Install Node.js dependencies
         run: |
           echo "-------------------"
+          cd docs
           npm install -g postcss postcss-cli autoprefixer
           npm i
           echo "==================="
