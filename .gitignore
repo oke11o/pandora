@@ -36,7 +36,3 @@ vendor/
 
 .DS_Store
 
-docs/public/
-docs/resources/_gen/
-public/
-

@@ -1,4 +1,4 @@
-module github.com/google/docsy-example
+module github.com/yadnex/pandora/docs
 
 go 1.12
 
