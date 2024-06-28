@@ -1,8 +1,10 @@
-[Home](index.md)
-
 ---
-
-# gRPC generator
+title: gRPC generator
+description: gRPC generator
+categories: [Config]
+tags: [config, docs, grpc]
+weight: 8
+---
 
 Full gRPC generator config
 
@@ -60,7 +62,3 @@ But to unify reports it converts them into HTTP codes.
 - Best practices
   - [RPS per instance](best_practices/rps-per-instance.md)
   - [Shared client](best_practices/shared-client.md)
-
----
-
-[Home](index.md)

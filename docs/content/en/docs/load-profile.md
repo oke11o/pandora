@@ -1,8 +1,10 @@
-[Home](../index.md)
-
 ---
-
-# Load profile
+title: Load profile
+description: Load profile
+categories: [Config]
+tags: [config, docs, http]
+weight: 4
+---
 
 To determine what load to create on the server, use a load profile. It sets how the load will be changed and maintained.
 
@@ -82,7 +84,3 @@ rps:
     type: unlimited
     duration: 30s
 ```
-
----
-
-[Home](../index.md)

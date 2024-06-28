@@ -1,8 +1,10 @@
-[Home](../index.md)
-
 ---
-
-# Custom guns
+title: Custom guns
+description: Custom guns
+categories: [Config]
+tags: [config, docs]
+weight: 11
+---
 
 - [Basic tutorial](#basic-tutorial)
 - [gRPC](#grpc)
@@ -449,7 +451,3 @@ func main() {
         cli.Run()
 }
 ```
-
----
-
-[Home](../index.md)

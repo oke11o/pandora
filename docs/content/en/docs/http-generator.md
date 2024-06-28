@@ -1,8 +1,10 @@
-[Home](../index.md)
-
 ---
-
-# HTTP generator
+title: HTTP generator
+description: HTTP generator
+categories: [Config]
+tags: [config, docs, http]
+weight: 9
+---
 
 Full http (http2) generator config
 

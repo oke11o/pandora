@@ -1,8 +1,10 @@
-[Home](../index.md)
-
 ---
-
-# Architectural overview 
+title: Architectural overview
+description: Architectural overview
+categories: [Config]
+tags: [config, docs]
+weight: 14
+---
 
 - [Architectural scheme](#architectural-scheme)
 - [Component types](#component-types)
@@ -64,7 +66,3 @@ a request to your service and measures the parameters (time, error codes, etc.) 
 ### Aggregator
 
 Aggregator collects measured samples and saves them somewhere.
-
----
-
-[Home](../index.md)

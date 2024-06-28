@@ -1,8 +1,10 @@
-[Home](index.md)
-
 ---
-
-# Instance startup profile
+title: Instance startup profile
+description: Instance startup profile
+categories: [Config]
+tags: [config, docs, http]
+weight: 5
+---
 
 You can control the profile of instance starts.
 

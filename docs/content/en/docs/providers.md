@@ -1,8 +1,10 @@
-[Home](../index.md)
-
 ---
-
-# HTTP Ammo providers
+title: HTTP Ammo providers
+description: HTTP Ammo providers
+categories: [Config]
+tags: [config, docs, http]
+weight: 6
+---
 
 - [Test data](#test-data)
   - [http/json](#httpjson)
@@ -231,7 +233,3 @@ pools:
       ...
       preload: true
 ```
-
----
-
-[Home](../index.md)

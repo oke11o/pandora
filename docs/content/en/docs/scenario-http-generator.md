@@ -1,8 +1,10 @@
-[Home](../index.md)
-
 ---
-
-# Scenario generator / HTTP
+title: Scenario generator / HTTP
+description: Scenario generator / HTTP
+categories: [Config]
+tags: [config, docs, http]
+weight: 9
+---
 
 - [Configuration](#configuration)
     - [Generator](#generator)
@@ -486,7 +488,3 @@ Follow - [Variable sources](scenario/variable_source.md)
     - [RPS per instance](best_practices/rps-per-instance.md)
     - [Shared client](best_practices/shared-client.md)
 
-
----
-
-[Home](../index.md)

@@ -1,8 +1,10 @@
-[Home](../index.md)
-
 ---
-
-# Pandora's performance
+title: Pandora's performance
+description: Pandora's performance
+categories: [Config]
+tags: [config, docs, http]
+weight: 13
+---
 
 - [HTTP requests to nginx](#http-requests-to-nginx)
 - [Custom scenarios](#custom-scenarios)
