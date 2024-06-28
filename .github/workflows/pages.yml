@@ -51,11 +51,7 @@ jobs:
           node-version: 20
       - name: Install Node.js dependencies
         run: |
-          echo "-------------------"
           cd docs
-          npm install -g postcss postcss-cli autoprefixer
-          npm i
-          echo "==================="
           [[ -f package-lock.json || -f npm-shrinkwrap.json ]] && npm ci || true
       - name: Build with Hugo
         env:
@@ -65,10 +61,6 @@ jobs:
           TZ: America/Los_Angeles
         run: |
           cd docs
-          echo "<<<<<<<<<<<<<<<<<<<"
-          echo ${{ steps.pages.outputs.base_url }}
-          npx postcss --version
-          echo ">>>>>>>>>>>>>>>>>>>"
           hugo \
             --gc \
             --minify \
