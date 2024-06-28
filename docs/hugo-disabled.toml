@@ -1,4 +1,4 @@
-baseURL = "https://example.docsy.dev/"
+baseURL = "https://yandex.github.io/"
 title = "Goldydocs"
 
 # Language settings
@@ -55,16 +55,16 @@ anchor = "smart"
 [languages]
 [languages.en]
 languageName ="English"
-title = "Goldydocs"
+title = "Pandora"
 [languages.en.params]
-description = "A Docsy example site"
+description = "Yandex Pandora Documentation"
 
 [languages.no]
-languageName ="Norsk"
+languageName ="Русский"
 contentDir = "content/no"
-title = "Gulldoks"
+title = "Pandora"
 [languages.no.params]
-description = "Docsy er operativsystem for skyen"
+description = "Документация Yandex Pandora"
 time_format_default = "02.01.2006"
 time_format_blog = "02.01.2006"
 

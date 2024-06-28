@@ -1,4 +1,4 @@
 ---
-title: Søkeresultat
+title: Pandora
 layout: search
 ---

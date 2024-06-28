@@ -1,5 +1,5 @@
-baseURL: https://example.docsy.dev
-title: Goldydocs
+baseURL: https://yandex.github.io/
+title: Yandex Pandora
 
 # cSpell:ignore goldmark github hugo readingtime docsy subdir lastmod pygments linenos catmullrom norsk gu
 
@@ -46,16 +46,16 @@ imaging:
 languages:
   en:
     languageName: English
-    title: Goldydocs
+    title: Yandex Pandora
     params:
-      description: A Docsy example site
+      description: Yandex Pandora Documentation
   # cSpell:disable
   'no':
-    languageName: Norsk
+    languageName: Русский
     contentDir: content/no
-    title: Gulldoks
+    title: Yandex Pandora
     params:
-      description: Docsy er operativsystem for skyen
+      description: Документация Yandex Pandora
       time_format_default: 02.01.2006
       time_format_blog: 02.01.2006
   # cSpell:enable
