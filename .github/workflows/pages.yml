@@ -48,10 +48,13 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: 20
       - name: Install Node.js dependencies
         run: |
+          echo "-------------------"
           npm install -g postcss postcss-cli autoprefixer
+          npm i
+          echo "==================="
           [[ -f package-lock.json || -f npm-shrinkwrap.json ]] && npm ci || true
       - name: Build with Hugo
         env:
@@ -65,8 +68,9 @@ jobs:
           npx postcss --version
           echo ">>>>>>>>>>>>>>>>>>>"
           hugo \
-            --baseURL "${{ steps.pages.outputs.base_url }}/" \
-            --source docs
+            --gc \
+            --minify \
+            --baseURL "${{ steps.pages.outputs.base_url }}/"  --source docs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
