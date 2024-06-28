@@ -50,9 +50,9 @@ languages:
     params:
       description: Yandex Pandora Documentation
   # cSpell:disable
-  'no':
+  ru:
     languageName: Русский
-    contentDir: content/no
+    contentDir: content/ru
     title: Yandex Pandora
     params:
       description: Документация Yandex Pandora
