@@ -1,4 +1,4 @@
 ---
-title: Pandora
+title: Результаты поиска
 layout: search
 ---
