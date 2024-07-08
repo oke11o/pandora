@@ -1,8 +1,8 @@
 ---
 title: Instance startup profile
-description: Instance startup profile
-categories: [Config]
-tags: [config, docs, http]
+description: How many instances you need, and how quickly they will be available to you
+categories: [Startup]
+tags: [startup]
 weight: 5
 ---
 

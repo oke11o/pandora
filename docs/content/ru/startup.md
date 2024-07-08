@@ -1,33 +1,33 @@
 ---
-title: Instance startup profile
-description: Instance startup profile
-categories: [Config]
-tags: [config, docs, http]
+title: Профиль создания инстансов
+description: Сколько инстансов вам необходимо, и как быстро они будут вам доступны
+categories: [Startup]
+tags: [startup]
 weight: 5
 ---
 
-You can control the profile of instance starts.
+Вы можете контролировать профиль создания инстансов.
 
-This section can be thought of as how many instances you need, and how quickly they will be available to you.
+Данную секцию можно воспринимать как то, сколько инстансов вам необходимо, и как быстро они будут вам доступны.
 
-Types of Instance startup profile:
+Варианты правил создания Инстансов:
 
 - [once](#once)
 - [const](#const)
 - [instance_step](#instance_step)
 - [composite](#composite)
 
-#### Note: you cannot reduce the number of running instances
+#### Замечание: нельзя уменьшить количество работающих инстансов
 
-The startup profile only works to create instances. That is, Pandora does not delete instances until the test is complete.
+Профили создания инстансов работают только на создание, то есть Пандора не удаляет инстансы до окончания теста.
 
 ## once
 
-A specified number of instances are created once.
+Разово создается указанное количество инстансов.
 
-**Example**:
+**Пример**:
 
-creating 10 instances at the start of this test section
+создание 10 инстансов на старте этого участка теста
 
 ```yaml
 startup:
@@ -37,11 +37,11 @@ startup:
 
 ## const
 
-Creating instances at a certain speed.
+Создание инстансов с определенной скоростью.
 
-**Example**:
+**Пример**:
 
-creating 5 instances every second for 60 seconds. As a result, 300 instances will be created after 60 seconds
+создание 5 инстансов каждую секунду на протяжении 60 секунд. В результате через 60 секунд будет создано 300 инстансов
 
 ```yaml
 startup:
@@ -52,11 +52,11 @@ startup:
 
 ## instance_step
 
-Creates instances in periodic increments.
+Создает инстансы с периодическим шагом.
 
-**Example**:
+**Пример**:
 
-10 instances are created every 10 seconds. As a result, 100 instances will be created after 100 seconds
+каждые 10 секунд создается 10 инстансов. В результате через 100 секунд будет создано 100 инстансов
 
 ```yaml
 startup:
@@ -69,15 +69,15 @@ startup:
 
 ## composite
 
-Composite startup profile is a possibility of arbitrary combination of the above described profiles.
+Композитное создание инстансов - это возможность произвольной комбинации вышеописанных профилей.
 
-**Example**:
+**Пример**:
 
-Implement a single step [instance_step](#instance_step) using once and const.
-- 10 instances are created
-- No instances are created within 10 seconds(_ops: 0_)
-- 10 instances are created.
-- As a result, 20 instances will be created and will run until the entire test is complete
+Реализация одного шага [instance_step](#instance_step) с помощью once и const.
+- Создается 10 инстансов
+- В течение 10 секунд инстансы не создаются (_ops: 0_)
+- Создается 10 инстансов.
+- Итого 20, которые будут работать до окончания всего теста
 
 ```yaml
 startup:
@@ -89,9 +89,3 @@ startup:
   - type: once
     times: 10
 ```
-
-
-
----
-
-[Home](index.md)
