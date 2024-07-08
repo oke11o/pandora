@@ -1,5 +1,5 @@
 ---
-title: Pandora's performance
+title: Pandora performance
 description: Some performance tests for the gun itself
 categories: [Best practise]
 tags: [config, test, performance]
