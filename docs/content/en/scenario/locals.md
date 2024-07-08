@@ -1,8 +1,8 @@
 ---
 title: Locals
-description: Locals
-categories: [Config]
-tags: [config, docs]
+description: locals block in hcl
+categories: [Scenario]
+tags: [scenario, local]
 weight: 2
 ---
 
@@ -96,7 +96,3 @@ requests:
 
 - [Scenario generator / HTTP](../scenario-http-generator.md)
 - [Scenario generator / gRPC](../scenario-grpc-generator.md)
-
----
-
-[Home](../../index.md)

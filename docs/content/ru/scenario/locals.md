@@ -1,37 +1,37 @@
 ---
 title: Locals
-description: Locals
-categories: [Config]
-tags: [config, docs]
+description: Блок locals в hcl
+categories: [Scenario]
+tags: [scenario, local]
 weight: 2
 ---
 
-Foreword:
+Предисловие:
 
-Creating a script from HCL consists of two stages:
-- Parsing stage - converts the HCL file into the internal structure of the generator.
-- Execution stage - involves the steps of:
-    - Preprocessing
-    - Templating
-    - Postprocessing
+Формирование сценария из hcl состоит из 2-х этапов:
+- этап парсинга - преобразовывает hcl файл в внутреннюю структуру генератора
+- этап выполнения - выполнение шагов:
+  - препроцессинга
+  - шаблонизации
+  - постпроцессинга
 
-This article focuses on the parsing stage.
+В данной статье рассматривается этап парсинга.
 
 ## HCL
 
-Just like in Terraform, you can use the `locals` block, which allows you to create additional variables. 
-It is important to note that these variables are only utilized during the parsing of HCL and cannot be used 
-during the execution stage.
+Так же как и в terraform вы можете использовать блок `locals`, который вы можете использовать для создания
+дополнительных переменных. Важно, что данные переменные будут использоваться только при парсинге HCL и их нельзя
+использовать на этапе выполнения.
 
-### Functions
+### Функции
 
-You can use [HCL functions](functions.md#hcl-functions).
+Вы можете использовать [функции HCL](functions.md#функции-hcl)
 
-### Example of Use
+### Пример использования
 
-You can use `locals` variables to define common headers.
+Вы можете использовать переменные locals для определения общих заголовков.
 
-Note the use of the `merge()` function.
+Обратите внимание на использование функции `merge()`
 
 ```hcl
 locals {
@@ -42,7 +42,7 @@ locals {
   next = "next"
 }
 locals {
-  // Merge the new variable with the local variable local.common_headers
+  // смержим новую переменную с локальной переменной local.common_headers
   auth_headers = merge(local.common_headers, {
     Authorization = "Bearer {{.request.auth_req.postprocessor.token}}"
   })
@@ -50,7 +50,7 @@ locals {
 }
 
 request "list_req" {
-  // Merge the new variable with the local variable local.common_headers
+  // смержим новую переменную с локальной переменной local.common_headers
   method = "GET"
   headers = merge(local.common_headers, {
     Authorization = "Bearer {{.request.auth_req.postprocessor.token}}"
@@ -69,9 +69,9 @@ request "list_req" {
 
 ## YAML
 
-In YAML format, you can use anchors.
+В yaml формате вы можете использовать якоря.
 
-For common variables, you can use the `locals` helper block.
+Для общих переменных можно использовать вспомогательный блок locals
 
 ```yaml
 locals:
@@ -94,9 +94,5 @@ requests:
 
 ---
 
-- [Scenario generator / HTTP](../scenario-http-generator.md)
-- [Scenario generator / gRPC](../scenario-grpc-generator.md)
-
----
-
-[Home](../../index.md)
+- [Сценарный генератор / HTTP](../scenario-http-generator.md)
+- [Сценарный генератор / gRPC](../scenario-grpc-generator.md)

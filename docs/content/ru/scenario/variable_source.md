@@ -1,24 +1,21 @@
 ---
-title: Variable sources
-description: Variable sources
-categories: [Config]
-tags: [config, docs]
+title: Источники переменных
+description: Блок variable_source в сценариях
+categories: [Scenario]
+tags: [scenario, source, variable]
 weight: 1
 ---
 
-# Variable sources
+Используются в
 
-Use with:
+- [Сценарный генератор / HTTP](../scenario-http-generator.md)
+- [Сценарный генератор / gRPC](../scenario-grpc-generator.md)
 
-- [Scenario generator / HTTP](../scenario-http-generator.md)
-- [Scenario generator / gRPC](../scenario-grpc-generator.md)
-
-
-Variable sources
+Источники переменных
 
 ## csv file
 
-Example
+Пример
 
 ```terraform
 variable_source "users" "file/csv" {
@@ -29,20 +26,20 @@ variable_source "users" "file/csv" {
 }
 ```
 
-Creating a source from csv. Adding the name `users` to it.
+Создание источника из csv. Добавление ему имени `users`.
 
-Using variables from this source
+Использование переменных из данного источника
 
 ```gotempate
 {% raw %}{{.source.users[0].user_id}}{% endraw %}
 ```
 
-The `fields` parameter is optional.
+Параметр `fields` является необязательным.
 
-If this parameter is not present, the names in the first line of the csv file will be used as field names,
-if `ignore_first_line = false`.
+Если этого параметра нет, то в качестве имен полей будет использоваться имена в первой строке csv файла,
+если `ignore_first_line = false`.
 
-If `ignore_first_line = true` and there are no fields, then ordinal numbers will be used as names
+Если `ignore_first_line = true` и отсутствуют поля, то в качестве имен будут использоваться порядковые номер
 
 ```gotempate
 {% raw %}{{.source.users[0].0}}{% endraw %}
@@ -50,7 +47,7 @@ If `ignore_first_line = true` and there are no fields, then ordinal numbers will
 
 ## json file
 
-Example
+Пример
 
 ```terraform
 variable_source "users" "file/json" {
@@ -58,9 +55,9 @@ variable_source "users" "file/json" {
 }
 ```
 
-Creating a source from a json file. Add the name `users` to it.
+Создание источника из json файла. Добавление ему имени `users`.
 
-The file must contain any valid json. For example:
+Файл должен содержать любой валидный json. Например:
 
 ```json
 {
@@ -77,7 +74,7 @@ The file must contain any valid json. For example:
 }
 ```
 
-Using variables from this source
+Использование переменных из данного источника
 
 ```gotempate
 {% raw %}{{.source.users.data[next].id}}{% endraw %}
@@ -98,7 +95,7 @@ Using variables from this source
 ]
 ```
 
-Using variables from this source
+Использование переменных из данного источника
 
 ```gotempate
 {% raw %}{{.source.users[next].id}}{% endraw %}
@@ -117,23 +114,19 @@ variable_source "global" "variables" {
 }
 ```
 
-Creating a source with variables. Add the name `global` to it.
+Создание источника с переменными. Добавление ему имени `global`.
 
-Using variables from this source
+Использование переменных из данного источника
 
 ```gotempate
 {% raw %}{{.source.global.host}}:{{.source.global.port}}{% endraw %}
 ```
 
-An additional feature of this source is the ability to use randomization functions.
+Дополнительная особенность данного источника - возможность использовать функции рандомизации
 
-For more details, see [randomization functions](functions.md).
-
----
-
-- [Scenario generator / HTTP](../scenario-http-generator.md)
-- [Scenario generator / gRPC](../scenario-grpc-generator.md)
+Подробнее см [функции рандомизации](functions.md)
 
 ---
 
-[Home](../../index.md)
+- [Сценарный генератор / HTTP](../scenario-http-generator.md)
+- [Сценарный генератор / gRPC](../scenario-grpc-generator.md)

@@ -1,8 +1,8 @@
 ---
 title: Variable sources
-description: Variable sources
-categories: [Config]
-tags: [config, docs]
+description: variable_source block in scenarios
+categories: [Scenario]
+tags: [scenario, source, variable]
 weight: 1
 ---
 
