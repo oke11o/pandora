@@ -1,6 +1,6 @@
 ---
 title: Installation
-description: How intall Yandex Pandora
+description: How install Yandex Pandora
 weight: 1
 ---
 

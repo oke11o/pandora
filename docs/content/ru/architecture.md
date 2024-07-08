@@ -1,38 +1,33 @@
 ---
-title: Architectural overview
-description: Architectural overview
-categories: [Config]
-tags: [config, docs]
+title: Архитектура
+description: Pandora - это набор компонентов, взаимодействующих друг с другом с помощью Go каналов
+categories: [Get started]
+tags: [architecture]
 weight: 14
 ---
 
-- [Architectural scheme](#architectural-scheme)
-- [Component types](#component-types)
-  - [Ammo Provider](#ammo-provider)
-  - [Instances Pool](#instances-pool)
-  - [Scheduler](#scheduler)
-  - [Instances and Guns](#instances-and-guns)
-  - [Aggregator](#aggregator)
+## Схема
 
-## Architectural scheme
+Код схемы доступен [здесь](../../images/architecture.graphml).
+Его можно открыть и редактировать в редакторе [YeD](https://www.yworks.com/en/products/yfiles/yed/).
 
-You can download architectural scheme source [here](../images/architecture.graphml).
-Open it with [YeD](https://www.yworks.com/en/products/yfiles/yed/) editor.
+![architectural scheme](../../images/architecture.png)
 
-![architectural scheme](../images/architecture.png)
+Pandora - это набор компонентов, взаимодействующих друг с другом с помощью Go каналов.
 
-Pandora is a set of components talking to each other through Go channels. There are different types of components.
+## Типы компонентов
 
-## Component types
+### Provider
 
-### Ammo Provider
-
-Ammo Provider knows how to make an ammo object from an ammo file or other external resource. Instances get ammo objects
-from Ammo Provider.
+Ammo Provider знает, как создать объект Payload из payload файла (ammo file) или другого внешнего ресурса.
+И их задача передать Payload Instance'у. См метод `func (p *Provider) Acquire() (core.Ammo, bool)`
 
 ### Instance Pool
 
-Instance Pool manages the creation of Instances. You can think of one Instance as a single user that sends requests to a server sequentially. All Instances from one Instance Pool get their ammo from one Ammo Provider. Instances creation times are controlled by Startup Scheduler. All Instances from one Instance Pool also have Guns of the same type.
+**Пул инстансов** управляет созданием **инстансов**. Один инстанс можно представить как одного пользователя, который
+**последовательно** отправляет запросы на сервер. Все инстансы из одного пула инстансов получают данные от одного
+**провайдера**. Время создания инстанса контролируется **планировщиком**. Все инстансы из одного пула инстансов имеют генераторы
+одного типа.
 
 ### Scheduler
 

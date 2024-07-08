@@ -1,4 +1,4 @@
-baseURL: https://yandex.github.io/
+baseURL: https://yandex.github.io
 title: Yandex Pandora
 
 # cSpell:ignore goldmark github hugo readingtime docsy subdir lastmod pygments linenos catmullrom norsk gu

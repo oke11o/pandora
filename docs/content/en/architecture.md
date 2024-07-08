@@ -1,18 +1,10 @@
 ---
 title: Architectural overview
-description: Architectural overview
-categories: [Config]
-tags: [config, docs]
+description: Pandora is a set of components talking to each other through Go channels. There are different types of components.
+categories: [Get started]
+tags: [architecture]
 weight: 14
 ---
-
-- [Architectural scheme](#architectural-scheme)
-- [Component types](#component-types)
-  - [Ammo Provider](#ammo-provider)
-  - [Instances Pool](#instances-pool)
-  - [Scheduler](#scheduler)
-  - [Instances and Guns](#instances-and-guns)
-  - [Aggregator](#aggregator)
 
 ## Architectural scheme
 
