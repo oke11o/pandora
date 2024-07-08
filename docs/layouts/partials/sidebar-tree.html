@@ -27,7 +27,7 @@
       {{ partial "navbar-lang-selector.html" . }}
     </div>
     {{ end -}}
-    {{ $navRoot := cond (and (ne .Params.toc_root true) (eq .Site.Home.Type "docs")) .Site.Home .FirstSection -}}
+    {{ $navRoot := .Site.GetPage "/" }}
     {{ $ulNr := 0 -}}
     {{ $ulShow := .Site.Params.ui.ul_show | default 1 -}}
     {{ $sidebarMenuTruncate := .Site.Params.ui.sidebar_menu_truncate | default 50 -}}
@@ -53,6 +53,7 @@
 {{ $withChild := gt (len $pages) 0 -}}
 {{ $manualLink := cond (isset $s.Params "manuallink") $s.Params.manualLink ( cond (isset $s.Params "manuallinkrelref") (relref $s $s.Params.manualLinkRelref) $s.RelPermalink) -}}
 {{ $manualLinkTitle := cond (isset $s.Params "manuallinktitle") $s.Params.manualLinkTitle $s.Title -}}
+{{ if ne $s.File.Path "search.md" }}
 <li class="td-sidebar-nav__section-title td-sidebar-nav__section{{ if $withChild }} with-child{{ else }} without-child{{ end }}{{ if $activePath }} active-path{{ end }}{{ if (not (or $show $p.Site.Params.ui.sidebar_menu_foldable )) }} collapse{{ end }}" id="{{ $mid }}-li">
   {{ if (and $p.Site.Params.ui.sidebar_menu_foldable (ge $ulNr 1)) -}}
   <input type="checkbox" id="{{ $mid }}-check"{{ if $activePath}} checked{{ end }}/>
@@ -71,4 +72,5 @@
   </ul>
   {{- end }}
 </li>
+{{- end }}
 {{- end }}
