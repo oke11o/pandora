@@ -1,19 +1,10 @@
 ---
 title: HTTP Ammo providers
-description: HTTP Ammo providers
-categories: [Config]
-tags: [config, docs, http]
+description: HTTP Ammo provider is a source of test data: it makes ammo object
+categories: [Provider]
+tags: [provider, http]
 weight: 6
 ---
-
-- [Test data](#test-data)
-  - [http/json](#httpjson)
-  - [raw (request-style)](#raw-request-style)
-  - [uri-style](#uri-style)
-- [Features](#features)
-  - [Ammo filters](#ammo-filters)
-  - [HTTP Ammo middlewares](#http-ammo-middlewares)
-  - [HTTP Ammo preloaded](#http-ammo-preloaded)
 
 HTTP Ammo provider is a source of test data: it makes ammo object.
 
