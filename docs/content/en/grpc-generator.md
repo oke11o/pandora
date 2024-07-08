@@ -1,8 +1,8 @@
 ---
 title: gRPC generator
 description: gRPC generator
-categories: [Config]
-tags: [config, docs, grpc]
+categories: [Generator]
+tags: [generator, grpc]
 weight: 8
 ---
 

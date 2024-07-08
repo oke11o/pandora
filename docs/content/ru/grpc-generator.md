@@ -1,41 +1,41 @@
 ---
 title: gRPC generator
 description: gRPC generator
-categories: [Config]
-tags: [config, docs, grpc]
+categories: [Generator]
+tags: [generator, grpc]
 weight: 8
 ---
 
-Full gRPC generator config
+Полный конфиг grpc генератора
 
 ```yaml
 gun:
   type: grpc
   target: '[hostname]:443'
-  timeout: 15s              # Grpc request timeout. Default: 15s
-  tls: false                # If true, Pandora accepts any certificate presented by the server and any host name in that certificate. Default: false
-  reflect_port: 8000        # If your reflection service is located on a port other than the main server
-  reflect_metadata:         # Separate metadata data for reflection service
+  timeout: 15s              # Таймаут для запросов gRPC. По умолчанию: 15s
+  tls: false                # Если true, Pandora принимает любой сертификат, представленный сервером, и любое имя хоста в этом сертификате. По умолчанию: false
+  reflect_port: 8000        # Если ваш рефлекшн сервис находится на отличном от основного сервера порту
+  reflect_metadata:         # Отдельные metadata данные для рефлекшн сервис
     auth: Token
   shared-client:
-    enabled: false          # If TRUE, the generator will use a common transport client for all instances
-    client-number: 1        # The number of shared clients can be increased. The default is 1
+    enabled: true           # Если TRUE, генератор будет использовать общий транспортный клиент для всех инстансов
+    client-number: 1        # Количество общих клиентов можно увеличить. По умолчанию 1
   dial_options:
-    authority: some.host    # Specifies the value to be used as the :authority pseudo-header and as the server name in authentication handshake
-    timeout: 1s             # Timeout for dialing GRPC connect. Default: 1s
+    authority: some.host    # Указывает значение, которое будет использоваться в качестве псевдозаголовка :authority и имени сервера в процессе аутентификации.
+    timeout: 1s             # Таймаут установки gRPC соединения. По умолчанию: 1s
   answlog:
     enabled: true
     path: ./answ.log
-    filter: all            # all - all http codes, warning - log 4xx and 5xx, error - log only 5xx. Default: error
+    filter: all            # all - все http-коды, warning - логировать 4xx и 5xx, error - логировать только 5xx. По умолчанию: error
 ```
 
-## Mapping Response Codes
+## Маппинг кодов ответа
 
-Pandora uses the gRPC client from google.golang.org/grpc as a client (https://github.com/grpc/grpc-go)
+В качестве клиента Пандора использует gRPC клиент от google.golang.org/grpc (https://github.com/grpc/grpc-go)
 
-But to unify reports it converts them into HTTP codes.
+Но для унификации графиков преобразует их в HTTP коды.
 
-### Mapping table gPRC StatusCode -> HTTP StatusCode
+### Таблица маппинга gPRC StatusCode -> HTTP StatusCode
 
 | gRPC Status Name   | gRPC Status Code | HTTP Status Code |
 |--------------------|------------------|------------------|
@@ -56,9 +56,9 @@ But to unify reports it converts them into HTTP codes.
 | unknown            | -                | 500              |
 
 
-# References
+# Смотри так же
 
-- [Scenario generator / gRPC](scenario-grpc-generator.md)
-- Best practices
-  - [RPS per instance](best_practices/rps-per-instance.md)
-  - [Shared client](best_practices/shared-client.md)
+- [Сценарный генератор / gRPC](scenario-grpc-generator.md)
+- Практики использования
+  - [RPS на инстанс](best_practices/rps-per-instance.md)
+  - [Общий транспорт](best_practices/shared-client.md)
