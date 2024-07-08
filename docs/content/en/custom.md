@@ -1,8 +1,8 @@
 ---
 title: Custom guns
 description: Custom guns
-categories: [Config]
-tags: [config, docs]
+categories: [Generator]
+tags: [generator]
 weight: 11
 ---
 
@@ -51,7 +51,7 @@ pools:
 
 And create ammofile `./json.ammo`:
 
-```yaml
+```json
 {"tag": "/MyCase1", "Param1": "146837693,146837692,146837691"}
 {"tag": "/MyCase2", "Param2": "555", "Param1": "500002"}
 ```

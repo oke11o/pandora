@@ -1,46 +1,46 @@
 ---
 title: Configuration
-description: Pandora supports config files in `YAML` format.
-categories: [Config]
-tags: [config, docs]
+description: Pandora поддерживает файлы конфигурации в формате `YAML`
+categories: [Get started]
+tags: [config]
 weight: 2
 ---
 
-## Basic configuration
+## Основная конфигурация
 
-Pandora supports config files in `YAML` format. Create a new file named `load.yaml` and add following lines in your
-favourite editor:
+Pandora поддерживает файлы конфигурации в формате `YAML`. Создайте новый файл с именем `load.yaml` и добавьте
+в него следующие строки:
 
 ```yaml
 pools:
-  - id: HTTP pool                    # pool name (for your choice)
+  - id: HTTP pool                    # идентификатор инстанс пула
     gun:
-      type: http                     # gun type
-      target: example.com:80         # gun target
+      type: http                     # тип генератора
+      target: example.com:80         # ... далее идут настройки генератора. Зависят от его типа
     ammo:
-      type: uri                      # ammo format
-      file: ./ammo.uri               # ammo File
+      type: uri                      # тип провайдера
+      file: ./ammo.uri               # ... далее идут настройки провайдера. Зависят от его типа
     result:
-      type: phout                    # report format (phout is compatible with Yandex.Tank)
+      type: phout                    # тип агрегатора (phout - совместим Yandex.Tank)
       destination: ./phout.log       # report file name
 
-    rps-per-instance: false          # rps section is counted for each instance or for the whole test. false - for the whole test
-    discard_overflow: true           # strict adherence to the request schedule
+    rps-per-instance: false          # секция rps считается для каждого инстанса или для всего теста. false - для всего теста
+    discard_overflow: true           # строгое следование генератором расписания запросов
 
-    rps:                             # shooting schedule
-      type: line                     # linear growth
-      from: 1                        # from 1 response per second
-      to: 5                          # to 5 responses per second
-      duration: 60s                  # for 60 seconds
+    rps:                             # планировщик нагрузки
+      type: line                     # тип планировщика
+      from: 1                        # ... далее идут настройки планировщика. Зависят от его типа
+      to: 5
+      duration: 60s
 
-    startup:                         # instances startup schedule
-      type: once                     # start 10 instances
-      times: 10
+    startup:                         # запуск инстансов
+      type: once                     # тип профиля запуска инстансов
+      times: 10                      # ... далее идут настройки планировщика. Зависят от его типа
 ```
 
-## Monitoring and Logging
+## Мониторинг и логирование
 
-You can enable debug information about gun (e.g. monitoring and additional logging).
+Вы можете включить отладочную информацию (мониторинг и профилирование).
 
 ```yaml
 log:                                 # gun logging configuration
@@ -59,20 +59,19 @@ monitoring:
 ```
 
 
-## Variables from env and files
+## Переменные из переменных окружения и файлов
 
-You can use variables in the config from environment variables or from files.
+В конфигурации можно использовать переменные из переменных окружения или из файлов.
 
-The template format is `${...}`.
+Используйте шаблон - `${...}`.
 
-Environment variable `${env:MY_ENV}`
-Variable from file `${property:path/file.property#MY_FIELD}`.
+Переменные окружения: `${env:MY_ENV}`
 
-The contents of the file must be
+Переменные из файлов: `${property:path/file.property#MY_FIELD}`.
 
-`MY_FIELD=data`
+Содержимое файла должно быть: `MY_FIELD=data`
 
-Example config
+Пример:
 
 ```yaml
 pools:
@@ -85,4 +84,4 @@ pools:
       - "[Custom-Header: ${property:path/file.property#MY_FIELD}]"
 ```
 
-You can use variables not only in the header section but also in other configuration fields.
+Переменные можно использовать не только в секции `headers`, но и в любых других полях конфигурации.

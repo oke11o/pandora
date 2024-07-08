@@ -1,8 +1,8 @@
 ---
 title: Configuration
 description: Pandora supports config files in `YAML` format.
-categories: [Config]
-tags: [config, docs]
+categories: [Get started]
+tags: [config]
 weight: 2
 ---
 
