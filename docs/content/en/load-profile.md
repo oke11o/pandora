@@ -1,8 +1,8 @@
 ---
 title: Load profile
-description: Load profile
-categories: [Config]
-tags: [config, docs, http]
+description: It sets how the load will be changed and maintained.
+categories: [Load profile]
+tags: [load_profile]
 weight: 4
 ---
 

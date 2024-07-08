@@ -1,20 +1,21 @@
 ---
-title: Load profile
-description: Load profile
-categories: [Config]
-tags: [config, docs, http]
+title: Профиль нагрузки
+description: Профиль определяет, как будет изменяться и поддерживаться нагрузка
+categories: [Load profile]
+tags: [load_profile]
 weight: 4
 ---
 
-To determine what load to create on the server, use a load profile. It sets how the load will be changed and maintained.
+Чтобы определить, какую нагрузку подавать на сервер, используется профиль нагрузки. Профиль определяет, как будет 
+изменяться и поддерживаться нагрузка.
 
 ## const
 
-Maintains the specified load for a certain time.
+Поддерживает указанную нагрузку определенное время.
 
-Example:
+Пример:
 
-generates 10000 requests per second for 300 seconds
+подача 10 000 запросов в секунду в течение 300 секунд
 
 ```yaml
 rps:
@@ -26,11 +27,11 @@ rps:
 
 ## line
 
-Linearly increases the load in a given range over a certain period of time.
+Линейно увеличивает нагрузку в заданном диапазоне за определенный период времени.
 
-Example:
+Пример:
 
-the load increases from 1 to 10000 requests per second over 180 seconds
+увеличение нагрузки от 1 до 10 000 запросов в секунду за 180 секунд
 
 ```yaml
 rps:
@@ -42,11 +43,11 @@ rps:
 
 ## step
 
-Increases the load with the specified increment size from one value to another for a certain time.
+Увеличивает нагрузку с указанным шагом от одного показателя к другому за определенное время.
 
-Example:
+Пример:
 
-the load increases from 10 to 100 requests per second in increments of 5 and with a step duration of 30 seconds
+увеличение нагрузки от 10 до 100 запросов в секунду с шагом 5 и длительностью шага 30 секунд
 
 ```yaml
 rps:
@@ -59,11 +60,11 @@ rps:
 
 ## once
 
-Sends the specified number of requests once and completes the test. There are no restrictions on the number of requests.
+Разово отправляет указанное количество запросов и завершает тест. Ограничений на количество запросов нет.
 
-Example:
+Пример:
 
-sends 133 requests at the start of this test section and completes the test
+отправка 133 запросов на старте этого участка теста и завершение теста
 
 ```yaml
 rps:
@@ -73,14 +74,15 @@ rps:
 
 ## unlimited
 
-Sends as many requests as the target can accept within the established connections without restrictions during the specified time.
+Передает столько запросов, сколько может принять цель в рамках установленных соединений без ограничений в течение 
+указанного времени.
 
-Example:
+Пример:
 
-unlimited load for 30 seconds
+максимальное кол-во rps в течение 30 секунд
 
 ```yaml
 rps:
-    type: unlimited
-    duration: 30s
+  type: unlimited
+  duration: 30s
 ```
