@@ -1,31 +1,10 @@
 ---
 title: Scenario generator / gRPC
 description: Scenario generator / gRPC
-categories: [Config]
-tags: [config, docs, http]
+categories: [generator]
+tags: [scenario, generator, grpc]
 weight: 10
 ---
-
-- [Configuration](#configuration)
-    - [Generator](#generator)
-    - [Provider](#provider)
-- [Description of the scenario format](#description-of-the-scenario-format)
-    - [General principle](#general-principle)
-    - [HCL example](#hcl-example)
-    - [YAML example](#yaml-example)
-    - [Locals](#locals)
-- [Features](#features)
-    - [Calls](#calls)
-        - [Templater](#templater)
-            - [Variable names in templates](#variable-names-in-templates)
-            - [Functions in templates](#functions-in-templates)
-        - [Preprocessors](#preprocessors)
-            - [prepare](#prepare)
-        - [Postprocessors](#postprocessors)
-            - [assert/response](#assertresponse)
-    - [Scenarios](#scenarios)
-    - [Sources](#sources)
-- [References](#references)
 
 ## Configuration
 
@@ -72,7 +51,7 @@ Supports file extensions
 
 ## Description of the scenario format
 
-Supports formats
+Support formats
 
 - hcl
 - yaml
@@ -320,6 +299,4 @@ Follow - [Variable sources](scenario/variable_source.md)
 # References
 
 - [gRPC generator](grpc-generator.md)
-- Best practices
-    - [RPS per instance](best_practices/rps-per-instance.md)
-    - [Shared client](best_practices/shared-client.md)
+- [Практики использования](best-practices)

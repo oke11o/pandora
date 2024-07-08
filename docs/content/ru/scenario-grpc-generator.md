@@ -1,35 +1,14 @@
 ---
 title: Scenario generator / gRPC
 description: Scenario generator / gRPC
-categories: [Config]
-tags: [config, docs, http]
+categories: [generator]
+tags: [scenario, generator, grpc]
 weight: 10
 ---
 
-- [Configuration](#configuration)
-    - [Generator](#generator)
-    - [Provider](#provider)
-- [Description of the scenario format](#description-of-the-scenario-format)
-    - [General principle](#general-principle)
-    - [HCL example](#hcl-example)
-    - [YAML example](#yaml-example)
-    - [Locals](#locals)
-- [Features](#features)
-    - [Calls](#calls)
-        - [Templater](#templater)
-            - [Variable names in templates](#variable-names-in-templates)
-            - [Functions in templates](#functions-in-templates)
-        - [Preprocessors](#preprocessors)
-            - [prepare](#prepare)
-        - [Postprocessors](#postprocessors)
-            - [assert/response](#assertresponse)
-    - [Scenarios](#scenarios)
-    - [Sources](#sources)
-- [References](#references)
+## Конфигурация
 
-## Configuration
-
-You need to use a generator and a provider of type `grpc/scenario`
+Вам необходимо использовать генератор и провайдер типа `grpc/scenario`
 
 ```yaml
 pools:
@@ -42,9 +21,9 @@ pools:
       file: payload.hcl
 ```
 
-### Generator
+### Генератор
 
-The minimum generator configuration is as follows
+Минимальная конфигурация генератора выглядит так
 
 ```yaml
 gun:
@@ -52,11 +31,11 @@ gun:
   target: localhost:8888
 ```
 
-For a scenario gRPC generator, all settings of a regular gRPC generator are supported [gRPC generator](grpc-generator.md)
+Для сценарного генератора поддерживаются все настройки обычного [gRPC генератора](grpc-generator.md)
 
-### Provider
+### Провайдер
 
-The provider accepts only one parameter - the path to the file with the scenario description
+Провайдер принимает всего один параметр - путь до файла с описанием сценария
 
 ```yaml
 ammo:
@@ -64,30 +43,30 @@ ammo:
   file: payload.hcl
 ```
 
-Supports file extensions
+Поддерживает файлы расширений
 
 - hcl
 - yaml
 - json
 
-## Description of the scenario format
+## Описание формата сценариев
 
-Supports formats
+Поддерживает форматы
 
 - hcl
 - yaml
 - json
 
-### General principle
+### Общий принцип
 
-Several scenarios can be described in a single file. A script has a name by which one scenario differs from another.
+В одном файле можно описывать несколько сценариев. У сценария есть имя по которому один сценарий отличается от другого.
 
-A script is a sequence of rpc calls. That is, you will need to describe in the script which calls
-should be executed in what order.
+Сценарий - это последовательность gRPC вызовов. То есть вам потребуется описать в сценарии какие вызовы в каком порядке
+должны выполняться.
 
-The Call is a gRPC call. It has standard gRPC call fields plus additional ones. See [Calls](#calls).
+Вызов - gRPC вызов. Имеет стандартные поля gRPC вызова плюс дополнительные. См [Calls](#calls).
 
-### HCL example
+### HCL пример
 
 ```terraform
 locals {
@@ -145,10 +124,10 @@ scenario "scenario_name" {
 }
 ```
 
-You can also see an example in the tests https://github.com/yandex/pandora/blob/dev/tests/grpc_scenario/testdata/grpc_payload.hcl
+Так же пример можно посмотреть в тестах https://github.com/yandex/pandora/blob/dev/tests/grpc_scenario/testdata/grpc_payload.hcl
 
 
-### YAML example
+### YAML пример
 
 ```yaml
 locals:
@@ -194,11 +173,11 @@ scenarios:
 
 Про блок locals смотрите в отдельной [статье Locals](scenario/locals.md)
 
-## Features
+## Возможности
 
-### Calls
+### Вызовы
 
-Fields
+Поля
 
 - call
 - tag
@@ -207,48 +186,49 @@ Fields
 - payload
 - postprocessors
 
-### Templater
+### Шаблонизатор
 
-The fields `metadata', `payload` are templated.
+Поля `metadata`, `payload` шаблонризируются.
 
-The standard go template is used.
+Используется стандартный go template.
 
-#### Variable names in templates
+#### Имена переменных в шаблонах
 
-Variable names have the full path of their definition.
+Имена переменных имеют полный путь их определения.
 
-For example
+Например
 
-Variable `users` from source `user_file` - `{% raw %}{{{.source.user_file.users}}{% endraw %}`
+Переменная `users` из источника `user_file` - `{% raw %}{{.source.user_file.users}}{% endraw %}`
 
-Variable `item` from the `list_req` call preprocessor - `{% raw %}{{{.request.list_req.preprocessor.item}}{% endraw %}`
+Переменная `item` из препроцессора запроса `list_req` - `{% raw %}{{.request.list_req.preprocessor.item}}{% endraw %}`
 
-> Note
-> To maintain similarity with http scripts, the response section from the grpc call is saved to the `postprocessor` section
+> Обратите внимание
+> Для сохранения подобия с http сценариями секция ответов от grpc вызова сохраняется в раздел `postprocessor`
 
-Variable `token`  from the `list_req` call is `{% raw %}{{{.request.list_req.postprocessor.token}}{% endraw %}`
+Переменная `token` из вызова `list_req` - `{% raw %}{{.request.list_req.postprocessor.token}}{% endraw %}`
 
-##### Functions in Templates
+##### Функции в шаблонах
 
-Since the standard Go templating engine is used, it is possible to use built-in functions available at https://pkg.go.dev/text/template#hdr-Functions.
+Так как используется стандартные шаблонизатор Го в нем можно использовать встроенные функции
+https://pkg.go.dev/text/template#hdr-Functions
 
-Additionally, some functions include:
+А так же некоторые функции
 
 - randInt
 - randString
 - uuid
 
-For more details about randomization functions, see [more](scenario/functions.md).
+Подробнее про функции рандомизации см в [документации](scenario/functions.md)
 
 #### Preprocessors
 
-Preprocessor - actions are performed before templating
+Препроцессор - действия выполняются перед шаблонизацией
 
 ##### prepare
 
-It is used for creating new variable mapping
+Используется для нового маппинга переменных
 
-The preprocessor has the ability to work with arrays using modifiers
+У препроцессора есть возможность работать с массивами с помощью модификаторов
 
 - next
 - last
@@ -280,11 +260,12 @@ call "req_name" {
 
 #### Postprocessors
 
+
 ##### assert/response
 
-Checks header and body content
+Проверяет значения заголовков и тела
 
-Upon assertion, further scenario execution is dropped
+Если матчинг не срабатывает, прекращает дальнейшее выполнение сценария
 
 ```terraform
 postprocessor "assert/response" {
@@ -295,9 +276,9 @@ postprocessor "assert/response" {
 
 ### Scenarios
 
-This section repeats the same [scenario in HTTP generator](./scenario-http-generator.md#scenarios)
+Данная секция повторяет такую же [секцию сценариев в HTTP генераторе](./scenario-http-generator.md#scenarios)
 
-The minimum fields for the script are name and list of requests
+Минимальные поля для сценария - имя и перечень запросов
 
 ```terraform
 scenario "scenario_name" {
@@ -310,16 +291,14 @@ scenario "scenario_name" {
 }
 ```
 
-More - [scenario in HTTP generator](./scenario-http-generator.md#scenarios)
+Подробнее см [секцию сценариев в HTTP генераторе](./scenario-http-generator.md#scenarios)
 
 
 ### Sources
 
-Follow - [Variable sources](scenario/variable_source.md)
+См документ - [Источники переменных](scenario/variable_source.md)
 
-# References
+# Смотри так же
 
-- [gRPC generator](grpc-generator.md)
-- Best practices
-    - [RPS per instance](best_practices/rps-per-instance.md)
-    - [Shared client](best_practices/shared-client.md)
+- [gRPC генератор](grpc-generator.md)
+- [Практики использования](best-practices)

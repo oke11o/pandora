@@ -1,37 +1,14 @@
 ---
 title: Scenario generator / HTTP
 description: Scenario generator / HTTP
-categories: [Config]
-tags: [config, docs, http]
+categories: [generator]
+tags: [scenario, generator, http]
 weight: 9
 ---
 
-- [Configuration](#configuration)
-    - [Generator](#generator)
-    - [Provider](#provider)
-- [Description of the scenario format](#description-of-the-scenario-format)
-    - [General principle](#general-principle)
-    - [HCL example](#hcl-example)
-    - [YAML example](#yaml-example)
-    - [Locals](#locals)
-- [Features](#features)
-    - [Requests](#requests)
-        - [Templater](#templater)
-            - [Variable names in templates](#variable-names-in-templates)
-            - [Functions in templates](#functions-in-templates)
-        - [Preprocessors](#preprocessors)
-        - [Postprocessors](#postprocessors)
-            - [var/jsonpath](#varjsonpath)
-            - [var/xpath](#varxpath)
-            - [var/header](#varheader)
-            - [assert/response](#assertresponse)
-    - [Scenarios](#scenarios)
-    - [Sources](#sources)
-- [References](#references)
+## Конфигурация
 
-## Configuration
-
-You need to use a generator and a provider of type `http/scenario`
+Вам необходимо использовать генератор и провайдер типа `http/scenario`
 
 ```yaml
 pools:
@@ -44,9 +21,9 @@ pools:
       file: payload.hcl
 ```
 
-### Generator
+### Генератор
 
-The minimum generator configuration is as follows
+Минимальная конфигурация генератора выглядит так
 
 ```yaml
 gun:
@@ -54,7 +31,7 @@ gun:
   target: localhost:80
 ```
 
-There is also a `type: http2/scenario` generator
+Так же есть `type: http2/scenario` генератор
 
 ```yaml
 gun:
@@ -62,11 +39,11 @@ gun:
   target: localhost:80
 ```
 
-All the settings of the regular [HTTP generator](http-generator.md) are supported for the scenario generator
+Для сценарного генератора поддерживаются все настройки обычного [HTTP генератора](http-generator.md)
 
-### Provider
+### Провайдер
 
-The provider accepts only one parameter - the path to the file with the scenario description
+Провайдер принимает всего один параметр - путь до файла с описанием сценария
 
 ```yaml
 ammo:
@@ -74,30 +51,30 @@ ammo:
   file: payload.hcl
 ```
 
-Supports file extensions
+Поддерживает файлы расширений
 
 - hcl
 - yaml
 - json
 
-## Description of the scenario format
+## Описание формата сценариев
 
-Supports formats
+Поддерживает форматы
 
 - hcl
 - yaml
 - json
 
-### General principle
+### Общий принцип
 
-Several scenarios can be described in one file. A scenario has a name that distinguishes one scenario from another.
+В одном файле можно описывать несколько сценариев. У сценария есть имя по которому один сценарий отличается от другого.
 
-A scenario is a sequence of requests. That is, you will need to describe in the script which requests in what order
-should be executed.
+Сценарий - это последовательность запросов. То есть вам потребуется описать в сценарии какие запросы в каком порядке
+должны выполняться.
 
-Request - HTTP request. Has the standard HTTP request fields plus additional fields. See [Requests](#requests).
+Запрос - HTTP запрос. Имеет стандартные поля HTTP запроса плюс дополнительные. См [Requests](#requests).
 
-### HCL example
+### HCL пример
 
 ```terraform
 locals {
@@ -157,7 +134,10 @@ scenario "scenario_name" {
 }
 ```
 
-### YAML example
+Так же пример можно посмотреть в тестах https://github.com/yandex/pandora/blob/dev/tests/grpc_scenario/testdata/grpc_payload.hcl
+
+
+### YAML пример
 
 ```yaml
 locals:
@@ -201,11 +181,11 @@ scenarios:
 
 ### Locals
 
-See [Locals article](scenario/locals.md)
+Про блок locals смотрите в отдельной [статье Locals](scenario/locals.md)
 
-## Features
+## Возможности
 
-### Requests
+### Запросы
 
 Поля
 
@@ -219,43 +199,44 @@ See [Locals article](scenario/locals.md)
 - preprocessors
 - postprocessors
 
-#### Templater
+#### Шаблонизатор
 
-The `uri`, `headers`, `body` fields are templatized.
+Поля `uri`, `headers`, `body` шаблонризируются.
 
-The standard go template is used.
+Используется стандартный go template.
 
-##### Variable names in templates
+##### Имена переменных в шаблонах
 
-Variable names have the full path of their definition.
+Имена переменных имеют полный путь их определения.
 
-For example
+Например
 
-Variable `users` from source `user_file` - `{% raw %}{{.source.user_file.users}}{% endraw %}`
+Переменная `users` из источника `user_file` - `{% raw %}{{.source.user_file.users}}{% endraw %}`
 
-Variable `token` from the `list_req` query postprocessor - `{% raw %}{{.request.list_req.postprocessor.token}}{% endraw %}`
+Переменная `item` из препроцессора запроса `list_req` - `{% raw %}{{.request.list_req.preprocessor.item}}{% endraw %}`
 
-Variable `item` from the `list_req` query preprocessor - `{% raw %}{{.request.list_req.preprocessor.item}}{% endraw %}`
+Переменная `token` из постпроцессора запроса `list_req` - `{% raw %}{{.request.list_req.postprocessor.token}}{% endraw %}`
 
-##### Functions in Templates
+##### Функции в шаблонах
 
-Since the standard Go templating engine is used, it is possible to use built-in functions available at https://pkg.go.dev/text/template#hdr-Functions.
+Так как используется стандартные шаблонизатор Го в нем можно использовать встроенные функции
+https://pkg.go.dev/text/template#hdr-Functions
 
-Additionally, some functions include:
+А так же некоторые функции
 
 - randInt
 - randString
 - uuid
 
-For more details about randomization functions, see [more](scenario/functions.md).
+Подробнее про функции рандомизации см в [документации](scenario/functions.md)
 
 #### Preprocessors
 
-Preprocessor - actions are performed before templating
+Препроцессор - действия выполняются перед шаблонизацией
 
-It is used for creating new variable mapping
+Используется для нового маппинга переменных
 
-The preprocessor has the ability to work with arrays using modifiers
+У препроцессора есть возможность работать с массивами с помощью модификаторов
 
 - next
 - last
@@ -284,19 +265,18 @@ request "req_name" {
 }
 ```
 
-Additionally, in the preprocessor, it is possible to create variables using randomization functions:
-
+Так же в препроцессоре есть возможность создавать переменные с использованием функций рандомизации
 - randInt()
 - randString()
 - uuid()
 
-For more details about randomization functions, see [more](scenario/functions.md).
+Подробнее про функции рандомизации см в [документации](scenario/functions.md)
 
 #### Postprocessors
 
 ##### var/jsonpath
 
-HCL example
+Пример hcl
 
 ```terraform
 request "your_request_name" {
@@ -322,29 +302,28 @@ request "your_request_name" {
 
 ##### var/header
 
-Creates a new variable from the response headers.
+Создает новую переменную из заголовков ответа.
 
-It is possible to specify simple string manipulations via pipe.
+Есть возможность через pipe указывать простейшие строковые манипуляции.
 
-Modifiers:
+Модификаторы:
 - lower
 - upper
-- substr(from, length) - where `length` is optional
+- substr(from, length) - где `length` - опционально
 - replace(search, replace)
 
-Modifiers can be chained.
+Модификаторы можно выстраивать в цепочку.
 
-**Example:**
+**Пример:**
 
-If you get a response with the headers
+Если вам приходит ответ с заголовками
 ```http request
 X-Trace-ID: we1fswe284awsfewf
 Authorization: Basic Ym9zY236Ym9zY28= 
 ```
 
-And you need to save for future use `traceID=we1fswe284awsfewf` & `auth=ym9zy236ym9zy28`
-
-you can use the postprocessor with the modifiers
+И вам требуется сохранить для дальнейшего использования `traceID=we1fswe284awsfewf` & `auth=ym9zy236ym9zy28`
+вы можете использовать постпроцессор с модификаторами
 
 ```terraform
 request "your_request_name" {
@@ -357,20 +336,17 @@ request "your_request_name" {
 }
 ```
 
-In templates you can use the result of this postprocessor as
-
-Translated with DeepL.com (free version)
+В шаблонах вы можете использовать результать данного постпроцессора как
 ```gotemplate
 `{% raw %}{{.request.your_request_name.postprocessor.auth}}{% endraw %}`
 `{% raw %}{{.request.your_request_name.postprocessor.traceID}}{% endraw %}`
 ```
 
-
 ##### assert/response
 
-Checks header and body content
+Проверяет значения заголовков и тела
 
-Upon assertion, further scenario execution is dropped
+Если матчинг не срабатывает, прекращает дальнейшее выполнение сценария
 
 ```terraform
 request "your_request_name" {
@@ -391,7 +367,7 @@ request "your_request_name" {
 
 ### Scenarios
 
-The minimum fields for the script are name and list of requests
+Минимальные поля для сценария - имя и перечень запросов
 
 ```terraform
 scenario "scenario_name" {
@@ -404,7 +380,7 @@ scenario "scenario_name" {
 }
 ```
 
-You can specify a multiplicator for request repetition
+Можно указать мултипликатор повторения запросов
 
 ```terraform
 scenario "scenario_name" {
@@ -415,7 +391,7 @@ scenario "scenario_name" {
 }
 ```
 
-You can specify the sleep() delay. Parameter in milliseconds
+Можно указать задержку sleep(). Параметр в миллисекундах
 
 ```terraform
 scenario "scenario_name" {
@@ -427,7 +403,7 @@ scenario "scenario_name" {
 }
 ```
 
-The second argument to request is **sleep** for requests with multipliers
+Вторым аргументом в запросы указывается sleep для запросов с мултипликаторами
 
 ```terraform
 scenario "scenario_name" {
@@ -439,8 +415,8 @@ scenario "scenario_name" {
 }
 ```
 
-The `min_waiting_time` parameter describes the minimum scenario execution time. That is, a **sleep** will be added at the end of the entire
-scenario if the scenario is executed faster than this parameter.
+Параметр `min_waiting_time` описывает минимальное время выполнения сценария. То есть будет добавлен sleep в конце всего
+сценария, если сценарий выполнится быстрее этого параметра.
 
 ```terraform
 scenario "scenario_name" {
@@ -453,9 +429,9 @@ scenario "scenario_name" {
 }
 ```
 
-Multiple scenarios can be described in one file.
+В одном файле можно описывать множество сценариев
 
-The `weight` parameter is the distribution weight of each scenario. The greater the weight, the more often the scenario will be executed.
+Параметр `weight` - вес распределения каждого сценария. Чем больше вес, тем чаще будет выполняться сценарий.
 
 
 ```terraform
@@ -479,12 +455,10 @@ scenario "scenario_second" {
 
 ### Sources
 
-Follow - [Variable sources](scenario/variable_source.md)
+См документ - [Источники переменных](scenario/variable_source.md)
 
-# References
+# Смотри так же
 
-- [HTTP generator](http-generator.md)
-- Best practices
-    - [RPS per instance](best_practices/rps-per-instance.md)
-    - [Shared client](best_practices/shared-client.md)
+- [HTTP генератор](http-generator.md)
+- [Практики использования](best-practices)
 

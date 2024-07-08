@@ -1,33 +1,10 @@
 ---
 title: Scenario generator / HTTP
 description: Scenario generator / HTTP
-categories: [Config]
-tags: [config, docs, http]
+categories: [generator]
+tags: [scenario, generator, http]
 weight: 9
 ---
-
-- [Configuration](#configuration)
-    - [Generator](#generator)
-    - [Provider](#provider)
-- [Description of the scenario format](#description-of-the-scenario-format)
-    - [General principle](#general-principle)
-    - [HCL example](#hcl-example)
-    - [YAML example](#yaml-example)
-    - [Locals](#locals)
-- [Features](#features)
-    - [Requests](#requests)
-        - [Templater](#templater)
-            - [Variable names in templates](#variable-names-in-templates)
-            - [Functions in templates](#functions-in-templates)
-        - [Preprocessors](#preprocessors)
-        - [Postprocessors](#postprocessors)
-            - [var/jsonpath](#varjsonpath)
-            - [var/xpath](#varxpath)
-            - [var/header](#varheader)
-            - [assert/response](#assertresponse)
-    - [Scenarios](#scenarios)
-    - [Sources](#sources)
-- [References](#references)
 
 ## Configuration
 
@@ -484,7 +461,4 @@ Follow - [Variable sources](scenario/variable_source.md)
 # References
 
 - [HTTP generator](http-generator.md)
-- Best practices
-    - [RPS per instance](best_practices/rps-per-instance.md)
-    - [Shared client](best_practices/shared-client.md)
-
+- [Практики использования](best-practices)
