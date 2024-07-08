@@ -1,12 +1,12 @@
 ---
 title: HTTP generator
-description: HTTP generator
+description: Настройка http/http2 генератора
 categories: [Config]
 tags: [config, docs, http]
 weight: 9
 ---
 
-Full http (http2) generator config
+Полный конфиг http (http2) генератора
 
 ```yaml
 gun:
@@ -23,8 +23,8 @@ gun:
   response-header-timeout: 0    # Amount of time to wait for a server's response headers after fully writing the request (including its body, if any). Zero means no timeout. Default: 0
   expect-continue-timeout: 1s   # Amount of time to wait for a server's first response headers after fully writing the request headers if the request has an "Expect: 100-continue" header. Zero means no timeout. Default: 1s
   shared-client:
-    enabled: false              # If TRUE, the generator will use a common transport client for all instances
-    client-number: 1            # The number of shared clients can be increased. The default is 1
+    enabled: true               # Если TRUE, генератор будет использовать общий транспортный клиент для всех инстансов
+    client-number: 1            # Количество общих клиентов можно увеличить. По умолчанию 1
   dial:
     timeout: 1s                 # TCP connect timeout. Default: 3s
     dns-cache: true             # Enable DNS cache, remember remote address on first try, and use it in the future. Default: true
@@ -44,12 +44,8 @@ gun:
     trace: true             # calculate different request stages: connect time, send time, latency, request bytes
 ```
 
-# References
+# Смотри так же
 
-- Best practices
-  - [RPS per instance](best_practices/rps-per-instance.md)
-  - [Shared client](best_practices/shared-client.md)
-
----
-
-[Home](../index.md)
+- Практики использования
+  - [RPS на инстанс](best_practices/rps-per-instance.md)
+  - [Общий транспорт](best_practices/shared-client.md)

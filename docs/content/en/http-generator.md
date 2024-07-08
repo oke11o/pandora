@@ -1,8 +1,8 @@
 ---
 title: HTTP generator
-description: HTTP generator
-categories: [Config]
-tags: [config, docs, http]
+description: Configure HTTP generator
+categories: [Generator]
+tags: [generator, http]
 weight: 9
 ---
 
@@ -49,7 +49,3 @@ gun:
 - Best practices
   - [RPS per instance](best_practices/rps-per-instance.md)
   - [Shared client](best_practices/shared-client.md)
-
----
-
-[Home](../index.md)

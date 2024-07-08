@@ -1,6 +1,6 @@
 ---
 title: gRPC generator
-description: gRPC generator
+description: Настройка grpc генератора
 categories: [Generator]
 tags: [generator, grpc]
 weight: 8
