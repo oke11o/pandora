@@ -1,7 +1,8 @@
 ---
 title: RPS per instance
-categories: [Config]
-tags: [config, docs]
+description: The setting allows you to change the rule for calculating the load profile
+categories: [Best practices]
+tags: [best_practices, discard_overflow]
 weight: 2
 ---
 

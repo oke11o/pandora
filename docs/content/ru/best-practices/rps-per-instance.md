@@ -1,20 +1,20 @@
 ---
-title: RPS per instance
-categories: [Config]
-tags: [config, docs]
+title: RPS на инстанс
+description: Настройка позволяет изменить правило расчета профиля нагрузки
+categories: [Best practices]
+tags: [best_practices, rps]
 weight: 2
 ---
 
-Usually in tests, when we increase the speed of requests submitted to the target service by specifying the `line`, `const`, `step` scheme in the rps section,
-then in the `startup` section we specify the `once` scheme, because we want all instances to be available from the very beginning of the test in order to generate the load we need.
+Обычно в тестах, когда мы увеличиваем скорость запросов, подаваемых на тестируемый севис, указывая схему `line`, `const`, `step` в секции rps,
+то в секции `startup` мы указываем схему `once`, т.к. хотим, чтобы с самого начала теста нам были доступны все инстансы для того, чтобы сгенерить нужную нам нагрузку.
 
-In tests with scenario load, when we have each instance describing virtual user behavior, then in the `startup` section we can specify a smooth growth of the number of users, for example, with the scheme `instance_step`, increasing their number step by step, or `const`, increasing the number of users at a constant rate.
-The `rps-per-instance` instance pool setting can be used for this purpose. It is useful for the script generator when we want to limit the speed of each user in rps.
+В тестах со сценарной нагрузкой, когда у нас каждый инстанс описыает поведение пользователя, то в секции `startup` можно указывать плавный рост количества пользователей, например схемой `instance_step`, увеличивая ступенчато их кол-во, или `const`, увеличивая пользователей с постоянной скоростью.
+Для этого можно использовать настройку пула инстансов `rps-per-instance`. Она полезна для сценарного генератора, когда мы хотим ограничить скорость каждого пользователя в rps.
 
-For example we specify `const` and enable `rps-per-instance`, then by increasing users via `instance_step` we simulate the real user load.
+Например, укажем `const` и включим `rps-per-instance`, то потом увеличивая пользователей через `instance_step`, мы имитируем реальную пользовательскую нагрузку.
 
-
-Example:
+Пример:
 
 ```yaml
 pools:
@@ -43,7 +43,3 @@ pools:
 log:
   level: error
 ```
-
----
-
-[Home](../../index.md)

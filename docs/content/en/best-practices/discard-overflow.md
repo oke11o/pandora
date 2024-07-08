@@ -1,8 +1,9 @@
 ---
 title: Discard overflow
+description: The setting includes the behavior of discarding overdue requests
 categories: [Best practices]
 tags: [best_practices, discard_overflow]
-weight: 2
+weight: 1
 ---
 
 When you specify a [load profile](../load-profile.md), the generator calculates the order and timing of requests. This

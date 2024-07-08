@@ -1,11 +1,10 @@
 ---
 title: Use shared client
-categories: [Config]
-tags: [config, docs]
-weight: 2
+description: The setting allows you to reduce the number of open connections to the server
+categories: [Best practices]
+tags: [best_practices, shared_client]
+weight: 3
 ---
-
-# Use shared client
 
 ## General principle
 
@@ -34,7 +33,3 @@ A single client uses multiple connections and can create additional connections 
 But under heavy loads there may be a situation when the client does not have time to create connections.
 You can increase the speed of connection creation by a common client by increasing the `shared-client.client-number` parameter.
 By default `shared-client.client-number=1`.
-
----
-
-[Home](../../index.md)
