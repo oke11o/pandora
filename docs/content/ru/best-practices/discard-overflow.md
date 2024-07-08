@@ -1,46 +1,45 @@
 ---
-title: Discard Overflow
-categories: [Config]
-tags: [config, docs]
+title: Discard overflow
+categories: [Best practices]
+tags: [best_practices, discard_overflow]
 weight: 2
 ---
 
-When you specify a [load profile](../load-profile.md), the generator calculates the order and timing of requests. This
-can be referred to as the schedule of requests execution. Pandora's scheduler is responsible for this. It receives
-requests from the provider and according to this schedule, passes them to the instances. Each instance then executes the
-requests sequentially.
+Когда вы указываете [профиль нагрузки](../load-profile.md) генератор рассчитывает порядок и время выполнения запросов.
+Можно назвать это расписанием выполнения запросов. За это отвечает планировщик Пандоры. Он получает запросы от
+провайдера и по этому рассписанию передает инстансам. А каждый инстанс выполняет запросы последовательно.
 
-There may be situations where the scheduler believes it's time to execute the next request, but all instances are busy
-waiting for their current requests to complete. In this case, the scheduler can proceed in one of two ways:
+Может возникнуть ситуация, когда планировщик считает, что наступило время выполнить следующий запрос, но все инстансы
+заняты ожиданием выполнения своего текущего запроса. В этом случае планировщик может поступать одним из 2-х способов.
 
-1. Wait until an instance becomes available and then pass the request to it later than scheduled.
-2. Discard this request and wait for the next one, anticipating that by the time the next request is due, one of the
-   instances will have become available.
+1. Дождаться, когда освободится какой-либо инстанс и передать запрос ему позже расписания
+2. Отбросить этот запрос и ожидать следующий, рассчитывая на то, что когда наступит время следующего запроса, уже
+   освободится один из инстансов.
 
-The instance setting `discard_overflow` determines which behavior to follow.
+За то, какому поведению следовать, отвечает настройка инстанса `discard_overflow`
 
-1. `discard_overflow: false` - Flexible schedule adherence. The generator ensures that all planned requests are sent.
-   The test duration depends on the performance of the service being tested, average response time, and the number of
-   instances.
-2. `discard_overflow: true` - Strict adherence to the request schedule by the generator. Requests that do not fit into
-   the schedule are discarded. The test duration is predetermined. Requests that fail to meet the schedule are marked as
-   failed (with a net error `777`, and also tagged as discarded). Pandora considers a test to have failed schedule, if 
-   the time of the request is 2 seconds behind. That is 2 second sliding window is used.
+1. `discard_overflow: false` - нестрогое следование расписанию. Генератор гарантирует, что все запланированные запросы
+   будут отправлены. Время выполнения теста зависит от производительности тестируемого сервиса, среднего времени ответа
+   и количества инстансов.
+2. `discard_overflow: true` - строгое следование генератором расписания запросов. Запросы, не уложившиеся
+   в расписание, отбрасываются. Время выполнения теста предопределено. Запросы, которые не укладываются в расписание,
+   помечаются неудавшимися (ошибка net `777`, а так же добавляется tag:discarded). Пандора считает, что тест не уложился
+   в расписание, если время запроса отстало на 2 сек. То есть используется 2 секундное скользящее окно.
 
-By default, starting from version pandora@0.5.24, the setting `discard_overflow: true` is enabled.
+По-умолчанию, начиная с версии pandora@0.5.24 настройка `discard_overflow: true`
 
-## A Bit of Theory
+## Немного теории
 
-When might the situation arise that forces the scheduler to choose the `discard_overflow` behavior? As mentioned
-earlier, this occurs when it's time to execute a request, but there are no free instances available to process it. Why
-can this happen? This typically occurs when the server's response time is high and the combination of the number of
-instances and the load profile is not optimally selected. This is when `V > N * 1/rps`, where:
+Когда может возникнуть ситуация, в которой планировщику придется выбрать поведение discard_overflow? Как было сказано
+выше, когда наступает время выполнения запроса, но нет свободных инстансов, которые этот запрос могут выполнить.
+Почему это может происходить? Когда время ответа от сервера высоко и комбинация кол-во инстансов и профиль нагрузки
+выбраны не оптимально. То есть когда `V > N * 1/rps`, где
 
-- `V` is the response time of the server being tested (in seconds).
-- `N` is the number of instances.
+- `V` - время ответа нагружаемого сервера (в секундах)
+- `N` - кол-во инстансов
 
-To avoid such situations, you can:
+Таким образом, чтобы избежать такой ситуации можно
 
-- Increase the number of instances.
-- Decrease the load profile.
-- Optimize the server being tested to reduce response time.
+- увеличить кол-во инстансов
+- уменьшить профиль нагрузки
+- оптимизировать нагружаемый сервис, для уменьшения времени ответа

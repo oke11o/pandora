@@ -1,7 +1,7 @@
 ---
-title: Discard Overflow
-categories: [Config]
-tags: [config, docs]
+title: Discard overflow
+categories: [Best practices]
+tags: [best_practices, discard_overflow]
 weight: 2
 ---
 
