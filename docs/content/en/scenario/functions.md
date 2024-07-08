@@ -1,8 +1,8 @@
 ---
-title: Randomization Functions
-description: Randomization Functions
-categories: [Config]
-tags: [config, docs]
+title: Randomization functions
+description: You can use functions to generate random values
+categories: [Scenario]
+tags: [scenario, function]
 weight: 3
 ---
 

@@ -1,51 +1,53 @@
 ---
-title: Randomization Functions
-description: Randomization Functions
-categories: [Config]
-tags: [config, docs]
+title: Функции рандомизации
+description: Вы можете использовать функции для генерации случайных значений
+categories: [Scenario]
+tags: [scenario, function]
 weight: 3
 ---
 
-You can use functions to generate random values:
+Вы можете использовать функции для генерации рандомных значений
+
 - randInt
 - randString
 - uuid
 
-These functions can be utilized in different parts of the scenarios with specific usage characteristics:
-- [In Templates](#in-templates)
-- [In the Data Source - variables](#in-the-data-source---variables)
-- [In Preprocessors](#in-preprocessors)
+Использовать их можно в разных частях сценариев с некоторыми особенностями использования
 
-## Usage
+- [В шаблона](#в-шаблонах)
+- [В источник данных - variables](#в-источнике-данных---variables)
+- [В препроцессорах](#в-препроцессорах)
+
+## Использование
 
 ### uuid
 
-Generates a random uuid v4.
+Генерирует случайных uuid v4
 
 ### randInt
 
-Generates a pseudorandom number.
+Генерирует псевдослучайное значение
 
-Arguments are optional. Calling the function without arguments will generate a random number in the range of 0-9.
+Аргументы не обязательны. При вызове функции без аргументов будет сгенерировано случайное число в диапазоне 0-9
 
-Providing one argument will generate a random number in the range from 0 to that number.
+Передать 1 аргумент - будет сгенерировано случайное число в диапазоне от 0 до этого числа
 
-Providing two arguments will generate a random number in the range between these two numbers.
+Передать 2 аргумента - будет сгенерировано случайное число в диапазоне между этими числами
 
 ### randString
 
-Generates a random string.
+Генерирует случайную строку
 
-Arguments are optional. Calling the function without arguments will generate one random character.
+Аргументы не обязательны. При вызове функции без аргументов будет сгенерирован 1 случайный символ
 
-Providing one argument (a number) X will generate a string of length X.
+Передать 1 аргумент (число) X - будет сгенерирована строка длиной X
 
-Providing a second argument (a string of characters) Y will use only characters from the specified string Y for generation.
+Передать 2 аргумент (строка символов) Y - для генерации будут использьваны только символы из указанной строки Y
 
-## In Templates
+## В шаблонах
 
-Since the standard Go templating engine is used, it is possible to use built-in functions. More details about these 
-functions can be found at [Go template functions](https://pkg.go.dev/text/template#hdr-Functions).
+Так как используется стандартные шаблонизатор Го в нем можно использовать встроенные функции
+https://pkg.go.dev/text/template#hdr-Functions
 
 ### uuid
 
@@ -55,91 +57,91 @@ functions can be found at [Go template functions](https://pkg.go.dev/text/templa
 
 ### randInt
 
-no arguments
+без аргументов
 ```gotemplate
 {% raw %}{{ randInt }}{% endraw %}
 ```
 
-1 argument
+1 аргумент
 ```gotemplate
 {% raw %}{{ randInt 10 }}{% endraw %}
 ```
 
-2 arguments
+2 аргумента
 ```gotemplate
 {% raw %}{{ randInt 100 200 }}{% endraw %}
 ```
 
-2 arguments using source variable
+2 аргумента используем из источника переменных
 ```gotemplate
 {% raw %}{{ randInt 200 .source.global.max_rand_int }}{% endraw %} 
 ```
 
 ### randString
 
-no arguments
+без аргументов
 ```gotemplate
 {% raw %}{{ randString }}{% endraw %}
 ```
 
-1 argument
+1 аргумент
 ```gotemplate
 {% raw %}{{ randString 10 }}{% endraw %}
 ```
 
-2 arguments
+2 аргумента
 ```gotemplate
 {% raw %}{{ randString 10 abcde }}{% endraw %}
 ```
 
-2 arguments using source variable
+2 аргумента используем из источника переменных
 ```gotemplate
 {% raw %}{{ randString 20 .source.global.letters }}{% endraw %}
 ```
 
-## In the Data Source - variables
+## В источник данных - variables
 
-You can use random value generation functions in the `variables` type data source.
+Вы можете использовать функции генерации рандомный значений в источнике переменных типа `variables`
 
-Function calls should be passed as strings (in quotes).
+Вызов функций необходимо передавать в виде строки (в кавычках)
 
 ```terraform
 variable_source "global" "variables" {
   variables = {
     my_uuid = "uuid()"
-    my_random_int1 = "randInt()"                # no arguments
-    my_random_int2 = "randInt(10)"              # 1 argument
-    my_random_int3 = "randInt(100, 200)"        # 2 arguments
-    my_random_string1 = "randString()"          # no arguments
-    my_random_string2 = "randString(10)"        # 1 argument
-    my_random_string3 = "randString(100, abcde)" # 2 arguments
+    my_random_int1 = "randInt()"                # без аргументов
+    my_random_int2 = "randInt(10)"              # 1 аргумент
+    my_random_int3 = "randInt(100, 200)"        # 2 аргумента
+    my_random_string1 = "randString()"          # без аргументов
+    my_random_string2 = "randString(10)"        # 1 аргумент
+    my_random_string3 = "randString(100, abcde)" # 2 аргумента
   }
 }
 ```
 
-## In Preprocessors
+## В препроцессорах
 
-You can use random value generation functions in preprocessors.
+Вы можете использовать функции генерации рандомный значений в препроцессорах
 
 ```terraform
 preprocessor {
   mapping = {
     my_uuid = "uuid()"
-    my_random_int1 = "randInt()"                # no arguments
-    my_random_int2 = "randInt(10)"              # 1 argument
-    my_random_int3 = "randInt(100, 200)"        # 2 arguments
-    my_random_int4 = "randInt(100, .request.my_req_name.postprocessor.var_from_response)" # 2 arguments, using from response of request my_req_name
-    my_random_string1 = "randString()"          # no arguments
-    my_random_string2 = "randString(10)"        # 1 argument
-    my_random_string3 = "randString(100, abcde)" # 2 arguments
-    my_random_string4 = "randString(100, .request.my_req_name.postprocessor.var_from_response)"  # 2 arguments, using from response of request my_req_name
+    my_random_int1 = "randInt()"                # без аргументов
+    my_random_int2 = "randInt(10)"              # 1 аргумент
+    my_random_int3 = "randInt(100, 200)"        # 2 аргумента
+    my_random_int4 = "randInt(100, .request.my_req_name.postprocessor.var_from_response)" # 2 аргумента используем из ответа запроса my_req_name
+    my_random_string1 = "randString()"          # без аргументов
+    my_random_string2 = "randString(10)"        # 1 аргумент
+    my_random_string3 = "randString(100, abcde)" # 2 аргумента
+    my_random_string4 = "randString(100, .request.my_req_name.postprocessor.var_from_response)"  # 2 аргумента используем из ответа запроса my_req_name
   }
 }
 ```
 
-# HCL functions
+# Функции HCL
 
-You can use follow function 
+При парсинге HCL доступны следующие функции
 
 - [coalesce](https://developer.hashicorp.com/packer/docs/templates/hcl_templates/functions/collection/coalesce)
 - [coalescelist](https://developer.hashicorp.com/packer/docs/templates/hcl_templates/functions/collection/coalescelist)
@@ -159,8 +161,7 @@ You can use follow function
 - [values](https://developer.hashicorp.com/packer/docs/templates/hcl_templates/functions/collection/values)
 - [zipmap](https://developer.hashicorp.com/packer/docs/templates/hcl_templates/functions/collection/zipmap)
 
-
 ---
 
-- [Scenario generator / HTTP](../scenario-http-generator.md)
-- [Scenario generator / gRPC](../scenario-grpc-generator.md)
+- [Сценарный генератор / HTTP](../scenario-http-generator.md)
+- [Сценарный генератор / gRPC](../scenario-grpc-generator.md)
