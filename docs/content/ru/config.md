@@ -1,5 +1,5 @@
 ---
-title: Configuration
+title: Конфигурация
 description: Pandora поддерживает файлы конфигурации в формате `YAML`
 categories: [Get started]
 tags: [config]

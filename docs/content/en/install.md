@@ -1,6 +1,8 @@
 ---
 title: Installation
 description: How install Yandex Pandora
+categories: [Get started]
+tags: [install]
 weight: 1
 ---
 

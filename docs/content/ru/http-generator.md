@@ -1,5 +1,5 @@
 ---
-title: HTTP generator
+title: HTTP генератор
 description: Настройка http/http2 генератора
 categories: [Config]
 tags: [config, docs, http]

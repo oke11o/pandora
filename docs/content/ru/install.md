@@ -1,12 +1,14 @@
 ---
-title: Installation
-description: How intall Yandex Pandora
+title: Установка
+description: Как установить Yandex Pandora
+categories: [Get started]
+tags: [install]
 weight: 1
 ---
 
-[Download](https://github.com/yandex/pandora/releases) binary release or build from source.
+[Скачать](https://github.com/yandex/pandora/releases) релиз или собрать из сходников.
 
-Pandora uses **go modules**.
+Pandora использует **go modules**
 
 ```bash
 git clone https://github.com/yandex/pandora.git
@@ -14,7 +16,7 @@ cd pandora
 go mod download
 ```
 
-You can also cross-compile for other arch/os:
+Также возможна кросс-компиляция под другие arch/os:
 
 ```bash
 GOOS=linux GOARCH=amd64 go build

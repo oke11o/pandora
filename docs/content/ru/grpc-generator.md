@@ -1,5 +1,5 @@
 ---
-title: gRPC generator
+title: gRPC генератор
 description: Настройка grpc генератора
 categories: [Generator]
 tags: [generator, grpc]
