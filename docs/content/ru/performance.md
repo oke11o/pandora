@@ -1,13 +1,10 @@
 ---
-title: Pandora's performance
-description: Pandora's performance
-categories: [Config]
-tags: [config, docs, http]
+title: Производительность Pandora
+description: Результаты тестов производительности
+categories: [Best practise]
+tags: [config, test, performance]
 weight: 13
 ---
-
-- [HTTP requests to nginx](#http-requests-to-nginx)
-- [Custom scenarios](#custom-scenarios)
 
 [Alexander Ivanov](mailto:ival.net@yandex.ru) made some performance tests for the gun itself. Here are the results.
 
@@ -48,12 +45,12 @@ server {
 
 * **Connection: Close** 23k RPS
 
-![Connection:Close, response times distribution](../images/http_connection_close_td.png)
+![Connection:Close, response times distribution](../../images/http_connection_close_td.png)
 
 
 * **Connection: Keep-Alive** 95k RPS
 
-![Keep-Alive, response times distribution](../images/http_keep_alive_td.png)
+![Keep-Alive, response times distribution](../../images/http_keep_alive_td.png)
 
 
 * **Response size 10kB** maxed out network interface. OK.
@@ -62,7 +59,7 @@ server {
 * **POST requests 100kB** maxed out network interface. OK.
 * **POST requests 1MB** maxed out network interface. OK.
 
-![100 kb responses, network load](../images/http_100kb_net.png)
+![100 kb responses, network load](../../images/http_100kb_net.png)
 
 
 
@@ -73,16 +70,16 @@ server {
 
 **All good.**
 
-![10s server delay, response times distribution](../images/http_delay_10s_td.png)
+![10s server delay, response times distribution](../../images/http_delay_10s_td.png)
 
 
-![10s server delay, instances count](../images/http_delay_10s_instances.png)
+![10s server delay, instances count](../../images/http_delay_10s_instances.png)
 
 
 
 * **Server fail during test** OK.
 
-![server fail emulation, response times quantiles](../images/http_srv_fail_q.png)
+![server fail emulation, response times quantiles](../../images/http_srv_fail_q.png)
 
 
 
@@ -100,8 +97,5 @@ to do this.
 * **Small requests** 35k RPS. OK.
 * **Some scenario steps with big JSON bodies** 35k RPS. OK.
 
-![scenario steps](../images/scn_cases.png)
+![scenario steps](../../images/scn_cases.png)
 
- ---
-
-[Home](../index.md)

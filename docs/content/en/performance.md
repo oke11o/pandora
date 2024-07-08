@@ -1,13 +1,10 @@
 ---
 title: Pandora's performance
-description: Pandora's performance
-categories: [Config]
-tags: [config, docs, http]
+description: Some performance tests for the gun itself
+categories: [Best practise]
+tags: [config, test, performance]
 weight: 13
 ---
-
-- [HTTP requests to nginx](#http-requests-to-nginx)
-- [Custom scenarios](#custom-scenarios)
 
 [Alexander Ivanov](mailto:ival.net@yandex.ru) made some performance tests for the gun itself. Here are the results.
 
@@ -101,7 +98,3 @@ to do this.
 * **Some scenario steps with big JSON bodies** 35k RPS. OK.
 
 ![scenario steps](../images/scn_cases.png)
-
- ---
-
-[Home](../index.md)
