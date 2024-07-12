@@ -9,14 +9,12 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/suite"
-	grpc "github.com/yandex/pandora/components/grpc/import"
-	phttpimport "github.com/yandex/pandora/components/phttp/import"
-	"github.com/yandex/pandora/core/engine"
-	coreimport "github.com/yandex/pandora/core/import"
-	"github.com/yandex/pandora/lib/testutil"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
+
+	"github.com/yandex/pandora/core/engine"
+	"github.com/yandex/pandora/lib/testutil"
 )
 
 var testOnce = &sync.Once{}
@@ -34,11 +32,7 @@ type PandoraSuite struct {
 
 func (s *PandoraSuite) SetupSuite() {
 	s.fs = afero.NewOsFs()
-	testOnce.Do(func() {
-		coreimport.Import(s.fs)
-		phttpimport.Import(s.fs)
-		grpc.Import(s.fs)
-	})
+	testOnce.Do(importDependencies(s.fs))
 
 	s.log = testutil.NewNullLogger()
 	s.metrics = engine.NewMetrics("http_suite")
