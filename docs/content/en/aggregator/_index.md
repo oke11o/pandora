@@ -1,5 +1,5 @@
 ---
-title: Аггрегатор
+title: Aggregator
 description: 
 categories: [Aggregator]
 weight: 10

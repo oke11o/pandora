@@ -2,7 +2,7 @@
 title: Data Sources
 description: To simplify the implementation of your custom generators
 categories: [Provider]
-tags: [provider, dummy].
+tags: [provider, dummy]
 weight: 40
 ---
 

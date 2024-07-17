@@ -2,7 +2,7 @@
 title: Dummy Provider
 description: Dummy provider is used for generators without external Payload.
 categories: [Provider]
-tags: [provider, dummy].
+tags: [provider, dummy]
 weight: 30
 ---
 
